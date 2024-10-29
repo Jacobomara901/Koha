@@ -16,16 +16,129 @@ package Koha::REST::V1::Lists;
 # along with Koha; if not, see <https://www.gnu.org/licenses>.
 
 use Modern::Perl;
-
 use Mojo::Base 'Mojolicious::Controller';
-
 use Koha::Virtualshelves;
-
 use Try::Tiny qw( catch try );
 
 =head1 API
 
 =head2 Methods
+
+=head3 add
+
+Create a virtual shelf
+
+=cut
+
+sub add {
+    my $c = shift->openapi->valid_input or return;
+
+    return try {
+
+        # Check if owner_id exists if provided
+        my $body = $c->req->json;
+        if ( $body->{owner_id} ) {
+            my $owner = Koha::Patrons->find( $body->{owner_id} );
+            unless ($owner) {
+                return $c->render(
+                    status  => 400,
+                    openapi => {
+                        error      => "Invalid owner_id",
+                        error_code => "invalid_owner"
+                    }
+                );
+            }
+        }
+
+        # Set allow_change_from_staff=1 by default unless specified
+        $body->{allow_change_from_staff} = 1 unless exists $body->{allow_change_from_staff};
+
+        my $list = Koha::Virtualshelf->new_from_api($body);
+        $list->store->discard_changes;
+
+        $c->res->headers->location( $c->req->url->to_string . '/' . $list->id );
+
+        return $c->render(
+            status  => 201,
+            openapi => $list->to_api
+        );
+    } catch {
+        $c->unhandled_exception($_);
+    };
+}
+
+=head3 update
+
+Update a virtual shelf
+
+=cut
+
+sub update {
+    my $c = shift->openapi->valid_input or return;
+
+    my $list = Koha::Virtualshelves->find( $c->param('list_id') );
+
+    return $c->render_resource_not_found("List")
+        unless $list;
+
+    my $user = $c->stash('koha.user');
+
+    unless ( $list->can_be_managed( $user->id ) ) {
+        return $c->render(
+            status  => 403,
+            openapi => {
+                error      => "Cannot modify list without proper permissions",
+                error_code => "forbidden"
+            }
+        );
+    }
+
+    return try {
+        $list->set_from_api( $c->req->json );
+        $list->store();
+
+        return $c->render(
+            status  => 200,
+            openapi => $list->to_api
+        );
+    } catch {
+        $c->unhandled_exception($_);
+    };
+}
+
+=head3 delete
+
+Delete a virtual shelf if it exists
+
+=cut
+
+sub delete {
+    my $c = shift->openapi->valid_input or return;
+
+    my $list = Koha::Virtualshelves->find( $c->param('list_id') );
+
+    return $c->render_resource_not_found("List")
+        unless $list;
+
+    my $user = $c->stash('koha.user');
+
+    unless ( $list->can_be_deleted( $user->id ) ) {
+        return $c->render(
+            status  => 403,
+            openapi => {
+                error      => "Cannot delete this list",
+                error_code => "forbidden"
+            }
+        );
+    }
+
+    return try {
+        $list->delete;
+        return $c->render( status => 204, openapi => {} );
+    } catch {
+        $c->unhandled_exception($_);
+    };
+}
 
 =head3 list_public
 
@@ -73,5 +186,4 @@ sub list_public {
         $c->unhandled_exception($_);
     };
 }
-
 1;
