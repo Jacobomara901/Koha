@@ -1706,6 +1706,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 patron_quota_usages
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::PatronQuotaUsage>
+
+=cut
+
+__PACKAGE__->has_many(
+  "patron_quota_usages",
+  "Koha::Schema::Result::PatronQuotaUsage",
+  { "foreign.patron_id" => "self.borrowernumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 patron_quotas
 
 Type: has_many
