@@ -168,7 +168,7 @@ sub renewals {
 
 =head3 booking
 
-my $booking = $checkout->booking;
+    my $booking = $checkout->booking;
 
 Return the linked booking
 
@@ -179,6 +179,27 @@ sub booking {
     my $booking_rs = $self->_result->booking;
     return unless $booking_rs;
     return Koha::Booking->_new_from_dbic($booking_rs);
+}
+
+=head3 quota
+
+    my $quota = $checkout->quota;
+
+Return the checked out quota
+
+=cut
+
+sub quota {
+    my ($self) = @_;
+    my $usage_rs = $self->_result->quota_usages->search(
+        {},
+        {
+            rows     => 1,
+            order_by => { '-desc' => 'creation_date' }
+        }
+    )->single;
+    return unless $usage_rs;
+    return Koha::Patron::Quota->_new_from_dbic( $usage_rs->patron_quota );
 }
 
 =head3 attempt_auto_renew
