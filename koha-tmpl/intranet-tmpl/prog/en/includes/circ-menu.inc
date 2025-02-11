@@ -211,10 +211,12 @@
                     <a href="/cgi-bin/koha/members/holdshistory.pl?borrowernumber=[% patron.borrowernumber | uri %]">Holds history</a>
                 </li>
             [% END %]
-            [% IF patron.category.category_type == 'I' %]
-                <li [% IF ( quotaview ) %]class="active"[% END %]>
-                    <a href="/cgi-bin/koha/members/circulation_quota.pl?borrowernumber=[% patron.borrowernumber | uri %]">Circulation quota</a>
-                </li>
+            [% IF Koha.Preference('EnableCirculationQuotas') %]
+                [% IF patron.category.category_type == 'I' %]
+                    <li [% IF ( quotaview ) %]class="active"[% END %]>
+                        <a href="/cgi-bin/koha/members/circulation_quota.pl?borrowernumber=[% patron.borrowernumber | uri %]">Circulation quota</a>
+                    </li>
+                [% END %]
             [% END %]
             [% IF ( CAN_user_tools_view_system_logs ) %]
                 <li [% IF logview %]class="active"[% END %]>
