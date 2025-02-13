@@ -138,6 +138,11 @@
         <div class="alert alert-warning">System preference 'ChildNeedsGuarantor' is enabled and this patron does not have a guarantor.</div>
     [% END %]
 
+    [% IF issue && issue.quota %]
+        [% SET quota = issue.quota %]
+        <div class="alert alert-info">Usage recorded against[% IF quota.patron_id != issue.borrowernumber %][% INCLUDE 'patron-title.inc' patron = quota.patron no_cardnumber = 1 %][% END %] [% quota.description | html %] quota.</div>
+    [% END %]
+
     [% IF ( NEEDSCONFIRMATION ) %]
         <div id="circ_needsconfirmation" class="alert alert-warning audio-alert-action focus" tabindex="-1">
             [% IF CAN_user_circulate_force_checkout or ADDITIONAL_MATERIALS %]
@@ -156,7 +161,7 @@
                     </li>
                 [% END %]
 
-                [%IF ( QUOTA_EXCEEDED ) %]
+                [% IF ( QUOTA_EXCEEDED ) %]
                     <li class="needsconfirm age_restriction">
                         Quota Exceeded. Available: [% QUOTA_EXCEEDED.available | html %] / [% QUOTA_EXCEEDED.total | html %].
                         [% IF CAN_user_circulate_force_checkout %]
@@ -681,7 +686,7 @@
                     <li>Age restriction [% AGE_RESTRICTION | html %].</li>
                 [% END %]
 
-                [%IF ( QUOTA_EXCEEDED ) %]
+                [% IF ( QUOTA_EXCEEDED ) %]
                     <li>Quota Exceeded. Available: [% QUOTA_EXCEEDED.available | html %] / [% QUOTA_EXCEEDED.total | html %].</li>
                 [% END %]
 
