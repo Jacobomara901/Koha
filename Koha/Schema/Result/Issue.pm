@@ -464,7 +464,7 @@ Related object: L<Koha::Schema::Result::PatronQuotaUsage>
 =cut
 
 __PACKAGE__->has_many(
-    'quota_usages' => 'MyApp::Schema::Result::PatronQuotaUsage',
+    'quota_usages' => 'Koha::Schema::Result::PatronQuotaUsage',
     'issue_id'
 );
 
