@@ -23,21 +23,24 @@ Always returns the single configuration row with ID=1.
 
 sub get_configuration {
     my ($self) = @_;
-    
+
     # Always get config with ID=1
     my $config = $self->find(1);
     unless ($config) {
+
         # Create default config with ID=1 if it doesn't exist
-        $config = Koha::ShibbolethConfig->new({
-            shibboleth_config_id => 1,
-            enable_opac_sso => 0,
-            enable_staff_sso => 0,
-            autocreate => 0,
-            sync => 0,
-            welcome => 0
-        })->store;
+        $config = Koha::ShibbolethConfig->new(
+            {
+                shibboleth_config_id => 1,
+                force_opac_sso       => 0,
+                force_staff_sso      => 0,
+                autocreate           => 0,
+                sync                 => 0,
+                welcome              => 0
+            }
+        )->store;
     }
-    
+
     return $config;
 }
 
