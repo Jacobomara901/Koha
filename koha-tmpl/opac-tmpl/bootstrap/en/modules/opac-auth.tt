@@ -3,6 +3,7 @@
 [% USE Categories %]
 [% USE AdditionalContents %]
 [% USE AuthClient %]
+[% USE Shibboleth %]
 [% PROCESS 'i18n.inc' %]
 [% PROCESS 'html_helpers.inc' %]
 [% SET OpacLoginInstructions = AdditionalContents.get( location => "OpacLoginInstructions", lang => lang, library => branchcode || default_branch ) %]
@@ -95,7 +96,7 @@
                                     <!-- This is what is displayed if shibboleth login has failed to match a koha user -->
                                     <div class="alert alert-info">
                                         <p class="shib_invalid">Sorry, your Shibboleth identity does not match a valid library identity.</p>
-                                        [% UNLESS ( Koha.Preference('OPACShibOnly') ) %]
+                                        [% UNLESS ( Shibboleth.Config('force_opac_sso') ) %]
                                             [% IF ( casAuthentication ) %]
                                                 [% IF ( invalidCasLogin ) %]
                                                     <!-- This is what is displayed if cas login has failed -->
@@ -112,7 +113,7 @@
                                     <h2 class="shib_title">Shibboleth login</h2>
                                     <p><a class="shib_url" href="[% shibbolethLoginUrl | $raw %]">Log in using a Shibboleth account.</a></p>
                                 [% END # /IF invalidShibLogin %]
-                                [% UNLESS ( Koha.Preference('OPACShibOnly') ) %]
+                                [% UNLESS ( Shibboleth.Config('force_opac_sso') ) %]
                                     [% IF ( casAuthentication ) %]
                                         <h2 class="cas_title">CAS login</h2>
                                         <p>If you do not have a Shibboleth account, but you do have a CAS account, you can use CAS.</p>
@@ -123,7 +124,7 @@
                                 [% END %]
                             [% END # /IF shibbolethAuthentication %]
 
-                            [% UNLESS ( Koha.Preference('OPACShibOnly') ) %]
+                            [% UNLESS ( Shibboleth.Config('force_opac_sso') ) %]
                                 [% IF ( casAuthentication ) %]
                                     [% IF ( shibbolethAuthentication ) %]
                                         [% IF ( casServerUrl ) %]
@@ -198,7 +199,7 @@
                                     <a href="/cgi-bin/koha/svc/auth/googleopenidconnect" class="btn btn-light" id="openid_connect"><i class="fa-brands fa-google" aria-hidden="true"></i> Log in with Google</a>
                                     <p>If you do not have a Google account, but do have a local account, you can still log in: </p>
                                 [% END # /IF GoogleOpenIDConnect %]
-                            [% END # /UNLESS OPACShibOnly %]
+                            [% END # /UNLESS force_opac_sso %]
 
                             [% IF !(invalid_username_or_password || too_many_login_attempts) and is_anonymous_patron %]
                                 <div class="alert alert-info">
@@ -225,7 +226,7 @@
                                 [% ELSE %]
                                     <p>You must contact the library to reset your password</p>
                                 [% END %]
-                            [% ELSIF !Koha.Preference('OPACShibOnly') or SCO_login or SCI_login %]
+                            [% ELSIF !Shibboleth.Config('force_opac_sso') or SCO_login or SCI_login %]
                                 [% SET form_action = script_name %]
                                 [% IF SCO_login %]
                                     [% form_action = "/cgi-bin/koha/sco/sco-main.pl" %]
@@ -281,7 +282,7 @@
                                         </div>
                                     [% END %]
                                 </form>
-                            [% END # / IF password_has_expired / ELSIF !OPACShibOnly or SCO_login or SCI_login %]
+                            [% END # / IF password_has_expired / ELSIF !force_opac_sso or SCO_login or SCI_login %]
                         [% END # / IF loginprompt %]
                     [% ELSE %]
                         <h1>Logging on to the catalog has not been enabled by the library.</h1>
