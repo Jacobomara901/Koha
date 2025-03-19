@@ -384,6 +384,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 configurations
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::Configuration>
+
+=cut
+
+__PACKAGE__->has_many(
+  "configurations",
+  "Koha::Schema::Result::Configuration",
+  { "foreign.category_id" => "self.categorycode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 identity_provider_domains
 
 Type: has_many
@@ -400,8 +415,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07051 @ 2024-11-08 11:06:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:f8BSmD9RKHL/QAvHuuLIyw
+# Created by DBIx::Class::Schema::Loader v0.07051 @ 2025-03-16 15:50:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sBhW2HKCC/yeZZXtnGMVMw
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 

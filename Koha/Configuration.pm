@@ -19,6 +19,9 @@ package Koha::Configuration;
 
 use Modern::Perl;
 
+use Koha::Database;
+use Koha::Exceptions;
+
 use base qw(Koha::Object);
 
 use Koha::Libraries;
@@ -85,6 +88,70 @@ sub item_type {
 
 sub _type {
     return 'Configuration';
+}
+
+=head3 store
+
+Overloaded I<store> method that enforces configuration uniqueness constraints.
+
+This method ensures:
+- Each configuration can only have one specificity level (library, category or item type)
+- Each configuration name has at most one entry for a given specificity level
+- No duplicate configurations are created
+
+=cut
+
+sub store {
+    my $self = shift;
+
+    # Validate the specificity level - only one can be specified
+    my $specificity_count = 0;
+    $specificity_count++ if $self->library_id && length $self->library_id;
+    $specificity_count++ if $self->category_id && length $self->category_id;
+    $specificity_count++ if $self->item_type && length($self->item_type);
+
+    if ($specificity_count > 1) {
+        Koha::Exceptions::BadParameter->throw(
+            error => "Configuration must have at most one specificity level (library, category, or item type)."
+        );
+    }
+
+    # Prepare the search parameters to check for uniqueness
+    my $search_params = {
+        name => $self->name,
+        library_id => undef,
+        category_id => undef,
+        item_type => undef
+    };
+
+    # Handle item_type being passed as an object (get the actual code)
+    if (ref($self->item_type)) {
+        $search_params->{item_type} = $self->item_type->itemtype;
+    } elsif ($self->item_type && length $self->item_type) {
+        $search_params->{item_type} = $self->item_type;
+    }
+
+    # Override NULL values with actual values if present
+    $search_params->{library_id} = $self->library_id if $self->library_id && length $self->library_id;
+    $search_params->{category_id} = $self->category_id if $self->category_id && length $self->category_id;
+
+    # Uses Koha::Configurations->search() which leverages DBIx::Class
+    my $existing = Koha::Configurations->search($search_params);
+
+    # Proper chaining of DBIx::Class queries
+    if ($self->in_storage) {
+        $existing = $existing->search({ id => { '!=' => $self->id } });
+    }
+
+    # Throw exception if a duplicate would be created
+    if ($existing->count > 0) {
+        Koha::Exceptions::DuplicateObject->throw(
+            error => "A configuration for '$search_params->{name}' with the same scope already exists."
+        );
+    }
+
+    # Calls parent's (Koha::Object) store method which uses DBIx::Class
+    return $self->SUPER::store(@_);
 }
 
 1;

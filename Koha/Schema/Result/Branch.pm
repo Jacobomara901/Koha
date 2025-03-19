@@ -575,6 +575,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 configurations
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::Configuration>
+
+=cut
+
+__PACKAGE__->has_many(
+  "configurations",
+  "Koha::Schema::Result::Configuration",
+  { "foreign.library_id" => "self.branchcode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 course_items
 
 Type: has_many
@@ -996,8 +1011,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07051 @ 2024-05-03 13:13:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:HiH1QNlDqKcq9GeM85Pu0A
+# Created by DBIx::Class::Schema::Loader v0.07051 @ 2025-03-16 15:50:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2v9ma1tItoNSiFJL7Qex5g
 
 __PACKAGE__->has_many(
     "additional_field_values",

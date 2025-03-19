@@ -19,34 +19,52 @@ package Koha::Configurations;
 
 use Modern::Perl;
 
+use Koha::Database;
 use Koha::Configuration;
-use Koha::Exceptions;
+use Koha::ConfigurationGroups;
 
 use base qw(Koha::Objects);
 
 =head1 NAME
 
-Koha::Configurations - Koha Configuration Object set class
+Koha::Configurations - Koha Configurations Object set class
 
 =head1 API
 
-=head2 Class methods
+=head2 Class Methods
+
+=cut
 
 =head3 get_effective_config
 
-    my $config = Koha::Configurations->get_effective_config(
-        {
-            name        => $name,
-            library_id  => $library_id,
-            category_id => $category_id,
-            item_type   => $item_type
-        }
-    );
+    my $result = Koha::Configurations->get_effective_config({
+        name => 'setting_name',
+        library_id => $library_id,   # optional
+        category_id => $category_id, # optional
+        item_type => $item_type,     # optional
+        with_metadata => 1           # optional, defaults to 0
+    });
 
-Get the effective configuration value for I<name>, given the specified parameters.
-B<undef> means no specific parameter needs to be queried.
+Get the most specific configuration for the given parameters.
+The function tries to find the most appropriate configuration based on
+the specificity level (library, category, item_type) and falls back to
+global if no specific configuration exists.
 
-I<name> is mandatory and an exception will be thrownif omitted.
+Parameters:
+  - name: Required. The name of the configuration setting.
+  - library_id: Optional. Library code for library-specific configuration.
+  - category_id: Optional. Patron category code for category-specific configuration.
+  - item_type: Optional. Item type code for item-specific configuration.
+  - with_metadata: Optional. If set to 1, returns a hashref with additional context. Default: 0.
+
+Returns:
+  - If with_metadata = 0: The configuration object or undef if not found.
+  - If with_metadata = 1: A hashref containing:
+      - config: the Koha::Configuration object
+      - level: the level at which it was found ('global', 'library', 'category', 'item_type')
+      - used_library_id: the library_id of the config that was applied (if applicable)
+      - used_category_id: the category_id of the config that was applied (if applicable)
+      - used_item_type: the item_type of the config that was applied (if applicable)
 
 =cut
 
@@ -58,183 +76,200 @@ sub get_effective_config {
         "Required parameter 'name' missing")
       unless $name;
 
-    $params->{category_id} //= undef;
-    $params->{library_id}  //= undef;
-    $params->{item_type}   //= undef;
+    # Default other params and ensure consistent with_metadata behavior
+    my $with_metadata = exists $params->{with_metadata} ? $params->{with_metadata} : 0;  # Default to 0 unless explicitly set
+    my $category_id   = $params->{category_id} // undef;
+    my $library_id    = $params->{library_id}  // undef;
+    my $item_type     = $params->{item_type}   // undef;
 
-    my $category_id = $params->{category_id};
-    my $item_type   = $params->{item_type};
-    my $library_id  = $params->{library_id};
+    # Build search conditions for this name
+    my $base_condition = { name => $name };
+    my $config;
 
-    my $order_by = $params->{order_by}
-      // { -desc => [ 'library_id', 'category_id', 'item_type' ] };
+    # Try library-specific first
+    if ($library_id) {
+        $config = $self->search({
+            %$base_condition,
+            library_id => $library_id,
+            category_id => undef,
+            item_type => undef,
+        })->single;
 
-    my $search_params;
-    $search_params->{name} = $name;
-
-    $search_params->{category_id} =
-      defined $category_id ? [ $category_id, undef ] : undef;
-    $search_params->{item_type} =
-      defined $item_type ? [ $item_type, undef ] : undef;
-    $search_params->{library_id} =
-      defined $library_id ? [ $library_id, undef ] : undef;
-
-    my $config = $self->search(
-        $search_params,
-        {
-            order_by => $order_by,
-            rows     => 1,
+        if ($config) {
+            return $with_metadata ? {
+                config => $config,
+                level => 'library',
+                used_library_id => $library_id,
+                used_category_id => undef,
+                used_item_type => undef
+            } : $config;
         }
-    )->single;
-
-    return $config;
-}
-
-=head3 get_effective_configs
-
-    my $configs = Koha::Configurations->get_effective_configs(
-        {
-            names => [
-                'smtp_host',
-                'smtp_port',
-                'smtp_ssl'
-            ],
-            library_id  => $library_id,
-            category_id => $category_id,
-            item_type   => $item_type
-        }
-    );
-
-Get the effective configuration values for the specified I<names>, given the specified
-parameters. B<undef> means no specific parameter needs to be queried.
-
-=cut
-
-sub get_effective_configs {
-    my ( $self, $params ) = @_;
-
-    my $names       = $params->{names};
-    my $category_id = $params->{category_id};
-    my $item_type   = $params->{item_type};
-    my $library_id  = $params->{library_id};
-
-    my $configs;
-    foreach my $name (@$names) {
-        my $effective_conf = $self->get_effective_conf(
-            {
-                name        => $name,
-                category_id => $category_id,
-                item_type   => $item_type,
-                library_id  => $library_id,
-            }
-        );
-
-        $configs->{$name} = $effective_conf->get_value if $effective_conf;
     }
 
-    return $configs;
-}
-
-=head3 set_config
-
-    my $config = Koha::Configurations->set_config(
-        {
-            name        => $name,
-            library_id  => $library_id,
+    # Try category-specific next
+    if ($category_id && !$config) {
+        $config = $self->search({
+            %$base_condition,
+            library_id => undef,
             category_id => $category_id,
-            item_type   => $item_type,
-            type        => $config_entry_type
+            item_type => undef,
+        })->single;
+
+        if ($config) {
+            # Found a category-specific match
+            my $result = $with_metadata
+                ? {
+                    config => $config,
+                    level => 'category',
+                    used_library_id => undef,
+                    used_category_id => $config->category_id,
+                    used_item_type => undef
+                }
+                : $config;
+            return $result;
         }
-    );
-
-Sets the configuration value for I<name>, given the specified parameters.
-B<undef> means no specific parameter needs to be queried.
-
-I<name> and I<type> are mandatory and an exception will be thrownif omitted.
-
-B<type> can currently take the following values:
-- text
-- boolean
-- integer
-
-=cut
-
-sub set_config {
-    my ( $self, $params ) = @_;
-
-    for my $mandatory_parameter (qw( name value )) {
-        Koha::Exceptions::MissingParameter->throw(
-            "Required parameter '$mandatory_parameter' missing")
-          unless exists $params->{$mandatory_parameter};
     }
 
-    my $library_id  = $params->{library_id};
-    my $category_id = $params->{category_id};
-    my $item_type   = $params->{item_type};
-    my $name        = $params->{name};
-    my $value       = $params->{value};
-    my $type        = $params->{type};
+    # Try item_type-specific next
+    if ($item_type && !$config) {
+        $config = $self->search({
+            %$base_condition,
+            library_id => undef,
+            category_id => undef,
+            item_type => $item_type,
+        })->single;
 
-    my $config = $self->search(
-        {
-            name        => $name,
-            library_id  => $library_id,
-            category_id => $category_id,
-            item_type   => $item_type,
+        if ($config) {
+            # Found an item_type-specific match
+            my $result = $with_metadata
+                ? {
+                    config => $config,
+                    level => 'item_type',
+                    used_library_id => undef,
+                    used_category_id => undef,
+                    used_item_type => $config->item_type
+                }
+                : $config;
+            return $result;
         }
-    )->next();
+    }
+
+    # Finally, try global config
+    $config = $self->search({
+        %$base_condition,
+        library_id => undef,
+        category_id => undef,
+        item_type => undef,
+    })->single;
 
     if ($config) {
-        $config->set( { value => $value } )->store;
-    }
-    else {
-        $config = Koha::Configuration->new(
-            {
-                library_id  => $library_id,
-                category_id => $category_id,
-                item_type   => $item_type,
-                name        => $name,
-                value       => $value,
-                type        => $type
+        # Found a global match
+        my $result = $with_metadata
+            ? {
+                config => $config,
+                level => 'global',
+                used_library_id => undef,
+                used_category_id => undef,
+                used_item_type => undef
             }
-        )->store;
+            : $config;
+        return $result;
     }
 
-    return $config;
+    # No match found
+    return undef;
 }
 
-=head3 set_configs
+=head3 by_group
+
+    my $configs = Koha::Configurations->by_group($group_identifier);
+
+Returns all configuration entries belonging to a specific configuration group,
+regardless of their scope (global, library, category, or item type).
+
+Parameters:
+  - $group_identifier: Either a bit number (integer) or a flag name (string) that identifies the group
+
+Returns:
+  - A Koha::Configurations object containing all configurations for the specified group
+  - undef if the group identifier is invalid
 
 =cut
 
-sub set_configs {
-    my ( $self, $params ) = @_;
-
-    my %set_params;
-    $set_params{library_id} = $params->{library_id}
-      if exists $params->{library_id};
-    $set_params{category_id} = $params->{category_id}
-      if exists $params->{category_id};
-    $set_params{item_type} = $params->{item_type}
-      if exists $params->{item_type};
-    my $configs = $params->{configs};
-
-    my $config_objects = [];
-    while ( my ( $rule_name, $rule_value ) = each %$configs ) {
-        my $config_object = Koha::Configurations->set_config(
-            {
-                %set_params,
-                name  => $rule_name,
-                value => $rule_value,
-            }
-        );
-        push( @$config_objects, $config_object );
+sub by_group {
+    my ($self, $group_identifier) = @_;
+    
+    my $bit;
+    if (defined $group_identifier) {
+        # Check if the identifier is a bit (number) or a flag (string)
+        if ($group_identifier =~ /^\d+$/) {
+            # It's a number, use directly as bit
+            $bit = $group_identifier;
+        } else {
+            # It's a string, look up as flag
+            my $group = Koha::ConfigurationGroups->find_by_flag($group_identifier);
+            return unless $group;
+            $bit = $group->bit;
+        }
+    } else {
+        return;
     }
-
-    return $config_objects;
+    
+    return $self->search({ configuration_group_bit => $bit });
 }
 
-=head2 Internal methods
+=head3 group_setting_names
+
+    my $names = Koha::Configurations->group_setting_names($group_identifier);
+
+Returns a list of distinct setting names that belong to a specific configuration group.
+This ignores the scope (global, library, category, item type) and returns only unique names.
+
+Parameters:
+  - $group_identifier: Either a bit number (integer) or a flag name (string) that identifies the group
+
+Returns:
+  - An arrayref of strings containing the distinct setting names for this group
+  - undef if the group identifier is invalid
+
+=cut
+
+sub group_setting_names {
+    my ($self, $group_identifier) = @_;
+    
+    my $bit;
+    if (defined $group_identifier) {
+        # Check if the identifier is a bit (number) or a flag (string)
+        if ($group_identifier =~ /^\d+$/) {
+            # It's a number, use directly as bit
+            $bit = $group_identifier;
+        } else {
+            # It's a string, look up as flag
+            my $group = Koha::ConfigurationGroups->find_by_flag($group_identifier);
+            return unless $group;
+            $bit = $group->bit;
+        }
+    } else {
+        return;
+    }
+
+    # Use DBIx::Class to get distinct names
+    my $rs = $self->_resultset->search(
+        { configuration_group_bit => $bit },
+        {
+            columns  => ['name'],
+            distinct => 1,
+            order_by => 'name'
+        }
+    );
+    
+    my @names;
+    while (my $row = $rs->next) {
+        push @names, $row->name;
+    }
+    
+    return \@names;
+}
 
 =head3 _type
 
@@ -242,6 +277,7 @@ sub set_configs {
 
 sub _type {
     return 'Configuration';
+
 }
 
 =head3 object_class

@@ -263,6 +263,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 configurations
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::Configuration>
+
+=cut
+
+__PACKAGE__->has_many(
+  "configurations",
+  "Koha::Schema::Result::Configuration",
+  { "foreign.item_type" => "self.itemtype" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 itemtypes
 
 Type: has_many
@@ -344,8 +359,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07051 @ 2024-10-25 13:25:14
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jd0dYE700dpg1IiRnfbcEg
+# Created by DBIx::Class::Schema::Loader v0.07051 @ 2025-03-16 15:50:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Q9Urn0kpa87iWY4UvqJW+Q
 
 __PACKAGE__->add_columns(
     '+automatic_checkin'            => { is_boolean => 1 },

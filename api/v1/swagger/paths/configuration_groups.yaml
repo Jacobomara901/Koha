@@ -1,0 +1,98 @@
+---
+/configuration_groups:
+  get:
+    x-mojo-to: ConfigurationGroups#list
+    operationId: listConfigurationGroups
+    tags:
+      - configuration_groups
+    summary: List configuration groups
+    produces:
+      - application/json
+    parameters:
+      - name: flag
+        in: query
+        description: Filter by flag name
+        required: false
+        type: string
+      - $ref: "../swagger.yaml#/parameters/match"
+      - $ref: "../swagger.yaml#/parameters/order_by"
+      - $ref: "../swagger.yaml#/parameters/page"
+      - $ref: "../swagger.yaml#/parameters/per_page"
+      - $ref: "../swagger.yaml#/parameters/q_param"
+      - $ref: "../swagger.yaml#/parameters/q_body"
+      - $ref: "../swagger.yaml#/parameters/request_id_header"
+    responses:
+      "200":
+        description: A list of configuration groups
+        schema:
+          type: array
+          items:
+            $ref: "../swagger.yaml#/definitions/configuration_group"
+      "400":
+        description: |
+          Bad request. Possible `error_code` attribute values:
+
+            * `invalid_query`
+        schema:
+          $ref: "../swagger.yaml#/definitions/error"
+      "403":
+        description: Access forbidden
+        schema:
+          $ref: "../swagger.yaml#/definitions/error"
+      "500":
+        description: |
+          Internal server error. Possible `error_code` attribute values:
+
+          * `internal_server_error`
+        schema:
+          $ref: "../swagger.yaml#/definitions/error"
+      "503":
+        description: Under maintenance
+        schema:
+          $ref: "../swagger.yaml#/definitions/error"
+    x-koha-authorization:
+      permissions:
+        parameters: view_config
+
+"/configuration_groups/{group_identifier}":
+  get:
+    x-mojo-to: ConfigurationGroups#get
+    operationId: getConfigurationGroup
+    tags:
+      - configuration_groups
+    summary: Get configuration group
+    parameters:
+      - name: group_identifier
+        in: path
+        description: Configuration group identifier (either bit number or flag name)
+        required: true
+        type: string
+    produces:
+      - application/json
+    responses:
+      "200":
+        description: A configuration group
+        schema:
+          $ref: "../swagger.yaml#/definitions/configuration_group"
+      "400":
+        description: Bad request
+        schema:
+          $ref: "../swagger.yaml#/definitions/error"
+      "404":
+        description: Configuration group not found
+        schema:
+          $ref: "../swagger.yaml#/definitions/error"
+      "500":
+        description: |
+          Internal server error. Possible `error_code` attribute values:
+
+          * `internal_server_error`
+        schema:
+          $ref: "../swagger.yaml#/definitions/error"
+      "503":
+        description: Under maintenance
+        schema:
+          $ref: "../swagger.yaml#/definitions/error"
+    x-koha-authorization:
+      permissions:
+        parameters: view_config

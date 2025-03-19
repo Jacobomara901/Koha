@@ -82,6 +82,14 @@ Configuration entry value
 
 Configuration entry type
 
+=head2 configuration_group_bit
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
+Configuration group this setting applies to. Used for getting/setting all settings grouped for a specific configuration at once
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -104,6 +112,8 @@ __PACKAGE__->add_columns(
     extra => { list => ["text", "boolean", "integer"] },
     is_nullable => 0,
   },
+  "configuration_group_bit",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -120,7 +130,7 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 UNIQUE CONSTRAINTS
 
-=head2 C<library_id>
+=head2 C<config_scope_unique>
 
 =over 4
 
@@ -137,7 +147,7 @@ __PACKAGE__->set_primary_key("id");
 =cut
 
 __PACKAGE__->add_unique_constraint(
-  "library_id",
+  "config_scope_unique",
   ["library_id", "category_id", "item_type", "name"],
 );
 
@@ -155,6 +165,26 @@ __PACKAGE__->belongs_to(
   "category",
   "Koha::Schema::Result::Category",
   { categorycode => "category_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
+=head2 configuration_group_bit
+
+Type: belongs_to
+
+Related object: L<Koha::Schema::Result::ConfigurationGroup>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "configuration_group_bit",
+  "Koha::Schema::Result::ConfigurationGroup",
+  { bit => "configuration_group_bit" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",
@@ -204,8 +234,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2021-12-23 17:55:18
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1MY5Ng3sr+38JUx1MtKWIA
+# Created by DBIx::Class::Schema::Loader v0.07051 @ 2025-03-16 15:50:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Xs76CyFZ2DMgV27R3g/NnQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

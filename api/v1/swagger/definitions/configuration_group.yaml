@@ -1,0 +1,17 @@
+---
+type: object
+properties:
+  bit:
+    type: integer
+    description: unique bit identifier for the configuration group
+    readOnly: true
+  flag:
+    description: flag name of the configuration group
+    type: string
+  flagdesc:
+    description: description of the configuration group
+    type: string
+additionalProperties: false
+required:
+  - flag
+  - flagdesc

@@ -1,0 +1,9 @@
+-- This file exists to be included in the installer
+-- When needed, entries can be added using the following format:
+--
+-- INSERT INTO configuration_groups (
+--    bit,
+--    flag,
+--    flagdesc
+-- ) VALUES
+-- (1, 'GROUP_NAME', 'Group description');

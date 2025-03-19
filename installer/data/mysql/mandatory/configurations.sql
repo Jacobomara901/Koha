@@ -1,0 +1,10 @@
+-- This file exists to be included in the installer
+-- When needed, entries can be added using the following format:
+--
+-- INSERT INTO configurations (
+--    name,
+--    value,
+--    type,
+--    configuration_group_bit
+-- ) VALUES
+-- ('setting_name', 'setting_value', 'String', 1); 
