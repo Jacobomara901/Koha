@@ -133,6 +133,8 @@ sub do_checkin {
     if ( $messages->{NeedsTransfer} ) {
         $self->{item}->destination_loc( $messages->{NeedsTransfer} );
         $self->alert_type('04');    # send to other branch
+        $self->screen_msg( "This item must still be transferred to " . $messages->{NeedsTransfer} . " branch." )
+            if !C4::Context->preference('AutomaticItemReturn');
     }
     if ( $messages->{WasTransfered} ) {    # set into transit so tell unit
         $self->{item}->destination_loc( $item->homebranch );
@@ -262,7 +264,7 @@ sub _get_sort_bin {
         # Get the mapping and split on newlines
         my $raw_map = C4::Context->preference('SIP2SortBinMapping');
         return unless $raw_map;
-        @lines = split /\r\n/, $raw_map;
+        @lines = split /\R/, $raw_map;
     }
 
     # Iterate over the mapping. The first hit wins.

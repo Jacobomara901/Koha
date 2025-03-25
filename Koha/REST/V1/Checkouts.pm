@@ -27,7 +27,8 @@ use Koha::Checkouts;
 use Koha::Old::Checkouts;
 use Koha::Token;
 
-use Try::Tiny qw( catch try );
+use Scalar::Util qw( blessed );
+use Try::Tiny    qw( catch try );
 
 =head1 NAME
 
@@ -152,7 +153,16 @@ sub get_availability {
     my $c    = shift->openapi->valid_input or return;
     my $user = $c->stash('koha.user');
 
-    my $patron = Koha::Patrons->find( $c->param('patron_id') );
+    my $patron_id = $c->param('patron_id');
+
+    return if try {
+        $c->auth->public($patron_id) if $c->stash('is_public');
+        return 0;    # authorization successful, do not "return" after try-catch
+    } catch {
+        return $c->unhandled_exception($_);
+    };
+
+    my $patron = Koha::Patrons->find($patron_id);
     my $item   = Koha::Items->find( $c->param('item_id') );
 
     my ( $impossible, $confirmation, $warnings ) = $c->_check_availability( $patron, $item );
@@ -190,18 +200,6 @@ sub add {
     my $onsite    = $body->{onsite_checkout};
     my $barcode   = $body->{external_id};
 
-    if ( $c->stash('is_public')
-        && !C4::Context->preference('OpacTrustedCheckout') )
-    {
-        return $c->render(
-            status  => 405,
-            openapi => {
-                error      => 'Feature disabled',
-                error_code => 'FEATURE_DISABLED'
-            }
-        );
-    }
-
     return try {
 
         unless ( $item_id or $barcode ) {
@@ -212,6 +210,18 @@ sub add {
                     error_code => 'MISSING_OR_WRONG_PARAMETERS',
                 }
             );
+        }
+
+        if ( $c->stash('is_public') ) {
+            $c->auth->public($patron_id);
+
+            return $c->render(
+                status  => 405,
+                openapi => {
+                    error      => 'Feature disabled',
+                    error_code => 'FEATURE_DISABLED'
+                }
+            ) if !C4::Context->preference('OpacTrustedCheckout');
         }
 
         my $item;

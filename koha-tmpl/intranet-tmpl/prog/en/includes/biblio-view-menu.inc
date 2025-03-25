@@ -2,7 +2,7 @@
 [% USE Biblio %]
 [% SET biblio_object_id = biblio.biblionumber %]
 
-<div id="menu">
+<div id="biblio-view-menu" class="sidebar_menu">
     <ul>
         <li [% IF detailview %]class="active"[% END %]>
             <a href="/cgi-bin/koha/catalogue/detail.pl?biblionumber=[% biblio_object_id | url %]">Normal</a>
@@ -28,6 +28,19 @@
 
         <li [% IF moredetailview %]class="active"[% END %]>
             <a href="/cgi-bin/koha/catalogue/moredetail.pl?biblionumber=[% biblio_object_id | url %]">Items</a>
+            [% IF ( ITEM_DATA ) %]
+                <ul id="items_submenu">
+                    [% FOREACH ITEM_DAT IN ITEM_DATA %]
+                        <li>
+                            [% IF ITEM_DAT.barcode -%]
+                                <a class="item_sublink" href="#item[% ITEM_DAT.itemnumber | html %]">Barcode [% ITEM_DAT.barcode | html %]</a>
+                            [% ELSE -%]
+                                <a class="item_sublink" href="#item[% ITEM_DAT.itemnumber | html %]">Item number [% ITEM_DAT.itemnumber | html %]</a>
+                            [% END %]
+                        </li>
+                    [% END %]
+                </ul>
+            [% END %]
         </li>
 
         [% IF ( CAN_user_circulate_manage_bookings && biblio.items.filter_by_bookable.count ) %]
@@ -85,3 +98,4 @@
         [%- END -%]
     </ul>
 </div>
+<!-- /.sidebar_menu -->

@@ -17,6 +17,7 @@
 
 use Modern::Perl;
 
+use Test::NoWarnings;
 use Test::More;
 use Test::MockModule;
 use Test::Mojo;
@@ -36,7 +37,7 @@ my $schema  = Koha::Database->new->schema;
 my $builder = t::lib::TestBuilder->new();
 
 if ( can_load( modules => { 'Net::OAuth2::AuthorizationServer' => undef } ) ) {
-    plan tests => 2;
+    plan tests => 3;
 } else {
     plan skip_all => 'Net::OAuth2::AuthorizationServer not available';
 }

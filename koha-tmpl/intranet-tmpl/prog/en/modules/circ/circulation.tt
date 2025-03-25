@@ -1035,7 +1035,6 @@
 
 [% MACRO jsinclude BLOCK %]
     [% INCLUDE 'datatables.inc' %]
-    [% INCLUDE 'columns_settings.inc' %]
     [% INCLUDE 'select2.inc' %]
     [% PROCESS 'modal-claims.inc' %]
     [% PROCESS 'modal-claims-js' %]
@@ -1200,6 +1199,7 @@
     [% Asset.js("js/checkouts.js") | $raw %]
     [% Asset.js("js/tables/bookings.js") | $raw %]
     [% Asset.js("js/recalls.js") | $raw %]
+    [% Asset.js("js/form-submit.js") | $raw %]
 [% END %]
 
 [% INCLUDE 'intranet-bottom.inc' %]

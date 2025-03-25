@@ -105,7 +105,7 @@ function display_pickup_location(state) {
     };
 })(jQuery);
 
-/* global __ dataTablesDefaults borrowernumber SuspendHoldsIntranet */
+/* global __ borrowernumber SuspendHoldsIntranet */
 $(document).ready(function () {
     function suspend_hold(hold_id, end_date) {
         var params;
@@ -143,8 +143,7 @@ $(document).ready(function () {
         var holds = new Array();
         if (!holdsTable) {
             var title;
-            holdsTable = KohaTable(
-                "holds-table",
+            holdsTable = $("#holds-table").kohaTable(
                 {
                     autoWidth: false,
                     dom: '<"table_controls"B>rt',
@@ -484,6 +483,7 @@ $(document).ready(function () {
                             d.borrowernumber = borrowernumber;
                         },
                     },
+                    bKohaAjaxSVC: true,
                 },
                 table_settings_holds_table
             );

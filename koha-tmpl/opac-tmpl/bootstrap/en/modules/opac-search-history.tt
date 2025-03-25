@@ -290,16 +290,15 @@
 
 [% BLOCK jsinclude %]
     [% INCLUDE 'datatables.inc' %]
-    [% INCLUDE 'columns_settings.inc' %]
     <script>
         $(document).ready(function () {
             // We show table ordered by descending dates by default
             // (so that the more recent query is shown first)
-            var table = KohaTable(".historyt", {
+            let history_tables = $(".historyt").kohaTable({
                 order: [[1, "desc"]],
                 dom: '<"top"<"table_entries"><"table_controls"fB>>t',
                 columnDefs: [
-                    { targets: [0], sortable: false, searchable: false },
+                    { targets: [0], orderable: false, searchable: false },
                     { className: "dtr-control", orderable: false, targets: -1 },
                 ],
                 language: {
@@ -312,7 +311,7 @@
             });
 
             $('a[data-bs-toggle="tab"]').on("shown.bs.tab", function (e) {
-                table.DataTable().responsive.recalc();
+                history_tables.DataTable().responsive.recalc();
             });
 
             $(".CheckNone").click(function (e) {

@@ -12,7 +12,11 @@
         [% library.branchname | html %]
         &rsaquo;
     [% END %]
-    Libraries &rsaquo;
+    [% IF public_count > 1 %]
+        Libraries &rsaquo;
+    [% ELSE %]
+        Contact &rsaquo;
+    [% END %]
     [% IF ( LibraryNameTitle ) %]
         [% LibraryNameTitle | html %]
     [% ELSE %]
@@ -62,7 +66,11 @@
     [% WRAPPER breadcrumbs %]
         [% IF ( library ) %]
             [% WRAPPER breadcrumb_item %]
-                <a href="/cgi-bin/koha/opac-library.pl">Libraries</a>
+                [% IF public_count > 1 %]
+                    <a href="/cgi-bin/koha/opac-library.pl">Libraries</a>
+                [% ELSE %]
+                    <a href="/cgi-bin/koha/opac-library.pl">Contact</a>
+                [% END %]
             [% END %]
             [% WRAPPER breadcrumb_item bc_active= 1 %]
                 [% library.branchname | html %]

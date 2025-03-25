@@ -54,8 +54,7 @@ function LoadIssuesTable() {
             c => c.columnname == "export"
         ).is_hidden = 1;
     }
-    issuesTable = KohaTable(
-        "issues-table",
+    issuesTable = $("#issues-table").kohaTable(
         {
             language: {
                 emptyTable: msg_loading,
@@ -653,6 +652,7 @@ function LoadIssuesTable() {
                     borrowernumber
                 ),
             },
+            bKohaAjaxSVC: true,
             rowGroup: {
                 dataSrc: "issued_today",
                 startRender: function (rows, group) {
@@ -1088,8 +1088,7 @@ $(document).ready(function () {
     var relativesIssuesTable;
     $("#relatives-issues-tab").click(function () {
         if (!relativesIssuesTable) {
-            relativesIssuesTable = KohaTable(
-                "relatives-issues-table",
+            relativesIssuesTable = $("#relatives-issues-table").kohaTable(
                 {
                     autoWidth: false,
                     dom: '<"table_controls"B>rt',
@@ -1325,6 +1324,7 @@ $(document).ready(function () {
                                 .join("&")
                         ),
                     },
+                    bKohaAjaxSVC: true,
                 },
                 table_settings_relatives_issues_table
             );
@@ -1380,7 +1380,7 @@ $(document).ready(function () {
     }
     function loadReturnClaimsTable() {
         if (!returnClaimsTable) {
-            returnClaimsTable = $("#return-claims-table").dataTable({
+            returnClaimsTable = $("#return-claims-table").kohaTable({
                 autoWidth: false,
                 dom: "rt",
                 order: [],
@@ -1581,6 +1581,7 @@ $(document).ready(function () {
                         }
                     },
                 },
+                bKohaAjaxSVC: true,
                 search: { search: "is_unresolved" },
                 footerCallback: function (row, data, start, end, display) {
                     var api = this.api();

@@ -179,13 +179,12 @@
 [% INCLUDE 'opac-bottom.inc' %]
 [% BLOCK jsinclude %]
     [% INCLUDE 'datatables.inc' %]
-    [% INCLUDE 'columns_settings.inc' %]
     <script>
         $(document).ready(function () {
             $("#sort").change(function () {
                 $("#sortform").submit();
             });
-            var table = KohaTable("#table_holdshistory", {
+            var table = $("#table_holdshistory").kohaTable({
                 dom: '<"top"<"table_entries"i><"table_controls"fB>>t',
                 autoWidth: false,
                 sorting: [[4, "desc"]],

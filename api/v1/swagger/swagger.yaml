@@ -12,6 +12,8 @@ definitions:
     $ref: ./definitions/authorised_value.yaml
   authorised_value_category:
     $ref: ./definitions/authorised_value_category.yaml
+  circulation_rules:
+    $ref: ./definitions/circulation_rules.yaml
   identity_provider:
     $ref: ./definitions/identity_provider.yaml
   identity_provider_domain:
@@ -38,6 +40,10 @@ definitions:
     $ref: ./definitions/circ-rule-kind.yaml
   city:
     $ref: ./definitions/city.yaml
+  configuration:
+    $ref: ./definitions/configuration.yaml
+  configuration_group:
+    $ref: ./definitions/configuration_group.yaml
   credit:
     $ref: ./definitions/credit.yaml
   debit:
@@ -305,6 +311,18 @@ paths:
     $ref: ./paths/config_smtp_servers.yaml#/~1config~1smtp_servers
   "/config/smtp_servers/{smtp_server_id}":
     $ref: "./paths/config_smtp_servers.yaml#/~1config~1smtp_servers~1{smtp_server_id}"
+  /configuration_groups:
+    $ref: ./paths/configuration_groups.yaml#/~1configuration_groups
+  "/configuration_groups/{group_identifier}":
+    $ref: "./paths/configuration_groups.yaml#/~1configuration_groups~1{group_identifier}"
+  /configurations:
+    $ref: ./paths/configurations.yaml#/~1configurations
+  "/configurations/{configuration_id}":
+    $ref: "./paths/configurations.yaml#/~1configurations~1{configuration_id}"
+  "/configurations/effective/{name}":
+    $ref: "./paths/configurations.yaml#/~1configurations~1effective~1{name}"
+  "/configurations/group/{group_identifier}/settings":
+    $ref: "./paths/configurations.yaml#/~1configurations~1group~1{group_identifier}~1settings"
   "/deleted/biblios":
     $ref: "./paths/deleted_biblios.yaml#/~1deleted~1biblios"
   "/deleted/biblios/{biblio_id}":
@@ -399,6 +417,8 @@ paths:
     $ref: "./paths/holds.yaml#/~1holds~1{hold_id}~1priority"
   "/holds/{hold_id}/suspension":
     $ref: "./paths/holds.yaml#/~1holds~1{hold_id}~1suspension"
+  "/holds/{hold_id}/lowest_priority":
+    $ref: "./paths/holds.yaml#/~1holds~1{hold_id}~1lowest_priority"
   /ill/backends:
     $ref: ./paths/ill_backends.yaml#/~1ill~1backends
   "/ill/backends/{ill_backend_id}":

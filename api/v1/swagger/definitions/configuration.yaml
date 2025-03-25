@@ -1,0 +1,46 @@
+---
+type: object
+properties:
+  id:
+    type: integer
+    description: internally assigned configuration identifier
+    readOnly: true
+  library_id:
+    description: library this configuration applies to (null for global)
+    type: 
+      - string
+      - "null"
+  category_id:
+    description: patron category this configuration applies to (null for global)
+    type: 
+      - string
+      - "null"
+  item_type:
+    description: item type this configuration applies to (null for global)
+    type: 
+      - string
+      - "null"
+  name:
+    description: configuration setting name
+    type: string
+  value:
+    description: configuration setting value
+    type:
+      - string
+      - "null"
+  type:
+    description: type of configuration value (text, boolean, integer)
+    type: string
+    enum:
+      - text
+      - boolean
+      - integer
+  configuration_group_bit:
+    description: bit identifier of the configuration group
+    type: 
+      - integer
+      - "null"
+additionalProperties: false
+required:
+  - name
+  - type

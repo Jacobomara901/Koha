@@ -208,7 +208,7 @@
             return (-1);
         }
         $(document).ready(function(){
-            $('#navmenulist a[href$="/cgi-bin/koha/labels/label-home.pl"]').addClass("current");
+            $('.sidebar_menu a[href$="/cgi-bin/koha/labels/label-home.pl"]').addClass("current");
             $("#print").click(function(e){
                 e.preventDefault();
                 Xport();
@@ -216,13 +216,11 @@
             $(".delete").on("click", function(){
                 return confirmDelete( _("Are you sure you want to delete this?") );
             });
-            $("#labels-table").dataTable($.extend(true, {}, dataTablesDefaults, {
-                "pagingType": "full",
-                "order": [[ 1, "asc" ]],
-                "columnDefs": [
-                    { "targets": [ -1 ], "orderable": false, "searchable":  false },
-                ]
-            }));
+            $("#labels-table").kohaTable({
+                pagingType: "full",
+                order: [[1, "asc"]],
+                columnDefs: [{ targets: [-1], orderable: false, searchable: false }],
+            });
         });
     </script>
 [% END %]

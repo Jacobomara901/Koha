@@ -231,7 +231,8 @@ sub debits {
 
   $payment_accountline->void({
       interface => $interface,
-      [ staff_id => $staff_id, branch => $branchcode ]
+      [ staff_id => $staff_id, branch => $branchcode ],
+      note       => $note
   });
 
 Used to 'void' (or reverse) a payment/credit. It will roll back any offsets
@@ -290,6 +291,7 @@ sub void {
                     manager_id        => $params->{staff_id},
                     interface         => $params->{interface},
                     branchcode        => $params->{branch},
+                    note              => $params->{note}
                 }
             )->store();
 
@@ -418,6 +420,7 @@ sub cancel {
                     borrowernumber    => $self->borrowernumber,
                     interface         => 'intranet',
                     branchcode        => $params->{branch},
+                    note              => $params->{note},
                 }
             )->store();
 
@@ -535,6 +538,7 @@ sub reduce {
                     borrowernumber    => $self->borrowernumber,
                     interface         => $params->{interface},
                     branchcode        => $params->{branch},
+                    note              => $params->{note},
                 }
             )->store();
 
@@ -700,7 +704,8 @@ sub apply {
         register_id => $register_id,
         staff_id    => $staff_id,
         interface   => 'intranet',
-        amount      => $amount
+        amount      => $amount,
+        note        => $note
     }
   );
 
@@ -760,7 +765,8 @@ sub payout {
                     borrowernumber    => $self->borrowernumber,
                     interface         => $params->{interface},
                     branchcode        => $params->{branch},
-                    register_id       => $params->{cash_register}
+                    register_id       => $params->{cash_register},
+                    note              => $params->{note},
                 }
             )->store();
 

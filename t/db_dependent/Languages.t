@@ -6,7 +6,8 @@ use utf8;
 use Modern::Perl;
 
 use Encode;
-use Test::More tests => 22;
+use Test::NoWarnings;
+use Test::More tests => 23;
 use Test::Deep;
 use Test::Exception;
 use List::Util qw(first);
@@ -56,7 +57,7 @@ $languages = C4::Languages::getLanguages( 'eng', 1 );
 is( scalar(@$languages), 2, 'getLanguages() filtering using AdvancedSearchLanguages works' );
 
 my $translatedlanguages1;
-warnings_are { $translatedlanguages1 = C4::Languages::getTranslatedLanguages( 'opac', 'prog' ) }
+warnings_are { $translatedlanguages1 = C4::Languages::getTranslatedLanguages('opac') }
 [],
     'no warnings for calling getTranslatedLanguages';
 my @currentcheck1 = map { $_->{current} } @$translatedlanguages1;
@@ -64,7 +65,7 @@ my $onlyzeros     = first { $_ != 0 } @currentcheck1;
 ok( !$onlyzeros, "Everything was zeros.\n" );
 
 my $translatedlanguages2;
-warnings_are { $translatedlanguages2 = C4::Languages::getTranslatedLanguages( 'opac', 'prog', 'en' ) }
+warnings_are { $translatedlanguages2 = C4::Languages::getTranslatedLanguages( 'opac', undef, 'en' ) }
 [],
     'no warnings for calling getTranslatedLanguages';
 my @currentcheck2 = map { $_->{current} } @$translatedlanguages2;

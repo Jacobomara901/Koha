@@ -339,21 +339,21 @@
         }
 
         $(document).ready(function() {
-            $('#navmenulist a[href$="/cgi-bin/koha/labels/label-home.pl"]').addClass("current");
+            $('.sidebar_menu a[href$="/cgi-bin/koha/labels/label-home.pl"]').addClass("current");
             [% IF table_loop %]
                 $("#description").show();
             [% ELSE %]
                 $("#description").hide();
             [% END %]
-            $("#batcht").dataTable($.extend(true, {}, dataTablesDefaults, {
-                "autoWidth": false,
-                "columnDefs": [
-                    { "type": "anti-the", "targets":  [ "anti-the" ] },
-                    { "targets": [ -1, -2 ], "orderable": false, "searchable":  false },
+            $("#batcht").kohaTable({
+                autoWidth: false,
+                columnDefs: [
+                    { type: "anti-the", targets: ["anti-the"] },
+                    { targets: [-1, -2], orderable: false, searchable: false },
                 ],
-                "order": [[ 0, "asc" ]],
-                "pagingType": "full"
-            }));
+                order: [[0, "asc"]],
+                pagingType: "full",
+            });
             $("#additems").click(function(){
                 Add();
                 return false;

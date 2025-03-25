@@ -19,7 +19,8 @@
 
 use Modern::Perl;
 
-use Test::More tests => 3;
+use Test::NoWarnings;
+use Test::More tests => 4;
 use t::lib::TestBuilder;
 
 use Koha::Database;
@@ -119,15 +120,17 @@ subtest 'renewals() tests' => sub {
     my $renewal1 = $builder->build_object(
         {
             class => 'Koha::Checkouts::Renewals',
-            value => { checkout_id => $checkout->issue_id }
+            value => { checkout_id => undef }
         }
     );
+    $renewal1->checkout_id( $checkout->issue_id )->store();
     my $renewal2 = $builder->build_object(
         {
             class => 'Koha::Checkouts::Renewals',
-            value => { checkout_id => $checkout->issue_id }
+            value => { checkout_id => undef }
         }
     );
+    $renewal2->checkout_id( $checkout->issue_id )->store();
 
     is( ref( $checkout->renewals ), 'Koha::Checkouts::Renewals', 'Object set type is correct' );
     is( $checkout->renewals->count, 2,                           "Count of renewals is correct" );

@@ -72,15 +72,13 @@
     [% INCLUDE 'datatables.inc' %]
     <script>
         $(document).ready(function () {
-            $("#pending_updates table").DataTable(
-                $.extend(true, {}, dataTablesDefaults, {
-                    paging: false,
-                    info: true,
-                    searching: true,
-                    order: [[2, "asc"]],
-                    columnDefs: [{ targets: -1, orderable: false }],
-                })
-            );
+            $("#pending_updates table").kohaTable({
+                paging: false,
+                info: true,
+                searching: true,
+                order: [[2, "asc"]],
+                columnDefs: [{ targets: -1, orderable: false }],
+            });
         });
     </script>
 [% END %]

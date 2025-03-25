@@ -19,9 +19,11 @@
 
 use Modern::Perl;
 
-use Test::More tests => 15;
+use Test::NoWarnings;
+use Test::More tests => 16;
 use Test::MockModule;
 use Test::Exception;
+use Test::Warn;
 
 use DateTime;
 
@@ -335,7 +337,7 @@ subtest 'add_credit() tests' => sub {
 
 subtest 'add_debit() tests' => sub {
 
-    plan tests => 14;
+    plan tests => 15;
 
     $schema->storage->txn_begin;
 
@@ -363,24 +365,26 @@ subtest 'add_debit() tests' => sub {
     }
     'Koha::Exceptions::Account::AmountNotPositive', 'Expected validation exception thrown (amount)';
 
-    throws_ok {
-        local *STDERR;
-        open STDERR, '>', '/dev/null';
-        $account->add_debit(
-            {
-                amount      => 5,
-                description => 'type validation failure',
-                library_id  => $patron->branchcode,
-                note        => 'this should fail anyway',
-                type        => 'failure',
-                user_id     => $patron->id,
-                interface   => 'commandline'
+    warning_like(
+        sub {
+            throws_ok {
+                $account->add_debit(
+                    {
+                        amount      => 5,
+                        description => 'type validation failure',
+                        library_id  => $patron->branchcode,
+                        note        => 'this should fail anyway',
+                        type        => 'failure',
+                        user_id     => $patron->id,
+                        interface   => 'commandline'
+                    }
+                );
             }
-        );
-        close STDERR;
-    }
-    'Koha::Exceptions::Account::UnrecognisedType',
-        'Expected validation exception thrown (type)';
+            'Koha::Exceptions::Account::UnrecognisedType',
+                'Expected validation exception thrown (type)';
+        },
+        qr{a foreign key constraint fails}
+    );
 
     throws_ok {
         $account->add_debit(

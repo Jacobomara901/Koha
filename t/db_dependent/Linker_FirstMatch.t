@@ -19,7 +19,8 @@
 # along with Koha; if not, see <http://www.gnu.org/licenses>.
 
 use Modern::Perl;
-use Test::More tests => 3;
+use Test::NoWarnings;
+use Test::More tests => 4;
 
 use MARC::Record;
 use MARC::Field;
@@ -74,7 +75,6 @@ sub run_tests {
 
     my $auth_header_record = $schema->resultset('AuthHeader')->find( { authid => $authid } );
     $auth_header_record->marcxml($fake_xml);
-    $auth_header_record->marc($fake_marc);
     $auth_header_record->update;
 
     # Find a particular series field.

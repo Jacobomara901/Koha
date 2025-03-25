@@ -750,7 +750,6 @@
 
 [% MACRO jsinclude BLOCK %]
     [% INCLUDE 'datatables.inc' %]
-    [% INCLUDE 'columns_settings.inc' %]
     [% INCLUDE 'select2.inc' %]
     [% PROCESS 'modal-claims-js' %]
     <script>
@@ -787,6 +786,7 @@
     [% INCLUDE 'str/members-menu.inc' %]
     [% Asset.js("js/members-menu.js") | $raw %]
     [% Asset.js("js/recalls.js") | $raw %]
+    [% Asset.js("js/form-submit.js") | $raw %]
     <script>
         const LoadCheckoutsTableDelay = 0;
         const AlwaysLoadCheckoutsTable = [% Koha.Preference('AlwaysLoadCheckoutsTable') | html %];

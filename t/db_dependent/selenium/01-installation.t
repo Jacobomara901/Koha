@@ -56,7 +56,7 @@ SKIP: {
         unless $ENV{KOHA_TESTING};
 
     my $dbh = eval { C4::Context->dbh; };
-    skip "Tests won't run if the database does not exist", 2 if $@;
+    skip "Tests won't run if the database does not exist", 3 if $@;
 
     {
         my $dup_err;

@@ -20,11 +20,12 @@ package Koha::Patron;
 
 use Modern::Perl;
 
-use List::MoreUtils    qw( any none uniq );
+use List::MoreUtils    qw( any none uniq notall zip6);
 use JSON               qw( to_json );
 use Unicode::Normalize qw( NFKD );
 use Try::Tiny;
 use DateTime ();
+use C4::Log  qw( logaction );
 
 use C4::Auth qw( checkpw_hash );
 use C4::Context;
@@ -733,7 +734,7 @@ sub merge_with {
         sub {
             foreach my $patron_id (@patron_ids) {
 
-                next if $patron_id eq $anonymous_patron;
+                next if $anonymous_patron && $patron_id eq $anonymous_patron;
 
                 my $patron = Koha::Patrons->find($patron_id);
 
@@ -2236,13 +2237,35 @@ sub _generate_userid_internal {    # as we always did
 sub add_extended_attribute {
     my ( $self, $attribute ) = @_;
 
-    return Koha::Patron::Attribute->new(
+    my $change;
+    if ( C4::Context->preference("BorrowersLog") ) {
+        my @attribute_values_before =
+            map { $_->attribute } $self->extended_attributes->search( { 'me.code' => $attribute->{code} } )->as_list;
+        my @attribute_values_after = sort ( $attribute->{attribute}, @attribute_values_before );
+        $change = {
+            before => \@attribute_values_before,
+            after  => \@attribute_values_after
+        };
+    }
+
+    my $added_attribute = Koha::Patron::Attribute->new(
         {
-            %$attribute,
+            %{$attribute},
             ( borrowernumber => $self->borrowernumber ),
         }
     )->store;
 
+    if ( C4::Context->preference("BorrowersLog") ) {
+        my $code = $attribute->{code};
+        logaction(
+            "MEMBERS",
+            "MODIFY",
+            $self->borrowernumber,
+            to_json( { "attribute.$code" => $change }, { pretty => 1, canonical => 1 } )
+        );
+    }
+
+    return $added_attribute;
 }
 
 =head3 extended_attributes
@@ -2255,17 +2278,85 @@ Or setter FIXME
 
 sub extended_attributes {
     my ( $self, $attributes ) = @_;
+
     if ($attributes) {    # setter
+        my %attribute_changes;
+
+        # Stash changes before
+        for my $attribute ( $self->extended_attributes->as_list ) {
+            my $repeatable = $attribute->type->repeatable ? 1 : 0;
+            $attribute_changes{$repeatable}->{ $attribute->code }->{before} //= [];
+            push(
+                @{ $attribute_changes{$repeatable}->{ $attribute->code }->{before} },
+                $attribute->attribute
+            );
+        }
+        my @new_attributes = map {
+            Koha::Patron::Attribute->new(
+                {
+                    %{$_},
+                    ( borrowernumber => $self->borrowernumber ),
+                }
+            )
+        } @{$attributes};
+
+        # Make sure all attribute types are valid
+        for my $attribute (@new_attributes) {
+            $attribute->validate_type();
+        }
+
+        # Sort new attributes by code
+        @new_attributes = sort { $a->attribute cmp $b->attribute } @new_attributes;
+
+        # Stash changes after
+        for my $attribute ( values @new_attributes ) {
+            my $repeatable = $attribute->type->repeatable ? 1 : 0;
+            $attribute_changes{$repeatable}->{ $attribute->code }->{after} //= [];
+            push(
+                @{ $attribute_changes{$repeatable}->{ $attribute->code }->{after} },
+                $attribute->attribute
+            );
+        }
+
+        my $is_different = sub {
+            my ( $a, $b ) = map { [ sort @{$_} ] } @_;
+            return @{$a} != @{$b} || notall { $_->[0] eq $_->[1] } zip6 @{$a}, @{$b};
+        };
+
         my $schema = $self->_result->result_source->schema;
         $schema->txn_do(
             sub {
-                # Remove the existing one
-                $self->extended_attributes->filter_by_branch_limitations->delete;
+                my $all_changes = {};
+                while ( my ( $repeatable, $changes ) = each %attribute_changes ) {
+                    while ( my ( $code, $change ) = each %{$changes} ) {
+                        $change->{before} //= [];
+                        $change->{after}  //= [];
 
-                # Insert the new ones
+                        if ( $is_different->( $change->{before}, $change->{after} ) ) {
+                            unless ($repeatable) {
+                                $change->{before} = @{ $change->{before} } ? $change->{before}->[0] : '';
+                                $change->{after}  = @{ $change->{after} }  ? $change->{after}->[0]  : '';
+                            }
+
+                            # Remove existing
+                            $self->extended_attributes->filter_by_branch_limitations->search(
+                                {
+                                    'me.code' => $code,
+                                }
+                            )->delete;
+
+                            # Add possible new attribute values
+                            for my $attribute (@new_attributes) {
+                                $attribute->store() if ( $attribute->code eq $code );
+                            }
+                            if ( C4::Context->preference("BorrowersLog") ) {
+                                $all_changes->{"attribute.$code"} = $change;
+                            }
+                        }
+                    }
+                }
                 my $new_types = {};
-                for my $attribute (@$attributes) {
-                    $self->add_extended_attribute($attribute);
+                for my $attribute ( @{$attributes} ) {
                     $new_types->{ $attribute->{code} } = 1;
                 }
 
@@ -2289,6 +2380,14 @@ sub extended_attributes {
                     Koha::Exceptions::Patron::MissingMandatoryExtendedAttribute->throw(
                         type => $type,
                     ) if !$new_types->{$type};
+                }
+                if ( %{$all_changes} ) {
+                    logaction(
+                        "MEMBERS",
+                        "MODIFY",
+                        $self->borrowernumber,
+                        to_json( $all_changes, { pretty => 1, canonical => 1 } )
+                    );
                 }
             }
         );

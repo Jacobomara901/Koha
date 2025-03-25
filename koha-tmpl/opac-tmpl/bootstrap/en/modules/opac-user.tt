@@ -942,7 +942,7 @@
 
                                             <tbody>
                                                 [% FOREACH ar IN current_article_requests %]
-                                                    <tr>
+                                                    <tr id="article_[% ar.id | html %]">
                                                         <td class="article-request-record-title">
                                                             [% INCLUDE 'biblio-title.inc' biblio=ar.biblio link=> 1 %]
                                                             [% ar.item.enumchron | html %]
@@ -1095,7 +1095,7 @@
             [% IF ( opac_user_article_requests ) %]
                 $("#opac-user-views a[href='#opac-user-article-requests_panel']").tab("show");
             [% END %]
-            $('#opac-user-article-requests caption .count').html(AR_CAPTION_COUNT.format('[% current_article_requests.size | html %]'));
+            $('#article-requests-table caption .count').html(AR_CAPTION_COUNT.format('[% current_article_requests.size | html %]'));
 
             $(".modal-nojs").addClass("modal").addClass("hide").removeClass("modal-nojs");
 
@@ -1123,7 +1123,7 @@
                 );
             });
 
-            $(".btn-delete-article-request").on("click", function(e){
+            $("#article-requests-table").on("click", ".btn-delete-article-request", function(e){
                 e.preventDefault();
                 var article_request = $(this).data("title");
                 var article_request_id = $(this).data("article-request_id");
@@ -1134,16 +1134,18 @@
                                 type: "DELETE",
                                 url: '/api/v1/public/patrons/'+borrowernumber+'/article_requests/'+article_request_id+'?cancellation_reason=OPAC',
                                 success: function( data ) {
-                                    row.parents('tr').hide({
+                                    $("#article_" + article_request_id ).hide({
                                         duration: 'slow',
                                         complete: function() {
-                                            var ar_tab = $('a[href="#opac-user-article-requests"');
+                                            $(this).siblings(".child").hide();
+                                            var ar_tab = $('a[href="#opac-user-article-requests_panel"');
                                             var ar_table = $('#article-requests-table');
                                             var ar_length = $('tbody tr:visible', ar_table).length;
                                             var ar_count = $('caption .count', ar_table);
 
                                             ar_tab.html(ar_tab.html().replace(/\(\d+\)/, '('+ar_length+')'));
                                             ar_count.html(AR_CAPTION_COUNT.format(ar_length));
+
                                         }
                                     });
                                 }
@@ -1204,11 +1206,11 @@
                 $(this).on("init.dt", function() {
                         tableInit( $(this).attr("id") );
                     })
-                    .dataTable($.extend(true, {}, dataTablesDefaults, {
+                    .kohaTable({
                     "sorting" : [[ thIndex, 'asc' ]],
                     "dom": '<"top"<"table_entries"><"table_controls"fB>>t',
                     "columnDefs": [
-                        { "targets": [ "nosort" ],"sortable": false,"searchable": false },
+                        { "targets": [ "nosort" ],"orderable": false,"searchable": false },
                         { "type": "anti-the", "targets" : [ "anti-the" ] },
                         { "visible": false, "targets" : [ "hidden" ] },
                         { "className": 'dtr-control', "orderable": false, "targets": -1 }
@@ -1241,22 +1243,20 @@
                             }
                         }
                     ]
-                }));
+                });
             });
 
             var dataTables = $("#recalls-table,#article-requests-table");
             dataTables.each(function(){
-                $(this).dataTable($.extend(true, {}, dataTablesDefaults, {
-                    "searching": false,
-                    "paging": false,
-                    "info": false,
-                    "responsive": {
-                        "details": { "type": 'column',"target": -1 }
+                $(this).kohaTable({
+                    searching: false,
+                    paging: false,
+                    info: false,
+                    responsive: {
+                        details: { type: "column", target: -1 },
                     },
-                    "columnDefs": [
-                        { "className": 'dtr-control', "orderable": false, "targets": -1 }
-                    ],
-                }));
+                    columnDefs: [{ className: "dtr-control", orderable: false, targets: -1 }],
+                });
             });
             $('a[data-bs-toggle="tab"]').on('shown.bs.tab', function (event) {
                 dTables.DataTable().responsive.recalc();

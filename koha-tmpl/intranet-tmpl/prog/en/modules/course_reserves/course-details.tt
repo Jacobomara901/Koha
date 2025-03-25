@@ -28,6 +28,15 @@
             padding: 0.5em;
             position: absolute;
         }
+        div.rows span.label {
+            float: left;
+        }
+        #instructors {
+            margin-left: 10rem;
+        }
+        .instructor_line {
+            padding: 0.3em;
+        }
     </style>
 [% END %]
 </head>
@@ -50,7 +59,7 @@
 [% END #/ WRAPPER sub-header.inc %]
 
 [% WRAPPER 'main-container.inc' %]
-    <h1>Reserves</h1>
+    <h1>[% tx("Course details for {course_name}", { course_name = course.course_name }) | html %][%- IF course.section -%]- [% course.section | html %][%- END -%]</h1>
 
     [% IF CAN_user_coursereserves_add_reserves OR CAN_user_coursereserves_manage_courses OR CAN_user_coursereserves_manage_courses %]
         <div id="toolbar">
@@ -80,30 +89,49 @@
         ><!-- /toolbar -->
     [% END %]
 
-    <div class="page-section clearfix">
-        <fieldset class="rows clearfix">
+    <div class="page-section">
+        <div class="rows">
             <ol>
-                <li><span class="label">Course name</span> [% course.course_name | html %]</li>
-                <li><span class="label">[% tp('Semester', 'Term') | html %]</span> [% AuthorisedValues.GetByCode( 'TERM', course.term ) | html %]</li>
-                <li><span class="label">Department</span> [% AuthorisedValues.GetByCode( 'DEPARTMENT', course.department ) | html %]</li>
-                <li><span class="label">Course number</span> [% course.course_number | html %]</li>
-                <li><span class="label">Section</span> [% course.section | html %]</li>
-                <li>
-                    <span class="label">Instructors</span>
-                    <div id="instructors">
-                        [% FOREACH i IN course.instructors %]
-                            <div class="instructor_line">
-                                <a href="/cgi-bin/koha/members/moremember.pl?borrowernumber=[% i.borrowernumber | uri %]">[% i.firstname | html %] [% i.surname | html %]</a>
-                            </div>
-                        [% END %]
-                    </div>
-                </li>
-                <li><span class="label">Staff note</span> [% course.staff_note | html %]</li>
-                <li><span class="label">Public note</span> [% course.public_note | $raw %]</li>
-                <li><span class="label">Student count</span> [% course.students_count | html %]</li>
-                <li><span class="label">Status</span> [% IF course.enabled == 'yes' %]Active[% ELSE %]Inactive[% END %]</li>
+                <li><span class="label">Course name: </span> [% course.course_name | html %]</li>
+                [% IF ( course.term ) %]
+                    <li>
+                        <span class="label">[% tp('Semester', 'Term') | html %]: </span>
+                        [% AuthorisedValues.GetByCode( 'TERM', course.term ) | html %]
+                    </li>
+                [% END %]
+                <li><span class="label">Department: </span> [% AuthorisedValues.GetByCode( 'DEPARTMENT', course.department ) | html %]</li>
+                <li><span class="label">Course number: </span> [% course.course_number | html %]</li>
+                [% IF ( course.section ) %]
+                    <li>
+                        <span class="label">Section: </span>
+                        [% course.section | html %]
+                    </li>
+                [% END %]
+                [% IF course.instructors && course.instructors.count > 0 %]
+                    <li>
+                        <span class="label">Instructors: </span>
+                        <div id="instructors">
+                            [% FOREACH i IN course.instructors %]
+                                <div class="instructor_line">
+                                    <a href="/cgi-bin/koha/members/moremember.pl?borrowernumber=[% i.borrowernumber | uri %]">[% i.firstname | html %] [% i.surname | html %]</a>
+                                </div>
+                            [% END %]
+                        </div>
+                    </li>
+                [% END %]
+                [% IF ( course.staff_note ) %]
+                    <li>
+                        <span class="label">Staff note: </span>
+                        [% course.staff_note | html %]
+                    </li>
+                [% END %]
+                [% IF ( course.public_note ) %]
+                    <li><span class="label">Public note: </span> [% course.public_note | $raw %]</li>
+                [% END %]
+                <li><span class="label">Student count: </span> [% course.students_count || "0" | html %]</li>
+                <li><span class="label">Status: </span> [% IF course.enabled == 'yes' %]Active[% ELSE %]Inactive[% END %]</li>
             </ol>
-        </fieldset>
+        </div>
     </div>
     <!-- /.page-section -->
 
@@ -151,10 +179,14 @@
                                         [% IF cr.course_item.itype_enabled %]
                                             [% IF cr.course_item.enabled == 'yes' %]
                                                 <strong>[% ItemTypes.GetDescription( cr.item.effective_itemtype ) | html %]</strong>
-                                                ([% ItemTypes.GetDescription( cr.course_item.itype_storage ) | html %])
+                                                [% IF (cr.course_item.itype_storage ) %]
+                                                    ([% ItemTypes.GetDescription( cr.course_item.itype_storage ) | html %])
+                                                [% END %]
                                             [% ELSE %]
                                                 [% ItemTypes.GetDescription( cr.course_item.itype ) | html %]
-                                                (<strong>[% ItemTypes.GetDescription( cr.item.effective_itemtype) | html %]</strong>)
+                                                [% IF ( cr.item.effective_itemtype ) %]
+                                                    (<strong>[% ItemTypes.GetDescription( cr.item.effective_itemtype) | html %]</strong>)
+                                                [% END %]
                                             [% END %]
                                         [% ELSE %]
                                             <em>Unchanged</em>
@@ -168,7 +200,7 @@
                                     [% IF cr.course_item.ccode_enabled %]
                                         [% IF cr.course_item.enabled == 'yes' %]
                                             <strong>[% AuthorisedValues.GetDescriptionByKohaField( kohafield => 'items.ccode', authorised_value => cr.item.ccode ) | html %]</strong>
-                                            [% IF cr.item.ccode %]
+                                            [% IF cr.course_item.ccode_storage %]
                                                 ([% AuthorisedValues.GetDescriptionByKohaField( kohafield => 'items.ccode', authorised_value => cr.course_item.ccode_storage ) | html %])
                                             [% END %]
                                         [% ELSE %]
@@ -188,7 +220,7 @@
                                     [% IF cr.course_item.location_enabled %]
                                         [% IF cr.course_item.enabled == 'yes' %]
                                             <strong>[% AuthorisedValues.GetByCode( 'LOC', cr.item.permanent_location ) | html %]</strong>
-                                            [% IF cr.item.permanent_location %]
+                                            [% IF cr.course_item.location_storage %]
                                                 ([% AuthorisedValues.GetByCode( 'LOC', cr.course_item.location_storage ) | html %])
                                             [% END %]
                                         [% ELSE %]
@@ -208,7 +240,7 @@
                                     [% IF cr.course_item.homebranch_enabled %]
                                         [% IF cr.course_item.enabled == 'yes' %]
                                             <strong>[% Branches.GetName( cr.item.homebranch ) | html %]</strong>
-                                            [% IF cr.item.homebranch %]
+                                            [% IF cr.course_item.homebranch_storage %]
                                                 ([% Branches.GetName( cr.course_item.homebranch_storage ) | html %])
                                             [% END %]
                                         [% ELSE %]
@@ -228,7 +260,7 @@
                                     [% IF cr.course_item.holdingbranch_enabled %]
                                         [% IF cr.course_item.enabled == 'yes' %]
                                             <strong>[% Branches.GetName( cr.item.holdingbranch ) | html %]</strong>
-                                            [% IF cr.item.holdingbranch %]
+                                            [% IF cr.course_item.holdingbranch_storage %]
                                                 ([% Branches.GetName( cr.course_item.holdingbranch_storage ) | html %])
                                             [% END %]
                                         [% ELSE %]
@@ -327,7 +359,6 @@
 
 [% MACRO jsinclude BLOCK %]
     [% INCLUDE 'datatables.inc' %]
-    [% INCLUDE 'columns_settings.inc' %]
     <script>
         var table_settings = [% TablesSettings.GetTableSettings( 'coursereserves', 'reserves', 'course_reserves_table', 'json' ) | $raw %];
         $(document).ready(function(){
@@ -341,10 +372,13 @@
                 $('#rm_items').submit();
             });
 
-            var rtable = KohaTable("course_reserves_table", {
-                "pagingType": "full",
-                "autoWidth": false,
-            }, table_settings );
+            var rtable = $("#course_reserves_table").kohaTable(
+                {
+                    pagingType: "full",
+                    autoWidth: false,
+                },
+                table_settings
+            );
 
             $("#course_reserves_table").on( 'click', " .delete_item", function(e){
                 e.preventDefault();

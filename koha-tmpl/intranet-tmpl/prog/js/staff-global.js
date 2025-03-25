@@ -59,6 +59,22 @@ $.fn.selectTabByID = function (tabID) {
     $("a[href='" + tabID + "']", $(this)).tab("show");
 };
 
+function togglePanel(node) {
+    var panel = node.nextAll();
+    if (panel.is(":visible")) {
+        node.addClass("collapsed")
+            .removeClass("expanded")
+            .attr("title", __("Click to expand this section"));
+        panel.hide();
+    } else {
+        node.addClass("expanded")
+            .removeClass("collapsed")
+            .attr("title", __("Click to collapse this section"));
+        panel.show();
+        panel.find("input, select, textarea").eq(0).focus();
+    }
+}
+
 $(document).ready(function () {
     //check if sticky element is stuck, if so add floating class
     if ($(".sticky").length) {
@@ -190,21 +206,23 @@ $(document).ready(function () {
         $($(this).data("element")).toggle();
     });
 
-    var navmenulist = $("#navmenulist");
-    if (navmenulist.length > 0) {
-        var path = location.pathname.substring(1);
-        var url = window.location.toString();
-        var params = "";
-        if (url.match(/\?(.+)$/)) {
-            params = "?" + RegExp.$1;
-        }
-        if ($('a[href$="/' + path + params + '"]', navmenulist).length == 0) {
-            $('a[href$="/' + path + '"]', navmenulist).addClass("current");
-        } else {
-            $('a[href$="/' + path + params + '"]', navmenulist).addClass(
-                "current"
-            );
-        }
+    var sidebar_menu = $(".sidebar_menu");
+    if (sidebar_menu.length > 0) {
+        sidebar_menu.each(function () {
+            var path = location.pathname.substring(1);
+            var url = window.location.toString();
+            var params = "";
+            if (url.match(/\?(.+)$/)) {
+                params = "?" + RegExp.$1;
+            }
+            if ($('a[href$="/' + path + params + '"]', $(this)).length == 0) {
+                $('a[href$="/' + path + '"]', $(this)).addClass("current");
+            } else {
+                $('a[href$="/' + path + params + '"]', $(this)).addClass(
+                    "current"
+                );
+            }
+        });
     }
 
     $("#catalog-search-link a").on("mouseenter mouseleave", function () {
@@ -431,6 +449,18 @@ $(document).ready(function () {
     if ($('[data-bs-toggle="tooltip"]').length) {
         $('[data-bs-toggle="tooltip"]').tooltip();
     }
+
+    if ($(".pagination.output").length > 0) {
+        $(".output.first").append(__("First"));
+        $(".output.previous").append(__("Previous"));
+        $(".output.next").prepend(__("Next"));
+        $(".output.last").prepend(__("Last"));
+    }
+
+    $(".collapsed,.expanded").on("click", function (e) {
+        e.preventDefault();
+        togglePanel($(this));
+    });
 });
 
 function removeLastBorrower() {
@@ -909,7 +939,8 @@ function buildPatronSearchQuery(term, options) {
     if (
         typeof options !== "undefined" &&
         ((options.search_fields == "standard" &&
-            options.extended_attribute_types) ||
+            options.extended_attribute_types &&
+            options.extended_attribute_types.length > 0) ||
             searched_attribute_fields.length > 0) &&
         extendedPatronAttributes
     ) {
@@ -965,4 +996,24 @@ function toggleBtnIcon(element, start, replacement) {
                 });
             });
     });
+}
+
+/**
+ * Returns a roughly ideal position to scroll an element into view
+ * @param {string} target - The HTML id of the element to scroll into view
+ * @param {string} elemid - The HTML id of the element which might obscure
+ *                          the view of the target element e.g. a floating toolbar
+ * @return {number} - The y-coordinate to pass to window.scrollTo()
+ */
+function getScrollto(target, elemid) {
+    var dest = $("#" + target);
+    var yoffset = dest.offset();
+
+    if (elemid != "") {
+        var element = $("#" + elemid);
+        var elem_height = element.outerHeight();
+    } else {
+        elem_height = 0;
+    }
+    return yoffset.top - elem_height - 20;
 }

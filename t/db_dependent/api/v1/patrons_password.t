@@ -17,7 +17,8 @@
 
 use Modern::Perl;
 
-use Test::More tests => 2;
+use Test::NoWarnings;
+use Test::More tests => 3;
 
 use Test::Mojo;
 
@@ -102,7 +103,7 @@ subtest 'set() (authorized user tests)' => sub {
 
 subtest 'set_public() (unprivileged user tests)' => sub {
 
-    plan tests => 18;
+    plan tests => 21;
 
     $schema->storage->txn_begin;
 
@@ -141,6 +142,17 @@ subtest 'set_public() (unprivileged user tests)' => sub {
         }
     )->status_is(403)->json_is( { error => 'Changing password is forbidden' } );
 
+    $t->post_ok(
+        "/api/v1/public/patrons/" . $patron->id . "/password" => json => {
+            password          => $new_password,
+            password_repeated => $new_password,
+            old_password      => $password
+        }
+    )->status_is(401)->json_is(
+        '/error',
+        "Authentication failure."
+    );
+
     t::lib::Mocks::mock_preference( 'OpacPasswordChange', 1 );
 
     $t->post_ok(
@@ -151,7 +163,7 @@ subtest 'set_public() (unprivileged user tests)' => sub {
         }
     )->status_is(403)->json_is(
         '/error',
-        "Authorization failure. Missing required permission(s)."
+        "Changing other patron's password is forbidden"
     );
 
     $t->post_ok(

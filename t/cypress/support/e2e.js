@@ -48,7 +48,7 @@ Cypress.Commands.add("login", (username, password) => {
 });
 
 Cypress.Commands.add("left_menu_active_item_is", label => {
-    cy.get("#navmenulist a.current:not(.disabled)")
+    cy.get(".sidebar_menu a.current:not(.disabled)")
         .should("have.length", 1)
         .contains(label);
 });
@@ -1815,3 +1815,10 @@ cy.getSushiService = () => {
 
 const mysql = require("cypress-mysql");
 mysql.addCommands();
+
+Cypress.Commands.add("set_syspref", (variable, value) => {
+    cy.window().then(win => {
+        const client = win.APIClient.syspref;
+        return client.sysprefs.update(variable, value);
+    });
+});

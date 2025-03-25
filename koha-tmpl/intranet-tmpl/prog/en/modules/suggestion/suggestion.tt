@@ -1335,14 +1335,13 @@
 [% BLOCK funds_dropdown %]
     <label for="budgetid">Fund:</label>
     <select name="budgetid" id="budgetid">
-        [% IF op == 'save' %]
+        [% UNLESS op == 'save' %]
             <option value="">Any</option>
+        [% END %]
+        [% IF budgetid == '__NONE__' %]
+            <option value="__NONE__" selected="selected">None</option>
         [% ELSE %]
-            [% IF budgetid == '__NONE__' %]
-                <option value="__NONE__" selected="selected">None</option>
-            [% ELSE %]
-                <option value="__NONE__">None</option>
-            [% END %]
+            <option value="__NONE__">None</option>
         [% END %]
         [% FOREACH budget IN sugg_budgets %]
             [% IF ( budget.selected ) %]
@@ -1446,7 +1445,6 @@
     [% END %]
     [% IF op == 'else' %]
         [% INCLUDE 'datatables.inc' %]
-        [% INCLUDE 'columns_settings.inc' %]
         <script>
             $(document).ready(function() {
                 if( $("#suggestiontabs .tab-pane.active").length < 1 ){
@@ -1457,10 +1455,13 @@
 
                 [% FOREACH suggestion IN suggestions %]
                     [% IF suggestion.suggestions.size %]
-                        KohaTable("table_[% suggestion.suggestiontype | html %]", {
-                            "sorting": [[ 4, "asc" ]],
-                            "autoWidth": false,
-                        }, table_settings );
+                        $("#table_[% suggestion.suggestiontype | html %]").kohaTable(
+                            {
+                                sorting: [[4, "asc"]],
+                                autoWidth: false,
+                            },
+                            table_settings
+                        );
                     [% END %]
                 [% END %]
 

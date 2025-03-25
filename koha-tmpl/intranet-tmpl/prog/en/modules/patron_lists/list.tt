@@ -6,7 +6,6 @@
 [% PROCESS 'i18n.inc' %]
 [% SET footerjs = 1 %]
 [% INCLUDE 'doc-head-open.inc' %]
-[% INCLUDE 'columns_settings.inc' %]
 <title
     >[% FILTER collapse %]
         [% list.name | html %]
@@ -57,14 +56,14 @@
         [% IF id_column == 'borrowernumbers' %]
             <div class="alert alert-warning"><p>Warning, the following borrowernumbers were not found:</p></div>
         [% ELSE %]
-            <div class="alert alert-warning"><p>Warning, the following cardnumbers were not found:</p></div>
+            <div class="alert alert-warning"><p>Warning, the following card numbers were not found:</p></div>
         [% END %]
         <table style="margin:auto;">
             <thead>
                 [% IF id_column == 'borrowernumbers' %]
                     <tr><th>Borrowernumbers not found</th></tr>
                 [% ELSE %]
-                    <tr><th>Cardnumbers not found</th></tr>
+                    <tr><th>Card numbers not found</th></tr>
                 [% END %]
             </thead>
             <tbody>
@@ -79,14 +78,14 @@
         [% IF id_column == 'borrowernumbers' %]
             <div class="alert alert-warning"><p>Warning, the following borrowernumbers were already in this list:</p></div>
         [% ELSE %]
-            <div class="alert alert-warning"><p>Warning, the following cardnumbers were already in this list:</p></div>
+            <div class="alert alert-warning"><p>Warning, the following card numbers were already in this list:</p></div>
         [% END %]
         <table style="margin:auto;">
             <thead>
                 [% IF id_column == 'borrowernumbers' %]
                     <tr><th>Borrowernumbers already in list</th></tr>
                 [% ELSE %]
-                    <tr><th>Cardnumbers already in list</th></tr>
+                    <tr><th>Card numbers already in list</th></tr>
                 [% END %]
             </thead>
             <tbody>
@@ -123,7 +122,7 @@
                     <li class="radio">
                         <label class="id_choice" for="add_by_cardnumbers">
                             <input id="add_by_cardnumbers" type="radio" name="id_column" value="cardnumbers" checked="checked" />
-                            <span class="add_by_cardnumbers">Cardnumbers</span>
+                            <span class="add_by_cardnumbers">Card numbers</span>
                         </label>
                         <label class="id_choice" for="add_by_borrowernumbers">
                             <input id="add_by_borrowernumbers" type="radio" name="id_column" value="borrowernumbers" />
@@ -241,9 +240,12 @@
             $('#patrons_to_add_fieldset').hide();
 
                 var table_settings = [% TablesSettings.GetTableSettings('members', 'patron-lists', 'patron-list-table', 'json') | $raw %]
-                KohaTable('patron-list-table', {
-                    "pagingType": "full"
-                }, table_settings);
+                $("#patron-list-table").kohaTable(
+                    {
+                        pagingType: "full",
+                    },
+                    table_settings
+                );
 
             function AddPatron( patron_name, value, container, input_name ) {
                 div = "<div id='borrower_" + value + "'>" + patron_name + " ( <a href='#' class='removePatron'><i class='fa fa-trash-can' aria-hidden='true'></i> " + MSG_REMOVE_PATRON + " </a> ) <input type='hidden' name='" + input_name + "' value='" + value + "' /></div>";

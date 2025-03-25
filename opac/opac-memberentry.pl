@@ -100,7 +100,7 @@ if ( defined $min ) {
     );
 }
 
-my $translated_languages = C4::Languages::getTranslatedLanguages( 'opac', C4::Context->preference('template') );
+my $translated_languages = C4::Languages::getTranslatedLanguages( 'opac', C4::Context->preference('opacthemes') );
 
 $template->param(
     op                => $op,
@@ -475,7 +475,7 @@ sub CheckMandatoryAttributes {
     for my $attribute (@$attributes) {
         my $attr = Koha::Patron::Attribute::Types->find( $attribute->{code} );
         push @empty_mandatory_fields, $attribute->{code}
-            if $attr && $attr->mandatory && $attribute->{attribute} =~ m|^\s*$|;
+            if $attr && $attr->opac_mandatory && $attribute->{attribute} =~ m|^\s*$|;
     }
 
     return @empty_mandatory_fields;

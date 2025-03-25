@@ -11,7 +11,8 @@ use t::lib::TestBuilder;
 use C4::Auth qw( get_session checkauth get_template_and_user );
 use Koha::Database;
 
-use Test::More tests => 27;
+use Test::NoWarnings;
+use Test::More tests => 28;
 use Test::Warn;
 use URI::Escape;
 use List::Util qw( shuffle );
@@ -520,5 +521,3 @@ subtest 'LoadSearchHistoryToTheFirstLoggedUser working' => sub {
     $result2 = $schema->resultset('SearchHistory')->search()->count;
     is( $result2, $result + 1, 'new search added to borrower' );
 };
-
-done_testing;

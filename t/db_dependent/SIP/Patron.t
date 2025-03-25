@@ -4,7 +4,8 @@
 # This needs to be extended! Your help is appreciated..
 
 use Modern::Perl;
-use Test::More tests => 11;
+use Test::NoWarnings;
+use Test::More tests => 12;
 
 use t::lib::Mocks;
 use t::lib::TestBuilder;
@@ -266,7 +267,7 @@ $schema->storage->txn_rollback;
 
 subtest "Patron expiration tests" => sub {
 
-    plan tests => 4;
+    plan tests => 5;
 
     $schema->storage->txn_begin;
     my $patron = $builder->build_object(
@@ -309,11 +310,19 @@ subtest "Patron expiration tests" => sub {
         "A message is displayed when the card has expired and NotifyBorrowerDeparture is not disabled"
     );
 
+    # Bug 38658 - SIP not marking patrons expired unless NotifyBorrowerDeparture has a positive value
     t::lib::Mocks::mock_preference( 'NotifyBorrowerDeparture', 0 );
     $sip_patron = C4::SIP::ILS::Patron->new( $patron->cardnumber );
     like(
-        $sip_patron->screen_msg, qr/^Greetings from Koha. $/,
-        "No message is displayed when the card has expired and NotifyBorrowerDeparture is disabled"
+        $sip_patron->screen_msg, qr/Your account has expired as of/,
+        "A message is displayed when the card has expired and NotifyBorrowerDeparture has a value of 0"
+    );
+
+    t::lib::Mocks::mock_preference( 'NotifyBorrowerDeparture', undef );
+    $sip_patron = C4::SIP::ILS::Patron->new( $patron->cardnumber );
+    like(
+        $sip_patron->screen_msg, qr/Your account has expired as of/,
+        "A message is displayed when the card has expired and NotifyBorrowerDeparture has no value"
     );
 
     $schema->storage->txn_rollback;

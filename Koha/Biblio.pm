@@ -1681,6 +1681,20 @@ sub normalized_upc {
     return $self->metadata_extractor->get_normalized_upc;
 }
 
+=head3 opac_suppressed
+
+    my $opac_suppressed = $biblio->opac_suppressed();
+
+Returns whether the record is flagged as suppressed in the OPAC.
+FIXME: Revisit after 38330 discussion
+
+=cut
+
+sub opac_suppressed {
+    my ($self) = @_;
+    return $self->metadata_extractor->get_opac_suppression();
+}
+
 =head3 normalized_oclc
 
     my $normalized_oclc = $biblio->normalized_oclc
@@ -1713,7 +1727,12 @@ sub to_api {
     $args = defined $args ? {%$args} : {};
     delete $args->{embed};
 
-    my $json_biblioitem = $self->biblioitem->to_api($args);
+    my $biblioitem = $self->biblioitem;
+
+    Koha::Exceptions::RelatedObjectNotFound->throw( accessor => 'biblioitem', class => 'Koha::Biblioitem' )
+        unless $biblioitem;
+
+    my $json_biblioitem = $biblioitem->to_api($args);
     return unless $json_biblioitem;
 
     return { %$json_biblio, %$json_biblioitem };

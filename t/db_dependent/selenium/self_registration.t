@@ -20,6 +20,7 @@ use utf8;
 
 use C4::Context;
 
+use Test::NoWarnings;
 use Test::More;
 use Test::MockModule;
 
@@ -33,7 +34,7 @@ eval { require Selenium::Remote::Driver; };
 if ($@) {
     plan skip_all => "Selenium::Remote::Driver is needed for selenium tests.";
 } else {
-    plan tests => 2;
+    plan tests => 3;
 }
 
 my $s = t::lib::Selenium->new;

@@ -19,7 +19,8 @@ use Modern::Perl;
 
 use POSIX qw(strftime);
 
-use Test::More tests => 36;
+use Test::NoWarnings;
+use Test::More tests => 37;
 use Test::MockModule;
 
 use t::lib::TestBuilder;
@@ -71,12 +72,16 @@ my $patron_2 = $builder->build_object( { class => 'Koha::Patrons', value => { fl
 # store
 Koha::Notice::Messages->delete;
 my $article_request_title = 'an article request title';
-my $article_request       = Koha::ArticleRequest->new(
+my $article_request       = $builder->build_object(
     {
-        borrowernumber => $patron->id,
-        biblionumber   => $item->biblionumber,
-        itemnumber     => $item->itemnumber,
-        title          => $article_request_title,
+        class => 'Koha::ArticleRequests',
+        value => {
+            borrowernumber => $patron->id,
+            biblionumber   => $item->biblionumber,
+            itemnumber     => $item->itemnumber,
+            title          => $article_request_title,
+            debit_id       => undef,
+        }
     }
 )->request();
 

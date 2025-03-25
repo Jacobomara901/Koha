@@ -159,7 +159,7 @@
                         [% ELSE %]
                             <input type="text" id="[%- mv.id | html -%]" name="[% kohafield | html %]" class="input_marceditor [% kohafield | html %]" maxlength="[%- mv.maxlength | html -%]" value="[%- mv.value | html -%]" />
                             [% SET dopop = "Dopop('/cgi-bin/koha/authorities/auth_finder.pl?authtypecode=\"${mv.authtypecode}\"&index=${mv.id}','${mv.id}')" %]
-                            <a href="#" class="buttonDot" onclick="[%- dopop | html -%]; return false;" title="Tag editor">...</a>
+                            <a href="#" class="buttonDot tag_editor" onclick="[%- dopop | html -%]; return false;" title="Tag editor">...</a>
                         [% END %]
                     [% ELSIF ( mv.type == 'text_plugin' ) %]
                         [% IF mv.readonly %]
@@ -173,11 +173,19 @@
                                 readonly="readonly"
                             />
                         [% ELSE %]
-                            <input type="text" id="[%- mv.id | html -%]" name="[% kohafield | html %]" class="input_marceditor [% kohafield | html %]" maxlength="[%- mv.maxlength | html -%]" value="[%- mv.value | html -%]" />
+                            <input
+                                type="text"
+                                id="[%- mv.id | html -%]"
+                                name="[% kohafield | html %]"
+                                class="input_marceditor framework_plugin [% kohafield | html %]"
+                                maxlength="[%- mv.maxlength | html -%]"
+                                value="[%- mv.value | html -%]"
+                                data-plugin="[% mv.plugin | html %]"
+                            />
                             [% IF ( mv.nopopup ) %]
-                                <a href="#" id="buttonDot_[%- mv.id | html -%]" class="[%- mv.class | html -%]" title="No  popup">...</a>
+                                <a href="#" id="buttonDot_[%- mv.id | html -%]" class="[%- mv.class | html -%] tag_editor framework_plugin" title="No popup" data-plugin="[% mv.plugin | html %]">...</a>
                             [% ELSE %]
-                                <a href="#" id="buttonDot_[%- mv.id | html -%]" class="[%- mv.class | html -%]" title="Tag editor">...</a>
+                                <a href="#" id="buttonDot_[%- mv.id | html -%]" class="[%- mv.class | html -%] tag_editor framework_plugin" title="Tag editor" data-plugin="[% mv.plugin | html %]">...</a>
                             [% END %]
                             [% UNLESS no_plugin %]
                                 [%# FIXME - from batchMod-edit, jQuery is included at the end of the template and cataloguing plugins are not working in this situation %]

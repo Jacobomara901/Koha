@@ -26,7 +26,7 @@ jQuery.validator.addMethod(
 );
 
 $(document).ready(function () {
-    KohaTable("restriction_types", {
+    $("#restriction_types").kohaTable({
         columnDefs: [
             {
                 targets: [-1],
@@ -40,7 +40,6 @@ $(document).ready(function () {
         ],
         order: [[1, "asc"]],
         pagingType: "full",
-        exportColumns: [0, 1],
     });
 
     $("#restriction_form").validate({

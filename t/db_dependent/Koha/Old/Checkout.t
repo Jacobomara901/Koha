@@ -17,7 +17,8 @@
 
 use Modern::Perl;
 
-use Test::More tests => 2;
+use Test::NoWarnings;
+use Test::More tests => 3;
 use Test::Exception;
 
 use Koha::Database;
@@ -30,7 +31,7 @@ my $builder = t::lib::TestBuilder->new;
 
 subtest 'anonymize() tests' => sub {
 
-    plan tests => 8;
+    plan tests => 9;
 
     $schema->storage->txn_begin;
 
@@ -50,6 +51,27 @@ subtest 'anonymize() tests' => sub {
             value => { borrowernumber => $patron->id }
         }
     );
+    my $renewal_1 = $builder->build_object(
+        {
+            class => 'Koha::Checkouts::Renewals',
+            value => {
+                checkout_id => undef,
+                interface   => 'opac',
+                renewer_id  => $patron->id
+            }
+        }
+    );
+    $renewal_1->checkout_id( $checkout_2->id )->store();
+    my $renewal_2 = $builder->build_object(
+        {
+            class => 'Koha::Checkouts::Renewals',
+            value => {
+                checkout_id => undef,
+                interface   => 'intranet'
+            }
+        }
+    );
+    $renewal_2->checkout_id( $checkout_2->id )->store();
 
     is( $patron->old_checkouts->count, 2, 'Patron has 2 completed checkouts' );
 
@@ -63,23 +85,25 @@ subtest 'anonymize() tests' => sub {
     is( $patron->old_checkouts->count, 2,                 'No changes, patron has 2 linked completed checkouts' );
 
     is(
-        $checkout_1->borrowernumber, $patron->id,
-        'Anonymized hold not linked to patron'
-    );
-    is(
         $checkout_2->borrowernumber, $patron->id,
-        'Not anonymized hold still linked to patron'
+        'Checkout to anonymize still linked to patron'
     );
+    is( $checkout_2->renewals->count, 2, 'Checkout 2 has 2 renewals' );
 
     my $anonymous_patron = $builder->build_object( { class => 'Koha::Patrons' } );
     t::lib::Mocks::mock_preference( 'AnonymousPatron', $anonymous_patron->id );
 
-    # anonymize second hold
+    # anonymize second checkout
     $checkout_2->anonymize;
     $checkout_2->discard_changes;
     is(
         $checkout_2->borrowernumber, $anonymous_patron->id,
-        'Anonymized hold linked to anonymouspatron'
+        'Anonymized checkout linked to anonymouspatron'
+    );
+    is(
+        $checkout_2->renewals->search( { renewer_id => $anonymous_patron->id } )->count,
+        1,
+        'OPAC renewal was anonymized'
     );
 
     $schema->storage->txn_rollback;

@@ -124,11 +124,11 @@
                                 [% END %]</td
                             >
                             <td>[% IF ( account.itemnumber ) %][% account.item.itemcallnumber | html %][% END %]</td>
-                            <td>[% IF ( account.issue_id ) %][% account.checkout.date_due | $KohaDates as_due_date => 1 %][% END %]</td>
-                            <td>[% IF ( account.issue_id ) %][% account.checkout.returndate | $KohaDates with_hours => 1 %][% END %]</td>
-                            <td>[% IF ( account.issue_id ) %][% account.checkout.issuedate | $KohaDates %][% END %]</td>
+                            <td>[% IF ( account.issue_id ) || (account.old_issue_id) %][% account.checkout.date_due | $KohaDates as_due_date => 1 %][% END %]</td>
+                            <td>[% IF ( account.issue_id ) || (account.old_issue_id) %][% account.checkout.returndate | $KohaDates with_hours => 1 %][% END %]</td>
+                            <td>[% IF ( account.issue_id ) || (account.old_issue_id) %][% account.checkout.issuedate | $KohaDates %][% END %]</td>
                             <td class="checked_out_from">
-                                [% IF account.issue_id && account.checkout.library %]
+                                [% IF ( account.issue_id ) || (account.old_issue_id) && account.checkout.library %]
                                     [% account.checkout.library.branchname | html %]
                                 [% END %]
                             </td>
@@ -182,27 +182,26 @@
                                     </form>
                                 [% END %]
                                 [% IF account.is_credit && account.status != 'VOID' %]
-                                    <form method="post" action="/cgi-bin/koha/members/boraccount.pl">
-                                        [% INCLUDE 'csrf-token.inc' %]
-                                        <input type="hidden" name="op" value="cud-void" />
-                                        <input type="hidden" name="borrowernumber" value="[% patron.borrowernumber | html %]" />
-                                        <input type="hidden" name="accountlines_id" value="[% account.accountlines_id | html %]" />
-                                        <button type="submit" class="btn btn-default btn-xs void-action">
-                                            <i class="fa fa-ban"></i>
-                                            Void payment
-                                        </button>
-                                    </form>
+                                    <button
+                                        type="button"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#voidPaymentModal"
+                                        data-accountline="[% account.accountlines_id | html %]"
+                                        data-member="[% account.borrowernumber | html %]"
+                                        class="btn btn-default btn-xs void-action"
+                                        ><i class="fa fa-ban"></i> Void payment</button
+                                    >
                                 [% END %]
                                 [% IF account.is_debit && account.amount == account.amountoutstanding && account.status != 'CANCELLED' && !(account.debit_type_code == 'PAYOUT') %]
-                                    <form method="post" action="/cgi-bin/koha/members/cancel-charge.pl">
-                                        [% INCLUDE 'csrf-token.inc' %]
-                                        <input type="hidden" name="op" value="cud-cancel" />
-                                        <input type="hidden" name="accountlines_id" value="[% account.accountlines_id | html %]" />
-                                        <button type="submit" class="btn btn-default btn-xs cancel-action">
-                                            <i class="fa fa-ban"></i>
-                                            Cancel charge
-                                        </button>
-                                    </form>
+                                    <button
+                                        type="button"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#cancelChargeModal"
+                                        data-accountlines_id="[% account.accountlines_id | html %]"
+                                        data-borrowernumber="[% patron.borrowernumber | html %]"
+                                        class="btn btn-default btn-xs void-action"
+                                        ><i class="fa fa-ban"></i> Cancel charge</button
+                                    >
                                 [% END %]
                                 [% IF CAN_user_updatecharges_payout && account.is_credit && ( account.amountoutstanding < 0 ) %]
                                     <button
@@ -309,6 +308,10 @@
                                     </select>
                                 </li>
                             [% END %]
+                            <li>
+                                <label for="payout_note">Note: </label>
+                                <input type="text" name="payout_note" id="payout_note" />
+                            </li>
                         </ol>
                     </fieldset>
                     <!-- /.rows -->
@@ -347,7 +350,7 @@
                     [% END %]
                     <fieldset class="rows">
                         <ol>
-                            <li> <span id="item" class="label">Account: </span><span></span> </li>
+                            <li> <span id="refund_item" class="label">Account: </span><span></span> </li>
                             <li> <span id="paid" class="label">Amount paid: </span><span></span> </li>
                             <li>
                                 <label class="required" for="amount">Returned to patron: </label>
@@ -366,6 +369,10 @@
                                     </select>
                                 </li>
                             [% END %]
+                            <li>
+                                <label for="refund_note">Note: </label>
+                                <input type="text" id="refund_note" name="refund_note" />
+                            </li>
                         </ol>
                     </fieldset>
                     <!-- /.rows -->
@@ -401,12 +408,16 @@
                 <div class="modal-body">
                     <fieldset class="rows">
                         <ol>
-                            <li> <span id="item" class="label">Account type: </span><span></span> </li>
+                            <li> <span id="apply_discount_item" class="label">Account type: </span><span></span> </li>
                             <li> <span id="charged" class="label">Amount charged: </span><span></span> </li>
                             <li>
                                 <label class="required" for="amount">Discount to apply: </label>
                                 <input type="text" inputmode="numeric" pattern="[0-9]*" id="discount" name="amount" required="required" />
                                 <span class="required">Required</span>
+                            </li>
+                            <li>
+                                <label for="apply_discount_note">Note: </label>
+                                <input type="text" id="apply_discount_note" name="apply_discount_note" />
                             </li>
                         </ol>
                     </fieldset>
@@ -427,10 +438,87 @@
 </div>
 <!-- /#applyDiscountModal -->
 
+<!-- Void payment modal -->
+<div class="modal" id="voidPaymentModal" tabindex="-1" role="dialog" aria-labelledby="voidPaymentLabel">
+    <form id="void_form" action="/cgi-bin/koha/members/boraccount.pl" method="post" enctype="multipart/form-data" class="validated">
+        [% INCLUDE 'csrf-token.inc' %]
+        <input type="hidden" name="accountlines_id" value="" id="voidline" />
+        <input type="hidden" name="op" value="cud-void" />
+        <input type="hidden" name="borrowernumber" value="[% account.borrowernumber | html %]" />
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title" id="voidPaymentLabel">Void payment</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <fieldset class="rows">
+                        <ol>
+                            <li>
+                                <label for="void_note">Note: </label>
+                                <input type="text" id="void_note" name="void_note" />
+                            </li>
+                        </ol>
+                    </fieldset>
+                    <!-- /.rows -->
+                </div>
+                <!-- /.modal-body -->
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-default">Confirm</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+                <!-- /.modal-footer -->
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </form>
+    <!-- /#void_form -->
+</div>
+<!-- /#voidPaymentModal -->
+
+<!-- Cancel charge modal -->
+<div class="modal" id="cancelChargeModal" tabindex="-1" role="dialog" aria-labelledby="cancelChangreLabel">
+    <form method="post" action="/cgi-bin/koha/members/cancel-charge.pl">
+        [% INCLUDE 'csrf-token.inc' %]
+        <input type="hidden" name="borrowernumber" value="[% patron.borrowernumber | html %]" />
+        <input type="hidden" name="accountlines_id" id="accountlines_id" value="" />
+        <input type="hidden" name="op" value="cud-cancel" />
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title" id="cancelChargeLabel">Cancel charge</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <fieldset class="rows">
+                        <ol>
+                            <li>
+                                <label for="cancel_charge_note">Note: </label>
+                                <input type="text" id="cnacel_charge_note" name="cancel_charge_note" />
+                            </li>
+                        </ol>
+                    </fieldset>
+                    <!-- /.rows -->
+                </div>
+                <!-- /.modal-body -->
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Confirm</button>
+                    <button type="button" class="btn btn-default" data-bs-dismiss="modal">Cancel</button>
+                </div>
+                <!-- /.modal-footer -->
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </form>
+    <!-- /#cancel_charge_form -->
+</div>
+<!-- /#voidPaymentModal -->
+
 [% MACRO jsinclude BLOCK %]
     [% INCLUDE 'datatables.inc' %]
     [% INCLUDE 'format_price.inc' %]
-    [% INCLUDE 'columns_settings.inc' %]
     [% INCLUDE 'str/members-menu.inc' %]
     [% Asset.js("js/members-menu.js") | $raw %]
     <script>
@@ -442,11 +530,14 @@
             var txtActivefilter = _("Filter paid transactions");
             var txtInactivefilter = _("Show all transactions");
             var table_settings = [% TablesSettings.GetTableSettings('members', 'fines', 'account-fines', 'json') | $raw %];
-            var table_account_fines = KohaTable("table_account_fines", {
-                "pagingType": "full",
-                "order": [[0, 'desc']],
-                "dom": 'C<"top pager"ilpfB><"#filter_c">tr<"bottom pager"ip>',
-            }, table_settings);
+            var table_account_fines = $("#table_account_fines").kohaTable(
+                {
+                    pagingType: "full",
+                    order: [[0, "desc"]],
+                    dom: 'C<"top pager"ilpfB><"#filter_c">tr<"bottom pager"ip>',
+                },
+                table_settings
+            );
             $("#filter_c").html('<p><a href="#" id="filter_transacs"><i class="fa fa-filter"></i> '+txtActivefilter+'</a>');
             $('#filter_transacs').click(function(e) {
                 e.preventDefault();
@@ -459,14 +550,6 @@
                 }
                 table_account_fines.DataTable().columns( 14 ).search( filteredValue, true, false ).draw();
                 $(this).toggleClass('filtered');
-            });
-
-            $(".void-action").on("click",function(e){
-                if( confirm( _("Are you sure you want to void this credit?") ) ) {
-                    return true;
-                } else {
-                    e.preventDefault();
-                }
             });
 
             $("#issuePayoutModal").on("shown.bs.modal", function(e){
@@ -502,13 +585,30 @@
             $("#applyDiscountModal").on("shown.bs.modal", function(e){
                 var button = $(e.relatedTarget);
                 var item = button.data('item');
-                $("#item + span").replaceWith(item);
+                $("#apply_discount_item + span").replaceWith(item);
                 var accountline = button.data('accountline');
                 $('#discountline').val(accountline);
                 var amountoutstanding = button.data('amountoutstanding');
                 $("#charged + span").text(amountoutstanding);
                 $("#discount").attr({ "value": (0).format_price(), "max": amountoutstanding, "min": 0 });
                 $("#discount").focus();
+            });
+
+            $("#voidPaymentModal").on("shown.bs.modal", function(e){
+                var button = $(e.relatedTarget);
+                var item = button.data('accountline');
+                $('#voidline').val(item);
+            });
+
+            $("#cancelChargeModal").on("shown.bs.modal", function(e){
+                var button = $(e.relatedTarget);
+                var item = button.data('accountlines_id');
+                $('#accountlines_id').val(item);
+            });
+
+            $(".receipt-email-action").on("click", function(e){
+                e.preventDefault();
+                return $(this).siblings('form').submit();
             });
         });
     </script>

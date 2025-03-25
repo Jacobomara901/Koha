@@ -1246,7 +1246,7 @@
                                     <!-- /#toolbar.btn-toolbar -->
                                 [% END # /IF batch operations || ( unlimited_total > 10 && limit <= 1000 ) %]
 
-                                <div class="pages"> [% pagination_bar | $raw %] </div>
+                                <nav id="pagination_top" class="pages"> [% pagination_bar | $raw %] </nav>
                             [% END # UNLESS ( errors ) %]
                         [% END # IF ( execute ) %]
 
@@ -1357,7 +1357,7 @@
                                 </tbody>
                             </table>
                         [% END %]
-                        <div class="pages">[% pagination_bar | $raw %]</div>
+                        <nav class="pages" id="pagination_bottom"> [% pagination_bar | $raw %] </nav>
                     </div>
                     [% INCLUDE 'chart.inc' %]
                 [% END #/IF ( execute ) %]
@@ -1699,7 +1699,6 @@
     [% INCLUDE 'calendar.inc' %]
     [% INCLUDE 'datatables.inc' %]
     [% IF ( saved1 ) %]
-        [% INCLUDE 'columns_settings.inc' %]
         [% Asset.js( "lib/jsdiff/jsdiff.min.js" ) | $raw %]
     [% END %]
     [% Asset.js( "lib/codemirror/codemirror.min.js" ) | $raw %]
@@ -2153,15 +2152,17 @@
 
             [% IF (saved1) %]
                 var table_settings = [% TablesSettings.GetTableSettings( 'reports', 'saved-sql', 'table_reports', 'json' ) | $raw %];
-                var rtable = KohaTable("table_reports", {
-                    "autoWidth": false,
-                    "pagingType": 'full',
-                    "order": [[ 1, "asc" ]],
-                    "language": {
-                        "zeroRecords": _("No matching reports found")
+                var rtable = $("#table_reports").kohaTable(
+                    {
+                        autoWidth: false,
+                        pagingType: "full",
+                        order: [[1, "asc"]],
+                        language: {
+                            zeroRecords: _("No matching reports found"),
+                        },
                     },
-
-                }, table_settings);
+                    table_settings
+                );
                 let table_dt = rtable.DataTable();
 
                 $("#tabs a[data-bs-toggle='tab']").on("shown.bs.tab", function (e) {
@@ -2539,7 +2540,7 @@
                         $(".mana_search_status").hide();
                         $("#mana_search_result_label").text(_("Results from Mana Knowledge Base"));
                         $("#mana-loading").hide();
-                        $("#mana_results_datatable").dataTable($.extend(true, {}, dataTablesDefaults,{
+                        $("#mana_results_datatable").kohaTable({
                             "pagingType": "full",
                             "autoWidth": false,
                             "columnDefs": [
@@ -2549,7 +2550,7 @@
                                 { "orderable": false, "searchable":  false, "targets": [ 'NoSort' ] },
                                 { "type": "anti-the", "targets":  [ 'anti-the'] }
                             ]
-                        }));
+                        });
 
                         $(".showbutton").on("click", function(e){
                             e.preventDefault();

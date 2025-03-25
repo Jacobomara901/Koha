@@ -102,7 +102,7 @@
                 [% total | html %] result(s) found in catalog,
                 <a href="#searchresult-breeding">[% breeding_count | html %] result(s) found in reservoir</a>
             </div>
-            <div class="pages">[% pagination_bar | $raw %]</div>
+            <nav class="pages" id="pagination_top"> [% pagination_bar | $raw %] </nav>
             <div class="searchresults">
                 <table>
                     <tr>
@@ -196,7 +196,7 @@
                         </tr>
                     [% END # /FOREACH resultsloo %]
                 </table>
-                <div class="pages">[% pagination_bar | $raw %]</div>
+                <nav class="pages" id="pagination_bottom"> [% pagination_bar | $raw %] </nav>
             </div>
             <!-- /.searchresults -->
         </div>
@@ -284,7 +284,6 @@
 
 [% MACRO jsinclude BLOCK %]
     [% INCLUDE 'datatables.inc' %]
-    [% INCLUDE 'columns_settings.inc' %]
     <script>
         $(document).ready(function() {
             //Set focus to cataloging search
@@ -329,9 +328,12 @@
             });
 
             var table_settings = [% TablesSettings.GetTableSettings( 'cataloguing', 'addbooks', 'reservoir-table', 'json' ) | $raw %]
-            var reservoirt = KohaTable("reservoir-table", {
-                "pagingType": "simple"
-            }, table_settings );
+            var reservoirt = $("#reservoir-table").kohaTable(
+                {
+                    pagingType: "simple",
+                },
+                table_settings
+            );
         });
 
         /* this function open a popup to search on z3950 server.  */

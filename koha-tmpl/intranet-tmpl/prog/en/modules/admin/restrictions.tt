@@ -197,7 +197,7 @@
                             <th scope="col">Default</th>
                             <th scope="col">Lift after payment?</th>
                             <th scope="col">Fee limit</th>
-                            <th scope="col">Actions</th>
+                            <th class="noExport" scope="col">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -236,7 +236,6 @@
 [% MACRO jsinclude BLOCK %]
     [% Asset.js("js/admin-menu.js") | $raw %]
     [% INCLUDE 'datatables.inc' %]
-    [% INCLUDE 'columns_settings.inc' %]
     <script>
         var MSG_DUPLICATE_CODE = _("Restriction type code is already in use");
         var MSG_DUPLICATE_DISPLAY_TEXT = _("Restriction type label is already in use");

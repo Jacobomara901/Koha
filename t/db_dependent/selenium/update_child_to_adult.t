@@ -19,6 +19,7 @@ use Modern::Perl;
 
 use C4::Context;
 
+use Test::NoWarnings;
 use Test::More;
 use Test::MockModule;
 
@@ -32,7 +33,7 @@ eval { require Selenium::Remote::Driver; };
 if ($@) {
     plan skip_all => "Selenium::Remote::Driver is needed for selenium tests.";
 } else {
-    plan tests => 1;
+    plan tests => 2;
 }
 
 my $s             = t::lib::Selenium->new;

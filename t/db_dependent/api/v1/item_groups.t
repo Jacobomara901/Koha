@@ -17,7 +17,8 @@
 
 use Modern::Perl;
 
-use Test::More tests => 5;
+use Test::NoWarnings;
+use Test::More tests => 6;
 use Test::Mojo;
 use Test::Warn;
 
@@ -118,13 +119,7 @@ subtest 'add() tests' => sub {
         ->status_is( 201, 'REST3.2.1' );
 
     # Invalid biblio id
-    {    # hide useless warnings
-        local *STDERR;
-        open STDERR, '>', '/dev/null';
-        $t->post_ok( "//$auth_userid:$password@/api/v1/biblios/XXX/item_groups" => json => $item_group )
-            ->status_is(404);
-        close STDERR;
-    }
+    $t->post_ok( "//$auth_userid:$password@/api/v1/biblios/XXX/item_groups" => json => $item_group )->status_is(404);
 
     $schema->storage->txn_rollback;
 };

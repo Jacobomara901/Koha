@@ -800,7 +800,7 @@
                                         [% END %]
                                         [% IF ( subscription.latestserials ) %]
                                             <p class="subscription_latestissues"> The [% subscription.opacdisplaycount | html %] latest issues for this subscription:</p>
-                                            <table class="table table-bordered table-striped" id="subscriptionst">
+                                            <table class="table table-bordered table-striped subscriptionst">
                                                 <caption class="sr-only">Latest serials</caption>
                                                 <thead>
                                                     <tr>
@@ -1561,7 +1561,6 @@
         [% Asset.js("js/modals/catalog_concern.js") | $raw %]
     [% END %]
     [% INCLUDE 'datatables.inc' %]
-    [% INCLUDE 'columns_settings.inc' %]
     [% INCLUDE greybox.inc %]
     [% IF ( OpacStarRatings != 'disable' ) %]
         [% Asset.js("lib/jquery/plugins/jquery.barrating.min.js") | $raw %]
@@ -1862,43 +1861,51 @@
 
             var table_settings = [% TablesSettings.GetTableSettings( 'opac', 'biblio-detail', 'holdingst', 'json' ) | $raw %];
 
-            KohaTable("#holdingst", {
-                dom: '<"clearfix">t',
-                "columnDefs": [
-                    { "className": "dtr-control", "orderable": false, "targets": -1 }
-                ],
-                "bKohaColumnsUseNames": true,
-                "responsive": {
-                    "details": { "type": 'column', "target": -1 }
-                }
-            }, table_settings);
-
-            KohaTable("#otherholdingst", {
-                dom: '<"clearfix">t',
-                "columnDefs": [
-                    { "className": "dtr-control", "orderable": false, "targets": -1 }
-                ],
-                "bKohaColumnsUseNames": true,
-                "responsive": {
-                    "details": { "type": 'column', "target": -1 }
-                }
-            }, table_settings);
+            $("#holdingst").kohaTable(
+                {
+                    dom: '<"clearfix">t',
+                    columnDefs: [
+                        { className: "dtr-control", orderable: false, targets: -1 },
+                    ],
+                    bKohaColumnsUseNames: true,
+                    responsive: {
+                        details: { type: "column", target: -1 },
+                    },
+                },
+                table_settings
+            );
+            $("#otherholdingst").kohaTable(
+                {
+                    dom: '<"clearfix">t',
+                    columnDefs: [
+                        { className: "dtr-control", orderable: false, targets: -1 },
+                    ],
+                    bKohaColumnsUseNames: true,
+                    responsive: {
+                        details: { type: "column", target: -1 },
+                    },
+                },
+                table_settings
+            );
 
             var serial_table_settings = [% TablesSettings.GetTableSettings( 'opac', 'biblio-detail', 'subscriptionst', 'json' ) | $raw %];
 
-            KohaTable("#subscriptionst", {
-                dom: '<"clearfix">t',
-                "sorting": [[ 1, "desc" ]],
-                "bKohaColumnsUseNames": true,
-                "responsive": {
-                    "details": { "type": 'column', "target": -1 }
+            $("#subscriptionst").kohaTable(
+                {
+                    dom: '<"clearfix">t',
+                    sorting: [[1, "desc"]],
+                    bKohaColumnsUseNames: true,
+                    responsive: {
+                        details: { type: "column", target: -1 },
+                    },
+                    columnDefs: [
+                        { className: "dtr-control", orderable: false, targets: -1 },
+                    ],
                 },
-                "columnDefs": [
-                    { "className": "dtr-control", "orderable": false, "targets": -1 }
-                ],
-            }, serial_table_settings);
+                serial_table_settings
+            );
 
-            var dTables = $("#holdingst,#subscriptionst,#otherholdingst");
+            var dTables = $("#holdingst,.subscriptionst,#otherholdingst");
             $('a[data-bs-toggle="tab"]').on('shown.bs.tab', function (event) {
                 dTables.DataTable().responsive.recalc();
             } );

@@ -1,5 +1,7 @@
 @media print {
     .pagebreak { break-after: page; }
+    #cookieConsentBar_content { display: none; }
+    .consentButtons   { display: none; }
 }
 
 a:link {
@@ -317,7 +319,7 @@ td.debit {
 #menu,
 #limitselect,
 #batchModify,
-#navmenu,
+.sidebar_menu,
 .gradient,
 .noprint,
 form#sortbyform,

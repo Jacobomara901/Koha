@@ -247,7 +247,7 @@ DROP TABLE IF EXISTS `additional_field_values`;
 CREATE TABLE `additional_field_values` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'primary key identifier',
   `field_id` int(11) NOT NULL COMMENT 'foreign key references additional_fields(id)',
-  `record_id` int(11) NOT NULL COMMENT 'record_id',
+  `record_id` varchar(11) NOT NULL COMMENT 'record_id',
   `value` varchar(255) NOT NULL DEFAULT '' COMMENT 'value for this field',
   PRIMARY KEY (`id`),
   KEY `afv_fk` (`field_id`),
@@ -929,7 +929,6 @@ CREATE TABLE `auth_header` (
   `heading` longtext DEFAULT NULL,
   `origincode` varchar(20) DEFAULT NULL,
   `authtrees` longtext DEFAULT NULL,
-  `marc` blob DEFAULT NULL,
   `linkid` bigint(20) DEFAULT NULL,
   `marcxml` longtext NOT NULL,
   PRIMARY KEY (`authid`),
@@ -1260,7 +1259,8 @@ CREATE TABLE `borrower_attribute_types` (
   `category_code` varchar(10) DEFAULT NULL COMMENT 'defines a category for an attribute_type',
   `class` varchar(255) NOT NULL DEFAULT '' COMMENT 'defines a class for an attribute_type',
   `keep_for_pseudonymization` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'defines if this field is copied to anonymized_borrower_attributes (1 for yes, 0 for no)',
-  `mandatory` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'defines if the attribute is mandatory or not',
+  `mandatory` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'defines if the attribute is mandatory or not in the staff interface',
+  `opac_mandatory` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'defines if the attribute is mandatory or not in the OPAC',
   PRIMARY KEY (`code`),
   KEY `auth_val_cat_idx` (`authorised_value_category`),
   KEY `category_code` (`category_code`),
@@ -2552,6 +2552,28 @@ CREATE TABLE `currency` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `deletedauth_header`
+--
+
+DROP TABLE IF EXISTS `deletedauth_header`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `deletedauth_header` (
+  `authid` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `authtypecode` varchar(10) NOT NULL DEFAULT '',
+  `datecreated` date DEFAULT NULL,
+  `modification_time` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `heading` longtext DEFAULT NULL,
+  `origincode` varchar(20) DEFAULT NULL,
+  `authtrees` longtext DEFAULT NULL,
+  `linkid` bigint(20) DEFAULT NULL,
+  `marcxml` longtext NOT NULL,
+  PRIMARY KEY (`authid`),
+  KEY `origincode` (`origincode`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `deletedbiblio`
 --
 
@@ -2900,6 +2922,25 @@ CREATE TABLE `edifact_messages` (
   CONSTRAINT `emfk_basketno` FOREIGN KEY (`basketno`) REFERENCES `aqbasket` (`basketno`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `emfk_edi_acct` FOREIGN KEY (`edi_acct`) REFERENCES `vendor_edi_accounts` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `emfk_vendor` FOREIGN KEY (`vendor_id`) REFERENCES `aqbooksellers` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `edifact_errors`
+--
+
+DROP TABLE IF EXISTS `edifact_errors`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `edifact_errors` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `message_id` int(11) NOT NULL,
+  `date` date DEFAULT NULL,
+  `section` mediumtext DEFAULT NULL,
+  `details` mediumtext DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `messageid` (`message_id`),
+  CONSTRAINT `emfk_message` FOREIGN KEY (`message_id`) REFERENCES `edifact_messages` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -3701,7 +3742,7 @@ CREATE TABLE `illrequests` (
   KEY `illrequests_ibfk` (`batch_id`),
   CONSTRAINT `illrequests_bcfk_2` FOREIGN KEY (`branchcode`) REFERENCES `branches` (`branchcode`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `illrequests_bibfk` FOREIGN KEY (`biblio_id`) REFERENCES `biblio` (`biblionumber`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `illrequests_bnfk` FOREIGN KEY (`borrowernumber`) REFERENCES `borrowers` (`borrowernumber`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `illrequests_bnfk` FOREIGN KEY (`borrowernumber`) REFERENCES `borrowers` (`borrowernumber`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `illrequests_ibfk` FOREIGN KEY (`batch_id`) REFERENCES `illbatches` (`ill_batch_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `illrequests_safk` FOREIGN KEY (`status_alias`) REFERENCES `authorised_values` (`authorised_value`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -6744,6 +6785,7 @@ CREATE TABLE `zebraqueue` (
   PRIMARY KEY (`id`),
   KEY `zebraqueue_lookup` (`server`,`biblio_auth_number`,`operation`,`done`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -6756,3 +6798,51 @@ CREATE TABLE `zebraqueue` (
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2024-11-25 12:13:27
+
+--
+-- Table structure for table `configuration_groups`
+--
+
+DROP TABLE IF EXISTS `configuration_groups`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `configuration_groups` (
+  `bit` int(11) NOT NULL DEFAULT 0 COMMENT 'Unique bit identifier',
+  `flag` varchar(32) NOT NULL COMMENT 'The name/flag of this configuration group',
+  `flagdesc` varchar(255) NOT NULL COMMENT 'Description of this configuration group',
+  PRIMARY KEY (`bit`),
+  UNIQUE KEY `flag` (`flag`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+
+--
+-- Table structure for table `configurations`
+--
+
+DROP TABLE IF EXISTS `configurations`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+ CREATE TABLE `configurations` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT COMMENT 'Unique ID of the configuration entry',
+  `library_id` VARCHAR(10) NULL DEFAULT NULL COMMENT 'Internal identifier for the library the config applies to. NULL means global',
+  `category_id` VARCHAR(10) NULL DEFAULT NULL COMMENT 'Internal identifier for the category the config applies to. NULL means global',
+  `item_type` VARCHAR(10) NULL DEFAULT NULL COMMENT 'Internal identifier for the item type the config applies to. NULL means global',
+  `name` VARCHAR(32) NOT NULL COMMENT 'Configuration entry name',
+  `value` MEDIUMTEXT NULL DEFAULT NULL COMMENT 'Configuration entry value',
+  `type` ENUM('text', 'boolean', 'integer') NOT NULL DEFAULT 'text' COMMENT 'Configuration entry type',
+  `configuration_group_bit` INT(11) NULL DEFAULT NULL COMMENT 'Configuration group this setting applies to. Used for getting/setting all settings grouped for a specific configuration at once',
+  PRIMARY KEY (`id`),
+  KEY `library_id_idx` (`library_id`),
+  KEY `category_id_idx` (`category_id`),
+  KEY `item_type_idx` (`item_type`),
+  KEY `name_idx` (`name`),
+  KEY `type_idx` (`type`),
+  KEY `configuration_group_bit_idx` (`configuration_group_bit`),
+  UNIQUE KEY `config_scope_unique` (`library_id`, `category_id`, `item_type`, `name`),
+  CONSTRAINT `library_id_fk` FOREIGN KEY (`library_id`) REFERENCES `branches` (`branchcode`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `category_id_fk` FOREIGN KEY (`category_id`) REFERENCES `categories` (`categorycode`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `item_type_fk` FOREIGN KEY (`item_type`) REFERENCES `itemtypes` (`itemtype`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `configuration_group_bit_fk` FOREIGN KEY (`configuration_group_bit`) REFERENCES `configuration_groups` (`bit`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;

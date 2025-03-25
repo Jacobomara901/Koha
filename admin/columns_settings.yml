@@ -7,10 +7,12 @@ modules:
               columnname: active
               cannot_be_toggled: 1
               cannot_be_modified: 1
+              is_hidden: 1
             -
               columnname: budget_period_descriptions
               cannot_be_toggled: 1
               cannot_be_modified: 1
+              is_hidden: 1
             -
               columnname: fund_code
             -
@@ -912,6 +914,8 @@ modules:
       agreements:
         columns:
             -
+              columnname: id
+            -
               columnname: name
             -
               columnname: vendor
@@ -932,6 +936,8 @@ modules:
     licenses:
       licenses:
         columns:
+            -
+              columnname: id
             -
               columnname: name
             -
@@ -1420,7 +1426,6 @@ modules:
             - columnname: type
               cannot_be_toggled: 1
               cannot_be_modified: 1
-              is_hidden: 1
             -
               columnname: date
             -

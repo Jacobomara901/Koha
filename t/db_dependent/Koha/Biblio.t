@@ -17,7 +17,8 @@
 
 use Modern::Perl;
 
-use Test::More tests => 39;
+use Test::NoWarnings;
+use Test::More tests => 41;
 use Test::Exception;
 use Test::Warn;
 
@@ -587,7 +588,7 @@ subtest 'to_api() tests' => sub {
     my $biblioitem_api = $biblio->biblioitem->to_api;
     my $biblio_api     = $biblio->to_api;
 
-    plan tests => ( scalar keys %{$biblioitem_api} ) + 1;
+    plan tests => ( scalar keys %{$biblioitem_api} ) + 4;
 
     foreach my $key ( keys %{$biblioitem_api} ) {
         is( $biblio_api->{$key}, $biblioitem_api->{$key}, "$key is added to the biblio object" );
@@ -595,6 +596,13 @@ subtest 'to_api() tests' => sub {
 
     $biblio_api = $biblio->to_api( { embed => { items => {} } } );
     is_deeply( $biblio_api->{items}, [ $item->to_api ], 'Item correctly embedded' );
+
+    $biblio->biblioitem->delete();
+    throws_ok { $biblio->to_api }
+    'Koha::Exceptions::RelatedObjectNotFound',
+        'Exception thrown if the biblioitem accessor returns undef';
+    is( $@->class,    'Koha::Biblioitem' );
+    is( $@->accessor, 'biblioitem' );
 
     $schema->storage->txn_rollback;
 };
@@ -900,8 +908,6 @@ subtest 'get_marc_components() tests' => sub {
 subtest 'get_components_query' => sub {
     plan tests => 12;
 
-    $schema->storage->txn_begin;
-
     my $biblio       = $builder->build_sample_biblio();
     my $biblionumber = $biblio->biblionumber;
     my $record       = $biblio->metadata->record;
@@ -946,15 +952,10 @@ subtest 'get_components_query' => sub {
         is( $comp_sort, "title_asc", "$engine: UseControlNumber enabled with MarcOrgCode sort if correct" );
         $record->delete_field($marc_003_field);
     }
-
-    $schema->storage->txn_rollback;
-
 };
 
 subtest 'get_volumes_query' => sub {
     plan tests => 3;
-
-    $schema->storage->txn_begin;
 
     my $biblio       = $builder->build_sample_biblio();
     my $biblionumber = $biblio->biblionumber;
@@ -995,8 +996,6 @@ subtest 'get_volumes_query' => sub {
         "(((rcn:$biblionumber AND cni:OSt) OR rcn:\"OSt $biblionumber\") NOT (bib-level:a OR bib-level:b))",
         "UseControlNumber enabled with MarcOrgCode"
     );
-
-    $schema->storage->txn_rollback;
 };
 
 subtest 'generate_marc_host_field' => sub {
@@ -1071,9 +1070,8 @@ subtest 'generate_marc_host_field' => sub {
     is( $link->subfield('y'), undef,               'MARC::Field->subfield(w) returns undef if 010a is empty' );
     is( $link->subfield('0'), '1234',              'MARC::Field->subfield(0) returns content from 001' );
 
-    t::lib::Mocks::mock_preference( 'marcflavour', 'MARC21' );
-
     $schema->storage->txn_rollback;
+    t::lib::Mocks::mock_preference( 'marcflavour', 'MARC21' );
 };
 
 subtest 'link_marc_host' => sub {
@@ -1524,12 +1522,16 @@ subtest 'article_requests() tests' => sub {
 
         my $patron = $builder->build_object( { class => 'Koha::Patrons' } );
 
-        Koha::ArticleRequest->new(
+        $builder->build_object(
             {
-                borrowernumber => $patron->id,
-                biblionumber   => $biblio->id,
-                itemnumber     => $item->id,
-                title          => $biblio->title,
+                class => 'Koha::ArticleRequests',
+                value => {
+                    borrowernumber => $patron->id,
+                    biblionumber   => $biblio->id,
+                    itemnumber     => $item->id,
+                    title          => $biblio->title,
+
+                }
             }
         )->request;
     }
@@ -1799,11 +1801,8 @@ subtest 'item_groups() tests' => sub {
     $schema->storage->txn_rollback;
 };
 
-subtest 'normalized_isbn() tests' => sub {
-
+subtest 'normalized_isbn' => sub {
     plan tests => 1;
-
-    $schema->storage->txn_begin;
 
     # We will move the tests from GetNormalizedISBN here when it will get replaced
     my $biblio = $builder->build_sample_biblio();
@@ -1812,15 +1811,10 @@ subtest 'normalized_isbn() tests' => sub {
         $biblio->normalized_isbn, C4::Koha::GetNormalizedISBN( $biblio->biblioitem->isbn ),
         'normalized_isbn is a wrapper around C4::Koha::GetNormalizedISBN'
     );
-
-    $schema->storage->txn_rollback;
 };
 
-subtest 'normalized_upc() tests' => sub {
-
+subtest 'normalized_upc' => sub {
     plan tests => 1;
-
-    $schema->storage->txn_begin;
 
     # We will move the tests from GetNormalizedUPC here when it will get replaced
     # Note that only a single test exist and it's not really meaningful...
@@ -1829,15 +1823,10 @@ subtest 'normalized_upc() tests' => sub {
         $biblio->normalized_upc, C4::Koha::GetNormalizedUPC( $biblio->metadata->record ),
         'normalized_upc is a wrapper around C4::Koha::GetNormalizedUPC'
     );
-
-    $schema->storage->txn_rollback;
 };
 
-subtest 'normalized_oclc() tests' => sub {
-
+subtest 'normalized_oclc' => sub {
     plan tests => 1;
-
-    $schema->storage->txn_begin;
 
     # We will move the tests from GetNormalizedOCLC here when it will get replaced
     # Note that only a single test exist and it's not really meaningful...
@@ -1846,6 +1835,42 @@ subtest 'normalized_oclc() tests' => sub {
         $biblio->normalized_oclc, C4::Koha::GetNormalizedOCLCNumber( $biblio->metadata->record ),
         'normalized_oclc is a wrapper around C4::Koha::GetNormalizedOCLCNumber'
     );
+};
+
+subtest 'opac_suppressed() tests' => sub {
+
+    plan tests => 4;
+
+    $schema->storage->txn_begin;
+
+    my $record = MARC::Record->new;
+    $record->append_fields(
+        MARC::Field->new( '245', '', '', a => 'Some title 1' ),
+        MARC::Field->new( '942', '', '', n => '1' ),
+    );
+
+    my ($biblio_id) = AddBiblio( $record, qw{} );
+    my $biblio = Koha::Biblios->find($biblio_id);
+
+    ok( $biblio->opac_suppressed(), 'Record is suppressed' );
+
+    $record->field('942')->replace_with( MARC::Field->new( '942', '', '', n => '0' ) );
+    ($biblio_id) = AddBiblio( $record, qw{} );
+    $biblio = Koha::Biblios->find($biblio_id);
+
+    ok( !$biblio->opac_suppressed(), 'Record is not suppressed' );
+
+    $record->field('942')->replace_with( MARC::Field->new( '942', '', '', n => '' ) );
+    ($biblio_id) = AddBiblio( $record, qw{} );
+    $biblio = Koha::Biblios->find($biblio_id);
+
+    ok( !$biblio->opac_suppressed(), 'Record is not suppressed' );
+
+    $record->delete_field( $record->field('942') );
+    ($biblio_id) = AddBiblio( $record, qw{} );
+    $biblio = Koha::Biblios->find($biblio_id);
+
+    ok( !$biblio->opac_suppressed(), 'Record is not suppressed' );
 
     $schema->storage->txn_rollback;
 };
@@ -1860,8 +1885,6 @@ subtest 'ratings' => sub {
 subtest 'opac_summary_html' => sub {
 
     plan tests => 2;
-
-    $schema->storage->txn_begin;
 
     my $author = 'my author';
     my $title  = 'my title';
@@ -1881,8 +1904,6 @@ subtest 'opac_summary_html' => sub {
         sprintf( 'Replace %s, %s, %s AND %s please', $author, $title, $biblio->normalized_isbn, $biblio->biblionumber ),
         'opac_summary_html replaces the different patterns'
     );
-
-    $schema->storage->txn_rollback;
 };
 
 subtest 'can_be_edited() tests' => sub {

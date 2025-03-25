@@ -375,7 +375,6 @@
 [% MACRO jsinclude BLOCK %]
     [% INCLUDE 'calendar.inc' %]
     [% INCLUDE 'datatables.inc' %]
-    [% INCLUDE 'columns_settings.inc' %]
     [% INCLUDE 'select2.inc' %]
     <script>
         var authorised_values = [% authorised_values_json | $raw %];
@@ -383,7 +382,7 @@
         function showItemSelections( number ){
             let caret = ' <span class="caret">';
             if( number > 0 ){
-                $("#table_search_selections").show().find("span").text(_("Items selected: " + number ) );
+                $("#table_search_selections").show().find("span").html(_("Items selected: ") + number );
                 $("#batch_mod_menu").removeClass("disabled").prop("disabled", false);
                 $("#export-button").html(_("Export selected results (%s) to").format  ( number ) + caret);
             } else {
@@ -644,7 +643,7 @@
             };
 
             var table_settings = [% TablesSettings.GetTableSettings( 'catalogue', 'itemsearch', 'results', 'json' ) | $raw %];
-            KohaTable('results' , {
+            $('#results').kohaTable( {
                 "bKohaColumnsUseNames": true,
                 "destroy": true,
                 "serverSide": true,
@@ -664,6 +663,7 @@
                         return d;
                     }
                 },
+                bKohaAjaxSVC: true,
                 'dom': 'C<"top pager"ilpB>tr<"bottom pager"ip>',
                 'order': [[1, 'asc']],
                 'columns': [

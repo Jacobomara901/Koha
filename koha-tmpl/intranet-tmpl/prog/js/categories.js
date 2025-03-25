@@ -33,8 +33,7 @@ jQuery.validator.addMethod(
 );
 
 $(document).ready(function () {
-    KohaTable(
-        "patron_categories",
+    $("#patron_categories").kohaTable(
         {
             columnDefs: [
                 {
@@ -48,7 +47,6 @@ $(document).ready(function () {
                 },
             ],
             pagingType: "full",
-            exportColumns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
             bKohaColumnsUseNames: true,
         },
         table_settings

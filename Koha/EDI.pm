@@ -110,6 +110,11 @@ sub create_edi_order {
         )->single;
     }
 
+    unless ($ean_obj) {
+        carp "No matching EAN found for $ean";
+        return;
+    }
+
     my $dbh     = C4::Context->dbh;
     my $arr_ref = $dbh->selectcol_arrayref(
         'select id from edifact_messages where basketno = ? and message_type = \'QUOTE\'',
@@ -288,12 +293,18 @@ sub process_invoice {
                 )->single;
             }
             if ( !$vendor_acct ) {
-                carp "Cannot find vendor with ean $vendor_ean for invoice $invoicenumber in "
-                    . $invoice_message->filename;
+                $invoice_message->add_to_edifact_errors(
+                    {
+                        section => "NAD+SU+" . $msg->supplier_ean,
+                        details => "Skipped invoice $invoicenumber with unmatched vendor san: $vendor_ean"
+                    }
+                );
+                $logger->error( "Cannot find vendor with ean $vendor_ean for invoice $invoicenumber in "
+                        . $invoice_message->filename );
                 next;
             }
             $invoice_message->edi_acct( $vendor_acct->id );
-            $logger->trace("Adding invoice:$invoicenumber");
+            $logger->trace("Adding invoice: $invoicenumber");
             my $new_invoice = $schema->resultset('Aqinvoice')->create(
                 {
                     invoicenumber         => $invoicenumber,
@@ -306,12 +317,18 @@ sub process_invoice {
                 }
             );
             my $invoiceid = $new_invoice->invoiceid;
-            $logger->trace("Added as invoiceno :$invoiceid");
+            $logger->trace("Added as invoiceno: $invoiceid");
             my $lines = $msg->lineitems();
 
             foreach my $line ( @{$lines} ) {
                 my $ordernumber = $line->ordernumber;
                 if ( !$ordernumber ) {
+                    $invoice_message->add_to_edifact_errors(
+                        {
+                            section => join( "\n", map { $_->as_string } @{ $line->{segs} } ),
+                            details => "Skipped invoice line " . $line->line_item_number . ", missing ordernumber"
+                        }
+                    );
                     $logger->error("Skipping invoice line, no associated ordernumber");
                     next;
                 }
@@ -319,12 +336,30 @@ sub process_invoice {
                 # ModReceiveOrder does not validate that $ordernumber exists validate here
                 my $order = $schema->resultset('Aqorder')->find($ordernumber);
                 if ( !$order ) {
+                    $invoice_message->add_to_edifact_errors(
+                        {
+                            section => join( "\n", map { $_->as_string } @{ $line->{segs} } ),
+                            details => "Skipped invoice line "
+                                . $line->line_item_number
+                                . ", cannot find order with ordernumber "
+                                . $ordernumber
+                        }
+                    );
                     $logger->error("Skipping invoice line, no order found for $ordernumber, invoice:$invoicenumber");
                     next;
                 }
 
                 my $bib = $order->biblionumber;
                 if ( !$bib ) {
+                    $invoice_message->add_to_edifact_errors(
+                        {
+                            section => join( "\n", map { $_->as_string } @{ $line->{segs} } ),
+                            details => "Skipped invoice line "
+                                . $line->line_item_number
+                                . ", cannot find biblio for ordernumber "
+                                . $ordernumber
+                        }
+                    );
                     $logger->error(
                         "Skipping invoice line, no bibliographic record found for $ordernumber, invoice:$invoicenumber"
                     );
@@ -383,13 +418,10 @@ sub process_invoice {
                             tax_value_on_receiving => $quantity * $price_excl_tax * $tax_rate->{rate},
                         }
                     );
-                    transfer_items(
-                        $schema,         $line, $order,
-                        $received_order, $quantity
-                    );
+                    transfer_items( $schema, $line, $order, $received_order, $quantity );
                     receipt_items(
-                        $schema,                      $line,
-                        $received_order->ordernumber, $quantity
+                        $schema, $line,
+                        $received_order->ordernumber, $quantity, $invoice_message
                     );
                 } else {    # simple receipt all copies on order
                     $order->quantityreceived($quantity);
@@ -402,7 +434,7 @@ sub process_invoice {
                     $order->tax_value_on_receiving( $quantity * $price_excl_tax * $tax_rate->{rate} );
                     $order->orderstatus('complete');
                     $order->update;
-                    receipt_items( $schema, $line, $ordernumber, $quantity );
+                    receipt_items( $schema, $line, $ordernumber, $quantity, $invoice_message );
                 }
             }
         }
@@ -439,7 +471,7 @@ sub _get_invoiced_price {
 }
 
 sub receipt_items {
-    my ( $schema, $inv_line, $ordernumber, $quantity ) = @_;
+    my ( $schema, $inv_line, $ordernumber, $quantity, $invoice_message ) = @_;
     my $logger = Koha::Logger->get( { interface => 'edi' } );
 
     # itemnumber is not a foreign key ??? makes this a bit cumbersome
@@ -453,7 +485,17 @@ sub receipt_items {
         my $item = $schema->resultset('Item')->find( $ilink->itemnumber );
         if ( !$item ) {
             my $i = $ilink->itemnumber;
-            $logger->warn("Cannot find aqorder item for $i :Order:$ordernumber");
+            $invoice_message->add_to_edifact_errors(
+                {
+                    section => join( "\n", map { $_->as_string } @{ $inv_line->{segs} } ),
+                    details => "Skipped invoice line "
+                        . $inv_line->line_item_number
+                        . ", Koha item with itemnumber "
+                        . $i
+                        . "is missing"
+                }
+            );
+            $logger->warn("Cannot find aqorder item for $i: Order: $ordernumber");
             next;
         }
         my $b = $item->get_column('homebranch');
@@ -491,6 +533,16 @@ sub receipt_items {
                     }
                 );
                 if ( $rs->count > 0 ) {
+                    $invoice_message->add_to_edifact_errors(
+                        {
+                            section => join( "\n", map { $_->as_string } @{ $inv_line->{segs} } ),
+                            details => "Failed to assign barcode "
+                                . $barcode
+                                . "for invoice line "
+                                . $inv_line->line_item_number
+                                . ", duplicate found"
+                        }
+                    );
                     $logger->warn("Barcode $barcode is a duplicate");
                 } else {
 
@@ -513,12 +565,20 @@ sub receipt_items {
 
             $item->update;
         } else {
+            $invoice_message->add_to_edifact_errors(
+                {
+                    section => join( "\n", map { $_->as_string } @{ $inv_line->{segs} } ),
+                    details => "No matching item found for invoice line "
+                        . $inv_line->line_item_number . ":"
+                        . $gir_occurrence
+                        . " at branch $branch"
+                }
+            );
             $logger->warn("Unmatched item at branch:$branch");
         }
         ++$gir_occurrence;
     }
     return;
-
 }
 
 sub transfer_items {
@@ -570,37 +630,38 @@ sub transfer_items {
 }
 
 sub process_quote {
-    my $quote = shift;
+    my $quote_message = shift;
 
-    $quote->status('processing');
-    $quote->update;
+    $quote_message->status('processing');
+    $quote_message->update;
 
-    my $edi = Koha::Edifact->new( { transmission => $quote->raw_msg, } );
+    my $edi = Koha::Edifact->new( { transmission => $quote_message->raw_msg, } );
 
     my $messages       = $edi->message_array();
     my $process_errors = 0;
     my $logger         = Koha::Logger->get( { interface => 'edi' } );
     my $schema         = Koha::Database->new()->schema();
     my $message_count  = 0;
+    my $split_message;
     my @added_baskets;    # if auto & multiple baskets need to order all
 
-    if ( @{$messages} && $quote->vendor_id ) {
+    if ( @{$messages} && $quote_message->vendor_id ) {
         foreach my $msg ( @{$messages} ) {
             ++$message_count;
             my $basketno = NewBasket(
-                $quote->vendor_id, 0, $quote->filename, q{},
+                $quote_message->vendor_id, 0, $quote_message->filename, q{},
                 q{} . q{}
             );
             push @added_baskets, $basketno;
             if ( $message_count > 1 ) {
-                my $m_filename = $quote->filename;
+                my $m_filename = $quote_message->filename;
                 $m_filename .= "_$message_count";
-                $schema->resultset('EdifactMessage')->create(
+                $split_message = $schema->resultset('EdifactMessage')->create(
                     {
-                        message_type  => $quote->message_type,
-                        transfer_date => $quote->transfer_date,
-                        vendor_id     => $quote->vendor_id,
-                        edi_acct      => $quote->edi_acct,
+                        message_type  => $quote_message->message_type,
+                        transfer_date => $quote_message->transfer_date,
+                        vendor_id     => $quote_message->vendor_id,
+                        edi_acct      => $quote_message->edi_acct,
                         status        => 'recmsg',
                         basketno      => $basketno,
                         raw_msg       => q{},
@@ -608,14 +669,15 @@ sub process_quote {
                     }
                 );
             } else {
-                $quote->basketno($basketno);
+                $quote_message->basketno($basketno);
             }
-            $logger->trace("Created basket :$basketno");
+            $logger->trace("Created basket: $basketno");
             my $items  = $msg->lineitems();
             my $refnum = $msg->message_refno;
 
             for my $item ( @{$items} ) {
-                if ( !quote_item( $item, $quote, $basketno ) ) {
+                my $message = $split_message // $quote_message;
+                if ( !quote_item( $item, $message, $basketno ) ) {
                     ++$process_errors;
                 }
             }
@@ -626,12 +688,12 @@ sub process_quote {
         $status = 'error';
     }
 
-    $quote->status($status);
-    $quote->update;    # status and basketno link
-                       # Do we automatically generate orders for this vendor
+    $quote_message->status($status);
+    $quote_message->update;    # status and basketno link
+                               # Do we automatically generate orders for this vendor
     my $v = $schema->resultset('VendorEdiAccount')->search(
         {
-            vendor_id => $quote->vendor_id,
+            vendor_id => $quote_message->vendor_id,
         }
     )->single;
     if ( $v->auto_orders ) {
@@ -661,7 +723,7 @@ sub process_quote {
 }
 
 sub quote_item {
-    my ( $item, $quote, $basketno ) = @_;
+    my ( $item, $quote_message, $basketno ) = @_;
 
     my $schema = Koha::Database->new()->schema();
     my $logger = Koha::Logger->get( { interface => 'edi' } );
@@ -670,23 +732,29 @@ sub quote_item {
     # So this call should not fail unless that has
     my $basket = Koha::Acquisition::Baskets->find($basketno);
     unless ($basket) {
-        $logger->error('Skipping order creation no valid basketno');
+        $quote_message->add_to_edifact_errors(
+            {
+                section => "",
+                details => "Failed to create basket"
+            }
+        );
+        $logger->error('Skipped order creation no valid basketno');
         return;
     }
-    $logger->trace( 'Checking db for matches with ', $item->item_number_id() );
+    $logger->trace( 'Checking db for matches with ' . $item->item_number_id() );
     my $bib = _check_for_existing_bib( $item->item_number_id() );
     if ( !defined $bib ) {
         $bib = {};
-        my $bib_record = _create_bib_from_quote( $item, $quote );
+        my $bib_record = _create_bib_from_quote( $item, $quote_message );
 
         # Check for and add default 008 as this is a mandatory field
         $bib_record = _handle_008_field($bib_record);
 
         ( $bib->{biblionumber}, $bib->{biblioitemnumber} ) =
             AddBiblio( $bib_record, q{} );
-        $logger->trace("New biblio added $bib->{biblionumber}");
+        $logger->trace( "Added biblio: " . $bib->{biblionumber} );
     } else {
-        $logger->trace("Match found: $bib->{biblionumber}");
+        $logger->trace( "Match found: " . $bib->{biblionumber} );
     }
 
     # Create an orderline
@@ -697,6 +765,12 @@ sub quote_item {
     $order_quantity ||= 1;    # quantity not necessarily present
     if ( $gir_count > 1 ) {
         if ( $gir_count != $order_quantity ) {
+            $quote_message->add_to_edifact_errors(
+                {
+                    section => join( '\n', @{ $item->{GIR} } ),
+                    details => "Order for $order_quantity items, $gir_count segments present"
+                }
+            );
             $logger->error("Order for $order_quantity items, $gir_count segments present");
         }
         $order_quantity = 1;    # attempts to create an orderline for each gir
@@ -707,7 +781,7 @@ sub quote_item {
     if ( !$price ) {
         $price = $item->price_gross;
     }
-    my $vendor = Koha::Acquisition::Booksellers->find( $quote->vendor_id );
+    my $vendor = Koha::Acquisition::Booksellers->find( $quote_message->vendor_id );
 
     # NB quote will not include tax info it only contains the list price
     my $ecost = _discounted_price( $vendor->discount, $price, $item->price_info_inclusive );
@@ -775,12 +849,22 @@ sub quote_item {
     my $skip = '0';
     if ( !$budget ) {
         if ( $item->quantity > 1 ) {
-            carp 'Skipping line with no budget info';
-            $logger->trace('girfield skipped for invalid budget');
+            $quote_message->add_to_edifact_errors(
+                {
+                    section => join( '\n', @{ $item->{GIR} } ),
+                    details => "Skipped GIR line with invalid budget: " . $item->girfield('fund_allocation')
+                }
+            );
+            $logger->trace( 'Skipping item with invalid budget: ' . $item->girfield('fund_allocation') );
             $skip++;
         } else {
-            carp 'Skipping line with no budget info';
-            $logger->trace('orderline skipped for invalid budget');
+            $quote_message->add_to_edifact_errors(
+                {
+                    section => join( "\n", map { $_->as_string } @{ $item->{segs} } ),
+                    details => "Skipped orderline line with invalid budget: " . $item->girfield('fund_allocation')
+                }
+            );
+            $logger->trace( 'Skipping orderline with invalid budget: ' . $item->girfield('fund_allocation') );
             return;
         }
     }
@@ -793,7 +877,7 @@ sub quote_item {
         $order_hash->{budget_id} = $budget->budget_id;
         my $first_order = $schema->resultset('Aqorder')->create($order_hash);
         my $o           = $first_order->ordernumber();
-        $logger->trace("Order created :$o");
+        $logger->trace("Order created: $o");
 
         # should be done by database settings
         $first_order->parent_ordernumber( $first_order->ordernumber() );
@@ -806,7 +890,7 @@ sub quote_item {
         $ordernumber{ $budget->budget_id } = $o;
 
         if ( C4::Context->preference('AcqCreateItem') eq 'ordering' ) {
-            $item_hash = _create_item_from_quote( $item, $quote );
+            $item_hash = _create_item_from_quote( $item, $quote_message );
 
             my $created = 0;
             while ( $created < $order_quantity ) {
@@ -814,7 +898,7 @@ sub quote_item {
                 $item_hash->{biblioitemnumber} = $bib->{biblioitemnumber};
                 my $kitem      = Koha::Item->new($item_hash)->store;
                 my $itemnumber = $kitem->itemnumber;
-                $logger->trace("Added item:$itemnumber");
+                $logger->trace( "Added item: " . $itemnumber );
                 $schema->resultset('AqordersItem')->create(
                     {
                         ordernumber => $first_order->ordernumber,
@@ -831,8 +915,14 @@ sub quote_item {
                     );
                     if ($rota) {
                         $rota->add_item($itemnumber);
-                        $logger->trace("Item added to rota $rota->id");
+                        $logger->trace( "Item added to rota " . $rota->title );
                     } else {
+                        $quote_message->add_to_edifact_errors(
+                            {
+                                section => "$item->{GIR}->[0]",
+                                details => "No rota found for passed LRP:$lrp in orderline"
+                            }
+                        );
                         $logger->error("No rota found matching $lrp in orderline");
                     }
                 }
@@ -852,8 +942,13 @@ sub quote_item {
 
             if ( !$budget ) {
                 my $bad_budget = $item->girfield( 'fund_allocation', $occurrence );
-                carp 'Skipping line with no budget info';
-                $logger->trace("girfield skipped for invalid budget:$bad_budget");
+                $quote_message->add_to_edifact_errors(
+                    {
+                        section => "$item->{GIR}->[$occurrence]",
+                        details => "Invalid budget $bad_budget found"
+                    }
+                );
+                $logger->trace( "Skipping item with invalid budget: " . $bad_budget );
                 ++$occurrence;    ## lets look at the next one not this one again
                 next;
             }
@@ -868,7 +963,7 @@ sub quote_item {
 
                 my $new_order = $schema->resultset('Aqorder')->create($order_hash);
                 my $o         = $new_order->ordernumber();
-                $logger->trace("Order created :$o");
+                $logger->trace("Order created: $o");
 
                 # should be done by database settings
                 $new_order->parent_ordernumber( $new_order->ordernumber() );
@@ -882,7 +977,7 @@ sub quote_item {
 
                 if ( C4::Context->preference('AcqCreateItem') eq 'ordering' ) {
                     if ( !defined $item_hash ) {
-                        $item_hash = _create_item_from_quote( $item, $quote );
+                        $item_hash = _create_item_from_quote( $item, $quote_message );
                     }
                     my $new_item = {
                         itype          => $item->girfield( 'stock_category', $occurrence ),
@@ -932,8 +1027,14 @@ sub quote_item {
                         );
                         if ($rota) {
                             $rota->add_item($itemnumber);
-                            $logger->trace("Item added to rota $rota->id");
+                            $logger->trace( "Item added to rota " . $rota->id );
                         } else {
+                            $quote_message->add_to_edifact_errors(
+                                {
+                                    section => "$item->{GIR}->[$occurrence]",
+                                    details => "No rota found for passed LRP:$lrp in orderline"
+                                }
+                            );
                             $logger->error("No rota found matching $lrp in orderline");
                         }
                     }
@@ -995,6 +1096,12 @@ sub quote_item {
                             $rota->add_item($itemnumber);
                             $logger->trace("Item added to rota $rota->id");
                         } else {
+                            $quote_message->add_to_edifact_errors(
+                                {
+                                    section => "$item->{GIR}->[$occurrence]",
+                                    details => "No rota found for passed LRP:$lrp in orderline"
+                                }
+                            );
                             $logger->error("No rota found matching $lrp in orderline");
                         }
                     }
@@ -1005,7 +1112,6 @@ sub quote_item {
         }
     }
     return 1;
-
 }
 
 sub get_edifact_ean {
@@ -1264,7 +1370,7 @@ Koha::EDI
 
 =head2 receipt_items
 
-    receipt_items( schema_obj, invoice_line, ordernumber, $quantity)
+    receipt_items( schema_obj, invoice_line, ordernumber, $quantity, $invoice_message)
 
     receipts the items recorded on this invoice line
 

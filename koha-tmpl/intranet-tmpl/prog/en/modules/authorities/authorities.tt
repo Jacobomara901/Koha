@@ -179,27 +179,6 @@
     }
 
     /**
-    * Returns a roughly ideal position to scroll an element into view
-    * @param {string} target - The HTML id of the element to scroll into view
-    * @param {string} elemid - The HTML id of the element which might obscure
-    *                          the view of the target element e.g. a floating toolbar
-    * @return {number} - The y-coordinate to pass to window.scrollTo()
-    */
-    function getScrollto( target, elemid ){
-        var dest = $("#" + target );
-        var yoffset = dest.offset();
-
-        if( elemid != "" ){
-            var element = $("#" + elemid );
-            var elem_height = element.outerHeight();
-        } else {
-            elem_height = 0;
-        }
-        return yoffset.top - elem_height - 20;
-    }
-
-
-    /**
     * check if z3950 mandatories are set or not
     */
     function GetZ3950Terms(){
@@ -470,7 +449,7 @@
         </div>
     [% END # /IF duplicateauthid %]
 
-    <form method="post" id="f" name="f" action="/cgi-bin/koha/authorities/authorities.pl">
+    <form method="post" id="f" name="f" action="/cgi-bin/koha/authorities/authorities.pl" class="marc_editor">
         [% INCLUDE 'csrf-token.inc' %]
         <input type="hidden" name="op" value="cud-add" />
         <input type="hidden" name="original_op" value="[% op | html %]" />
@@ -750,8 +729,8 @@
                                                                     </select>
                                                                 [% ELSIF ( mv.type == 'text1' ) %]
                                                                     <input type="text" id="[%- mv.id | html -%]" name="[%- mv.id | html -%]" value="[%- mv.value | html -%]" class="input_marceditor" tabindex="1" />
-                                                                [% ELSIF ( mv.type == 'text2' ) %]
-                                                                    <input type="text" id="[%- mv.id | html -%]" size="67" maxlength="[%- mv.maxlength | html -%]" name="[%- mv.name | html -%]" value="[%- mv.value | html -%]" class="input_marceditor" />
+                                                                [% ELSIF ( mv.type == 'text2' ) # plugin %]
+                                                                    <input type="text" id="[%- mv.id | html -%]" size="67" maxlength="[%- mv.maxlength | html -%]" name="[%- mv.name | html -%]" value="[%- mv.value | html -%]" data-plugin="[% mv.plugin | html %]" class="input_marceditor framework_plugin" />
                                                                 [% ELSIF ( mv.type == 'text' ) %]
                                                                     <input type="text" id="[%- mv.id | html -%]" name="[%- mv.name | html -%]" value="[%- mv.value | html -%]" class="input_marceditor" tabindex="1" size="67" maxlength="[%- mv.maxlength | html -%]" />
                                                                 [% ELSIF ( mv.type == 'textarea' ) %]
@@ -776,7 +755,7 @@
                                                                     [% IF mv.noclick %]
                                                                         <a href="#" class="buttonDot tag_editor disabled" tabindex="-1" title="No popup">...</a>
                                                                     [% ELSE %]
-                                                                        <a href="#" id="buttonDot_[% mv.id | html %]" class="buttonDot tag_editor" title="Tag editor">...</a>
+                                                                        <a href="#" id="buttonDot_[% mv.id | html %]" class="buttonDot tag_editor framework_plugin" title="Tag editor" data-plugin="[% mv.plugin | html %]">...</a>
                                                                     [% END %]
                                                                     [% mv.javascript | $raw %]
                                                                 [% END #/IF ( mv.type == 'text1' ) %]

@@ -242,7 +242,9 @@
         [% IF itemsloop %]
             [% SET contents = shelf.get_contents %]
             [% IF ( contents.count ) %]<p>This list contains [% contents.count | html %] titles</p>[% END %]
-            <div class="pages">[% pagination_bar | $raw %]</div>
+
+            <nav class="pages" id="pagination_top"> [% pagination_bar | $raw %] </nav>
+
             <form action="/cgi-bin/koha/virtualshelves/shelves.pl" id="listform" method="post">
                 [% INCLUDE 'csrf-token.inc' %]
                 <input type="hidden" name="op" value="cud-remove_biblios" />
@@ -410,7 +412,7 @@
                 </div>
                 <!-- /.page-section -->
 
-                <div class="pages">[% pagination_bar | $raw %]</div>
+                <nav class="pages" id="pagination_bottom"> [% pagination_bar | $raw %] </nav>
             </form>
         [% END # /IF itemsloop %]
     [% END # /IF op == 'view' %]
@@ -661,7 +663,7 @@
                             'vs.lastmodified',
                             ];
 
-                var dtListResults = $("#listresultst").dataTable($.extend(true, {}, dataTablesDefaults, {
+                var dtListResults = $("#listresultst").kohaTable({
                     order: [[ 5, "asc" ]],
                     serverSide:  true,
                     ajax:  {
@@ -680,6 +682,7 @@
                             });
                         }
                     },
+                    bKohaAjaxSVC: true,
                     'columns':[
                         { "data": 'dt_public' },
                         { "data": 'dt_shelfname' },
@@ -699,7 +702,7 @@
                     "searching": false,
                     "processing": true,
                     "orderCellsTop":  true
-                }));
+                });
                 _dt_add_delay_filters(dtListResults.api(), $("#listresultst"));
 
                 /* Select correct tab based on URL parameter */
@@ -709,15 +712,13 @@
                     $('a[href="#publicshelves_tab_panel"]').tab("show");
                 }
 
-                $('a[data-bs-toggle="tab"]').on("click", function(e){
+                $('#tabs a[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
                     let target = $(this).attr("href");
                     if( target == "#publicshelves_tab_panel" ){
                         public = 1;
                     } else {
                         public = 0;
                     }
-                })
-                .on('shown.bs.tab', function (e) {
                     dtListResults.DataTable().draw();
                 });
 
