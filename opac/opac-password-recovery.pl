@@ -179,6 +179,8 @@ if ( $op eq 'cud-sendEmail' || $op eq 'cud-resendEmail' ) {
                 $error = 'password_has_whitespaces';
             } elsif ( $_->isa('Koha::Exceptions::Password::TooWeak') ) {
                 $error = 'password_too_weak';
+            } elsif ($_->isa('Koha::Exceptions::Password::UsedBefore')) {
+                $error = 'password_used_before';
             }
         };
     }
