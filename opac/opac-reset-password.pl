@@ -71,6 +71,10 @@ if ( $op eq 'cud-update' ) {
                             if $_->isa('Koha::Exceptions::Password::TooWeak');
                         $error = 'password_has_whitespaces'
                             if $_->isa('Koha::Exceptions::Password::WhitespaceCharacters');
+                        if ($_->isa('Koha::Exceptions::Password::UsedBefore')) {
+                            $template->param( password_used_before => 1 );
+                            $template->param( password_history_count => C4::Context->preference('PasswordHistoryCount') );
+                        }
                         $template->param( 'error' => $error );
                     };
                 }
