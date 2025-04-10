@@ -48,7 +48,10 @@ use Exception::Class (
     'Koha::Exceptions::Password::NoCategoryProvided' => {
         isa         => 'Koha::Exceptions::Password',
         description => 'You must provide a patron\'s category to validate password\'s strength and length'
-    }
+    },
+    'Koha::Exceptions::Password::UsedBefore' => {
+        isa => 'Koha::Exceptions::Password',
+    },
 );
 
 sub full_message {
@@ -90,6 +93,10 @@ Password is too weak.
 =head2 Koha::Exceptions::Password::WhitespaceCharacters
 
 Password contains leading/trailing spaces, which is forbidden.
+
+=head2 Koha::Exceptions::Password::UsedBefore
+
+Exception to be used when a password has been used before and is not allowed by password history policy.
 
 =head1 Class methods
 
