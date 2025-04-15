@@ -577,6 +577,12 @@
                             [% IF too_many_items %]
                                 <p>This record has many physical items ([% items_count | html %]). <a href="/cgi-bin/koha/opac-detail.pl?biblionumber=[% biblio.biblionumber | uri %]&amp;viewallitems=1">View all the physical items.</a></p>
                             [% ELSIF ( itemloop.size ) %]
+                                <div class="library-filter">
+                                    <label for="libbranchfilter">Filter by library:</label>
+                                    <select id="libbranchfilter" class="form-control mb-1">
+                                        <option value="ALL" selected="selected">All libraries</option>
+                                    </select>
+                                </div>
                                 [% INCLUDE items_table items=itemloop tab="holdings" table_id="holdingst" %]
                                 [% IF specific_item %]
                                     <p><a href="/cgi-bin/koha/opac-detail.pl?biblionumber=[% biblio.biblionumber | uri %]">Show all items</a></p>
@@ -2196,5 +2202,96 @@
             }
 
         }
+
+        // Library filter functionality
+        const LibraryFilter = {
+            selectors: {
+                table: '#holdingst',
+                filter: '#libbranchfilter',
+                locationCell: 'td.location:first'
+            },
+            storageKey: 'opac_library_filter',
+
+            init: function() {
+                this.$table = $(this.selectors.table);
+                this.$filter = $(this.selectors.filter);
+                this.$rows = this.$table.find('tbody tr');
+
+                if (!this.$table?.length || !this.$filter?.length) {
+                    console.warn('Library filter: Required elements not found');
+                    return;
+                }
+
+                this.populateFilter();
+                this.restoreState();
+                this.bindEvents();
+            },
+
+            populateFilter: function() {
+                const libraries = new Set();
+                this.$rows.find(this.selectors.locationCell).each((_, element) => {
+                    const library = $(element).text().trim();
+                    library && libraries.add(library);
+                });
+
+                this.$filter
+                    .empty()
+                    .append($('<option>', {
+                        value: 'ALL',
+                        text: _("All libraries")
+                    }))
+                    .append(
+                        Array.from(libraries)
+                            .sort()
+                            .map(library =>
+                                $('<option>', {
+                                    value: library,
+                                    text: library
+                                })
+                            )
+                    );
+            },
+
+            restoreState: function() {
+                try {
+                    const savedFilter = sessionStorage.getItem(this.storageKey);
+                    if (savedFilter && this.$filter.find(`option[value="${savedFilter}"]`).length) {
+                        this.$filter.val(savedFilter);
+                        this.filterHoldings(savedFilter);
+                    }
+                } catch (e) {
+                    console.warn('Library filter: Could not restore state:', e);
+                }
+            },
+
+            bindEvents: function() {
+                this.$filter.on('change', (e) => {
+                    const selectedLib = $(e.target).val();
+                    try {
+                        sessionStorage.setItem(this.storageKey, selectedLib);
+                    } catch (e) {
+                        console.warn('Library filter: Could not save state:', e);
+                    }
+                    this.filterHoldings(selectedLib);
+                });
+            },
+
+            filterHoldings: function(library) {
+                if (library === 'ALL') {
+                    this.$rows.show();
+                    return;
+                }
+
+                this.$rows.each((_, element) => {
+                    const $row = $(element);
+                    const holdingBranch = $row.find(this.selectors.locationCell).text().trim();
+                    $row.toggle(holdingBranch === library);
+                });
+            }
+        };
+
+        // Initialize library filter
+        LibraryFilter.init();
+
     </script>
 [% END %]
