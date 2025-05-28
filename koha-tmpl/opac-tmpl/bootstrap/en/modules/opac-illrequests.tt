@@ -184,6 +184,12 @@
                                             <label for="branchcode">Collection library:</label>
                                             [% Branches.GetName(request.branchcode) | html %]
                                         </li>
+                                    </ol>
+                                </fieldset>
+
+                                <fieldset class="rows">
+                                    <legend>Request status and type</legend>
+                                    <ol>
                                         <li>
                                             <label for="status">Status:</label>
                                             [% request.capabilities.$status.name | html %]
@@ -205,6 +211,12 @@
                                             <label for="updated">Last updated:</label>
                                             [% request.updated | $KohaDates %]
                                         </li>
+                                    </ol>
+                                </fieldset>
+
+                                <fieldset class="rows">
+                                    <legend>Additional information</legend>
+                                    <ol>
                                         <li>
                                             <label for="notesopac">Notes:</label>
                                             [% IF !request.completed %]

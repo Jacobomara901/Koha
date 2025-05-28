@@ -230,65 +230,74 @@
                                             </li>
                                         [% END %]
                                         [% UNLESS ( branchcode_hidden || AllPublicBranches.size < 2 ) %]
-                                            <li>
-                                                [% IF ( branchcode_required ) %]
-                                                    <label for="branch" class="required">Library:</label>
-                                                    <select name="branchcode" id="branch" required="required">
-                                                        <option value=""></option>
-                                                        [% PROCESS options_for_libraries libraries => AllPublicBranches %]
-                                                    </select>
-                                                    <div class="required_label required">Required</div>
-                                                [% ELSE %]
-                                                    <label for="branch">Library:</label>
-                                                    <select name="branchcode" id="branch">
-                                                        [% PROCESS options_for_libraries libraries => AllPublicBranches %]
-                                                    </select>
-                                                [% END %]
-                                            </li>
-                                        [% END %]
-                                        [% IF ( patron_reason_loop ) %]
-                                            [% UNLESS ( patronreason_hidden ) %]
+                                            <fieldset class="suggestion-details">
+                                                <legend>Suggestion details</legend>
                                                 <li>
-                                                    [% IF ( patronreason_required ) %]
-                                                        <label for="patronreason" class="required">Reason for suggestion: </label>
-                                                        <select name="patronreason" id="patronreason" required="required">
-                                                            <option value="">-- Choose --</option>
-                                                            [% FOREACH patron_reason_loo IN patron_reason_loop %]
-                                                                [% IF patron_reason_loo.authorised_value == patronreason %]
-                                                                    <option value="[% patron_reason_loo.authorised_value | html %]" selected="selected">[% patron_reason_loo.lib | html %]</option>
-                                                                [% ELSE %]
-                                                                    <option value="[% patron_reason_loo.authorised_value | html %]">[% patron_reason_loo.lib | html %]</option>
-                                                                [% END %]
-                                                            [% END %]
+                                                    [% IF ( branchcode_required ) %]
+                                                        <label for="branch" class="required">Library:</label>
+                                                        <select name="branchcode" id="branch" required="required">
+                                                            <option value=""></option>
+                                                            [% PROCESS options_for_libraries libraries => AllPublicBranches %]
                                                         </select>
                                                         <div class="required_label required">Required</div>
                                                     [% ELSE %]
-                                                        <label for="patronreason">Reason for suggestion: </label>
-                                                        <select name="patronreason" id="patronreason">
-                                                            <option value="">-- Choose --</option>
-                                                            [% FOREACH patron_reason_loo IN patron_reason_loop %]
-                                                                [% IF patron_reason_loo.authorised_value == patronreason %]
-                                                                    <option value="[% patron_reason_loo.authorised_value | html %]" selected="selected">[% patron_reason_loo.lib | html %]</option>
-                                                                [% ELSE %]
-                                                                    <option value="[% patron_reason_loo.authorised_value | html %]">[% patron_reason_loo.lib | html %]</option>
-                                                                [% END %]
-                                                            [% END %]
+                                                        <label for="branch">Library:</label>
+                                                        <select name="branchcode" id="branch">
+                                                            [% PROCESS options_for_libraries libraries => AllPublicBranches %]
                                                         </select>
                                                     [% END %]
                                                 </li>
+                                            </fieldset>
+                                        [% END %]
+                                        [% IF ( patron_reason_loop ) %]
+                                            [% UNLESS ( patronreason_hidden ) %]
+                                                <fieldset class="suggestion-reason">
+                                                    <legend>Reason for suggestion</legend>
+                                                    <li>
+                                                        [% IF ( patronreason_required ) %]
+                                                            <label for="patronreason" class="required">Reason for suggestion: </label>
+                                                            <select name="patronreason" id="patronreason" required="required">
+                                                                <option value="">-- Choose --</option>
+                                                                [% FOREACH patron_reason_loo IN patron_reason_loop %]
+                                                                    [% IF patron_reason_loo.authorised_value == patronreason %]
+                                                                        <option value="[% patron_reason_loo.authorised_value | html %]" selected="selected">[% patron_reason_loo.lib | html %]</option>
+                                                                    [% ELSE %]
+                                                                        <option value="[% patron_reason_loo.authorised_value | html %]">[% patron_reason_loo.lib | html %]</option>
+                                                                    [% END %]
+                                                                [% END %]
+                                                            </select>
+                                                            <div class="required_label required">Required</div>
+                                                        [% ELSE %]
+                                                            <label for="patronreason">Reason for suggestion: </label>
+                                                            <select name="patronreason" id="patronreason">
+                                                                <option value="">-- Choose --</option>
+                                                                [% FOREACH patron_reason_loo IN patron_reason_loop %]
+                                                                    [% IF patron_reason_loo.authorised_value == patronreason %]
+                                                                        <option value="[% patron_reason_loo.authorised_value | html %]" selected="selected">[% patron_reason_loo.lib | html %]</option>
+                                                                    [% ELSE %]
+                                                                        <option value="[% patron_reason_loo.authorised_value | html %]">[% patron_reason_loo.lib | html %]</option>
+                                                                    [% END %]
+                                                                [% END %]
+                                                            </select>
+                                                        [% END %]
+                                                    </li>
+                                                </fieldset>
                                             [% END %]
                                         [% END %]
                                         [% UNLESS ( note_hidden ) %]
-                                            <li>
-                                                [% IF ( note_required ) %]
-                                                    <label for="note" class="required">Notes:</label>
-                                                    <textarea name="note" id="note" rows="5" cols="40" required="required">[% note | html %]</textarea>
-                                                    <div class="required_label required">Required</div>
-                                                [% ELSE %]
-                                                    <label for="note">Notes:</label>
-                                                    <textarea name="note" id="note" rows="5" cols="40">[% note | html %]</textarea>
-                                                [% END %]
-                                            </li>
+                                            <fieldset class="suggestion-notes">
+                                                <legend>Additional notes</legend>
+                                                <li>
+                                                    [% IF ( note_required ) %]
+                                                        <label for="note" class="required">Notes:</label>
+                                                        <textarea name="note" id="note" rows="5" cols="40" required="required">[% note | html %]</textarea>
+                                                        <div class="required_label required">Required</div>
+                                                    [% ELSE %]
+                                                        <label for="note">Notes:</label>
+                                                        <textarea name="note" id="note" rows="5" cols="40">[% note | html %]</textarea>
+                                                    [% END %]
+                                                </li>
+                                            </fieldset>
                                         [% END %]
 
                                         <!--  Add a hidden 'negcap' field -->

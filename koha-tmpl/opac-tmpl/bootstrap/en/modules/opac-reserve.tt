@@ -252,34 +252,37 @@
 
                                             [% UNLESS ( singleBranchMode ) %]
                                                 [% IF ( bibitemloo.holdable && Koha.Preference('OPACAllowUserToChooseBranch')) %]
-                                                    <li class="branch">
-                                                        <label for="branch_[% bibitemloo.biblionumber | html %]">Pick up location:</label>
-                                                        [% UNLESS ( bibitemloo.holdable ) %]
-                                                            <select name="branch" id="branch_[% bibitemloo.biblionumber | html %]" disabled="disabled">
-                                                                [% PROCESS options_for_libraries libraries => Branches.pickup_locations({ search_params => { biblio => bibitemloo.biblionumber, patron => logged_in_user }, selected => branch }) %]
-                                                            </select>
-                                                        [% ELSE %]
-                                                            [% SET at_least_one_library_not_available_for_pickup = 0 %]
-                                                            <select name="branch" id="branch_[% bibitemloo.biblionumber | html %]">
-                                                                [% FOREACH library IN Branches.pickup_locations({ search_params => { biblio => bibitemloo.biblionumber, patron => logged_in_user }, selected => branch }) %]
-                                                                    [% SET pickup_available_at = bibitemloo.not_available_at.grep('^' _ library.branchcode _ '$').size ? 0 : 1 %]
-                                                                    [% IF library.selected AND pickup_available_at %]
-                                                                        <option value="[% library.branchcode | html %]" selected="selected">[% library.branchname | html %]</option>
-                                                                    [% ELSIF pickup_available_at %]
-                                                                        <option value="[% library.branchcode | html %]">[% library.branchname | html %]</option>
-                                                                    [% ELSE %]
-                                                                        [% SET at_least_one_library_not_available_for_pickup = 1 %]
-                                                                        <option value="[% library.branchcode | html %]" disabled="disabled" title="At least one item is available at this library">[% library.branchname | html %]</option>
+                                                    <fieldset class="hold-options-group">
+                                                        <legend>Hold options</legend>
+                                                        <li class="branch">
+                                                            <label for="branch_[% bibitemloo.biblionumber | html %]">Pick up location:</label>
+                                                            [% UNLESS ( bibitemloo.holdable ) %]
+                                                                <select name="branch" id="branch_[% bibitemloo.biblionumber | html %]" disabled="disabled">
+                                                                    [% PROCESS options_for_libraries libraries => Branches.pickup_locations({ search_params => { biblio => bibitemloo.biblionumber, patron => logged_in_user }, selected => branch }) %]
+                                                                </select>
+                                                            [% ELSE %]
+                                                                [% SET at_least_one_library_not_available_for_pickup = 0 %]
+                                                                <select name="branch" id="branch_[% bibitemloo.biblionumber | html %]">
+                                                                    [% FOREACH library IN Branches.pickup_locations({ search_params => { biblio => bibitemloo.biblionumber, patron => logged_in_user }, selected => branch }) %]
+                                                                        [% SET pickup_available_at = bibitemloo.not_available_at.grep('^' _ library.branchcode _ '$').size ? 0 : 1 %]
+                                                                        [% IF library.selected AND pickup_available_at %]
+                                                                            <option value="[% library.branchcode | html %]" selected="selected">[% library.branchname | html %]</option>
+                                                                        [% ELSIF pickup_available_at %]
+                                                                            <option value="[% library.branchcode | html %]">[% library.branchname | html %]</option>
+                                                                        [% ELSE %]
+                                                                            [% SET at_least_one_library_not_available_for_pickup = 1 %]
+                                                                            <option value="[% library.branchcode | html %]" disabled="disabled" title="At least one item is available at this library">[% library.branchname | html %]</option>
+                                                                        [% END %]
                                                                     [% END %]
+                                                                </select>
+                                                                [% IF at_least_one_library_not_available_for_pickup %]
+                                                                    <div class="at_least_one_library_not_available_note"
+                                                                        >Note: Library policy does not allow hold/pickup of an item available locally. Please come to the library to retrieve these items</div
+                                                                    >
                                                                 [% END %]
-                                                            </select>
-                                                            [% IF at_least_one_library_not_available_for_pickup %]
-                                                                <div class="at_least_one_library_not_available_note"
-                                                                    >Note: Library policy does not allow hold/pickup of an item available locally. Please come to the library to retrieve these items</div
-                                                                >
-                                                            [% END %]
-                                                        [% END # / UNLESS bibitemloo.holdable %]
-                                                    </li>
+                                                            [% END # / UNLESS bibitemloo.holdable %]
+                                                        </li>
+                                                    </fieldset>
                                                 [% END # / IF bibitemloo.holdable && Koha.Preference('OPACAllowUserToChooseBranch') %]
                                             [% END # / UNLESS singleBranchMode %]
                                         </ul>
@@ -287,88 +290,91 @@
                                         <a class="toggle-hold-options" id="toggle-hold-options-[% bibitemloo.biblionumber | html %]" style="display:none;" href="#">Show more options</a>
 
                                         <div id="hold-options-[% bibitemloo.biblionumber | html %]" class="hold-options">
-                                            <ul>
-                                                [% IF ( reserve_in_future ) %]
+                                            <fieldset class="additional-hold-options">
+                                                <legend>Additional hold options</legend>
+                                                <ul>
+                                                    [% IF ( reserve_in_future ) %]
+                                                        <li>
+                                                            <label for="from[% bibitemloo.biblionumber | html %]">Hold starts on date:</label>
+                                                            <input
+                                                                type="text"
+                                                                name="reserve_date_[% bibitemloo.biblionumber | html %]"
+                                                                id="from[% bibitemloo.biblionumber | html %]"
+                                                                data-start_for="to[% bibitemloo.biblionumber | html %]"
+                                                                data-flatpickr-futureinclusive="true"
+                                                                size="10"
+                                                                class="flatpickr holddatefrom"
+                                                                value="[% KohaDates.datetime_from_string | $KohaDates dateformat => 'iso' %]"
+                                                            />
+                                                            <span class="date-format from" data-biblionumber="[% bibitemloo.biblionumber | html %]">[% INCLUDE 'date-format.inc' %]</span>
+                                                            <div class="required_label" style="display:none;">Required</div>
+                                                        </li>
+                                                    [% END %]
+
                                                     <li>
-                                                        <label for="from[% bibitemloo.biblionumber | html %]">Hold starts on date:</label>
+                                                        <label for="to[% bibitemloo.biblionumber | html %]">Hold not needed after:</label>
                                                         <input
                                                             type="text"
-                                                            name="reserve_date_[% bibitemloo.biblionumber | html %]"
-                                                            id="from[% bibitemloo.biblionumber | html %]"
-                                                            data-start_for="to[% bibitemloo.biblionumber | html %]"
-                                                            data-flatpickr-futureinclusive="true"
+                                                            name="expiration_date_[% bibitemloo.biblionumber | html %]"
+                                                            id="to[% bibitemloo.biblionumber | html %]"
                                                             size="10"
-                                                            class="flatpickr holddatefrom"
-                                                            value="[% KohaDates.datetime_from_string | $KohaDates dateformat => 'iso' %]"
+                                                            data-flatpickr-future="true"
+                                                            class="flatpickr futuredate"
                                                         />
-                                                        <span class="date-format from" data-biblionumber="[% bibitemloo.biblionumber | html %]">[% INCLUDE 'date-format.inc' %]</span>
+                                                        <span class="date-format to" data-biblionumber="[% bibitemloo.biblionumber | html %]">[% INCLUDE 'date-format.inc' %]</span>
                                                         <div class="required_label" style="display:none;">Required</div>
                                                     </li>
-                                                [% END %]
 
-                                                <li>
-                                                    <label for="to[% bibitemloo.biblionumber | html %]">Hold not needed after:</label>
-                                                    <input
-                                                        type="text"
-                                                        name="expiration_date_[% bibitemloo.biblionumber | html %]"
-                                                        id="to[% bibitemloo.biblionumber | html %]"
-                                                        size="10"
-                                                        data-flatpickr-future="true"
-                                                        class="flatpickr futuredate"
-                                                    />
-                                                    <span class="date-format to" data-biblionumber="[% bibitemloo.biblionumber | html %]">[% INCLUDE 'date-format.inc' %]</span>
-                                                    <div class="required_label" style="display:none;">Required</div>
-                                                </li>
-
-                                                [% IF Koha.Preference('AllowHoldItemTypeSelection') %]
-                                                    <li>
-                                                        <label for="itemtype">Request specific item type:</label>
-                                                        <select name="itemtype" id="itemtype">
-                                                            <option value="">Any item type</option>
-                                                            [% FOREACH i IN bibitemloo.allowed_item_types %]
-                                                                <option value="[% i | html %]">[% ItemTypes.GetDescription( i ) | html %]</option>
-                                                            [%- END %]
-                                                        </select>
-                                                    </li>
-                                                [% END %]
-
-                                                [% UNLESS bibitemloo.forced_hold_level && ( bibitemloo.forced_hold_level == 'item' || bibitemloo.forced_hold_level == 'record' ) %]
-                                                    [% IF Koha.Preference('EnableItemGroupHolds') && bibitemloo.object.item_groups.count %]
+                                                    [% IF Koha.Preference('AllowHoldItemTypeSelection') %]
                                                         <li>
-                                                            <label for="itemtype">Request specific item group:</label>
-                                                            <select name="item_group_id_[% bibitemloo.biblionumber | html %]" id="item_group_id_[% bibitemloo.biblionumber | html %]">
-                                                                <option value="">Any item group</option>
-                                                                [% FOREACH g IN bibitemloo.object.item_groups.search({}, { order_by => ['display_order'] }) %]
-                                                                    [% IF g.items.count %]
-                                                                        <option value="[% g.id | html %]">[% g.description | html %]</option>
-                                                                    [% END %]
-                                                                [% END %]
+                                                            <label for="itemtype">Request specific item type:</label>
+                                                            <select name="itemtype" id="itemtype">
+                                                                <option value="">Any item type</option>
+                                                                [% FOREACH i IN bibitemloo.allowed_item_types %]
+                                                                    <option value="[% i | html %]">[% ItemTypes.GetDescription( i ) | html %]</option>
+                                                                [%- END %]
                                                             </select>
                                                         </li>
                                                     [% END %]
-                                                [% END %]
 
-                                                [% IF ( OpacHoldNotes ) %]
-                                                    <li>
-                                                        <div class="notesrow" id="notesrow_[% bibitemloo.biblionumber | html %]">
-                                                            <label for="holdnotes_[% bibitemloo.biblionumber | html %]">Hold notes:</label>
-                                                            <textarea id="holdnotes_[% bibitemloo.biblionumber | html %]" rows="2" cols="30" name="notes_[% bibitemloo.biblionumber | html %]">[% bibitemloo.holdnotes | html %]</textarea>
-                                                        </div>
-                                                    </li>
-                                                [% END # / IF OpacHoldNotes %]
-
-                                                [% IF bibitemloo.itemholdable %]
-                                                    <!-- ITEM HOLDS -->
-                                                    <li class="lradio place_on_type" style="display:none;">
-                                                        [% UNLESS bibitemloo.forced_hold_level == 'item' || bibitemloo.forced_hold_level == 'item_group' || bibitemloo.force_hold %]
-                                                            <label class="radio inline" for="reqany_[% bibitemloo.biblionumber | html %]">Next available item</label>
-                                                            <input type="radio" name="reqtype_[% bibitemloo.biblionumber | html %]" id="reqany_[% bibitemloo.biblionumber | html %]" class="selectany" value="Any" checked="checked" />
+                                                    [% UNLESS bibitemloo.forced_hold_level && ( bibitemloo.forced_hold_level == 'item' || bibitemloo.forced_hold_level == 'record' ) %]
+                                                        [% IF Koha.Preference('EnableItemGroupHolds') && bibitemloo.object.item_groups.count %]
+                                                            <li>
+                                                                <label for="itemtype">Request specific item group:</label>
+                                                                <select name="item_group_id_[% bibitemloo.biblionumber | html %]" id="item_group_id_[% bibitemloo.biblionumber | html %]">
+                                                                    <option value="">Any item group</option>
+                                                                    [% FOREACH g IN bibitemloo.object.item_groups.search({}, { order_by => ['display_order'] }) %]
+                                                                        [% IF g.items.count %]
+                                                                            <option value="[% g.id | html %]">[% g.description | html %]</option>
+                                                                        [% END %]
+                                                                    [% END %]
+                                                                </select>
+                                                            </li>
                                                         [% END %]
-                                                        <label class="radio inline" for="reqspecific_[% bibitemloo.biblionumber | html %]">A specific item</label>
-                                                        <input type="radio" name="reqtype_[% bibitemloo.biblionumber | html %]" id="reqspecific_[% bibitemloo.biblionumber | html %]" class="selectspecific" value="Specific" />
-                                                    </li>
-                                                [% END # / IF bibitemloo.itemholdable %]
-                                            </ul>
+                                                    [% END %]
+
+                                                    [% IF ( OpacHoldNotes ) %]
+                                                        <li>
+                                                            <div class="notesrow" id="notesrow_[% bibitemloo.biblionumber | html %]">
+                                                                <label for="holdnotes_[% bibitemloo.biblionumber | html %]">Hold notes:</label>
+                                                                <textarea id="holdnotes_[% bibitemloo.biblionumber | html %]" rows="2" cols="30" name="notes_[% bibitemloo.biblionumber | html %]">[% bibitemloo.holdnotes | html %]</textarea>
+                                                            </div>
+                                                        </li>
+                                                    [% END # / IF OpacHoldNotes %]
+
+                                                    [% IF bibitemloo.itemholdable %]
+                                                        <!-- ITEM HOLDS -->
+                                                        <li class="lradio place_on_type" style="display:none;">
+                                                            [% UNLESS bibitemloo.forced_hold_level == 'item' || bibitemloo.forced_hold_level == 'item_group' || bibitemloo.force_hold %]
+                                                                <label class="radio inline" for="reqany_[% bibitemloo.biblionumber | html %]">Next available item</label>
+                                                                <input type="radio" name="reqtype_[% bibitemloo.biblionumber | html %]" id="reqany_[% bibitemloo.biblionumber | html %]" class="selectany" value="Any" checked="checked" />
+                                                            [% END %]
+                                                            <label class="radio inline" for="reqspecific_[% bibitemloo.biblionumber | html %]">A specific item</label>
+                                                            <input type="radio" name="reqtype_[% bibitemloo.biblionumber | html %]" id="reqspecific_[% bibitemloo.biblionumber | html %]" class="selectspecific" value="Specific" />
+                                                        </li>
+                                                    [% END # / IF bibitemloo.itemholdable %]
+                                                </ul>
+                                            </fieldset>
 
                                             [% IF bibitemloo.itemholdable %]
                                                 <div id="copiesrow_[% bibitemloo.biblionumber | html %]" class="copiesrow">
