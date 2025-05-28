@@ -599,15 +599,14 @@
                         <form method="post" action="/cgi-bin/koha/opac-shelves.pl">
                             [% INCLUDE 'csrf-token.inc' %]
                             <fieldset class="rows">
+                                <legend class="visually-hidden">List details</legend>
                                 [% IF op == 'add_form' %]
                                     <div id="addshelf">
-                                        <legend><h1>Create a new list</h1></legend>
+                                        <h1>Create a new list</h1>
                                         <input type="hidden" name="op" value="cud-add" />
                                     </div>
                                 [% ELSE %]
-                                    <legend
-                                        ><h1>Editing <em>[% shelf.shelfname | html %]</em></h1></legend
-                                    >
+                                    <h1>Editing <em>[% shelf.shelfname | html %]</em></h1>
                                     <input type="hidden" name="op" value="cud-edit" />
                                     <input type="hidden" name="referer" value="[% referer | html %]" />
                                     <input type="hidden" name="shelfnumber" value="[% shelf.shelfnumber | html %]" />
@@ -680,6 +679,7 @@
                             <!-- /.rows -->
 
                             <fieldset class="action">
+                                <legend class="visually-hidden">List actions</legend>
                                 <input type="submit" value="Save" class="btn btn-primary" />
                                 [% IF referer == 'view' %]
                                     <a href="/cgi-bin/koha/opac-shelves.pl?op=view&amp;shelfnumber=[% shelf.shelfnumber | uri %]" class="cancel">Cancel</a>
@@ -694,6 +694,7 @@
                         <form action="/cgi-bin/koha/opac-shelves.pl" id="transferform" method="post">
                             [% INCLUDE 'csrf-token.inc' %]
                             <fieldset>
+                                <legend class="visually-hidden">Transfer list ownership</legend>
                                 <input type="hidden" name="op" value="cud-transfer" />
                                 <input type="hidden" name="public" value="0" />
                                 <input type="hidden" name="shelfnumber" value="[% shelf.shelfnumber | html %]" />
@@ -707,6 +708,7 @@
                                 </div>
                                 <br />
                                 <fieldset class="action">
+                                    <legend class="visually-hidden">Transfer actions</legend>
                                     <input type="submit" value="Transfer" class="submit" />
                                     <a href="/cgi-bin/koha/opac-shelves.pl?op=list&amp;public=0" class="cancel">Cancel</a>
                                 </fieldset>
@@ -753,9 +755,12 @@
 
                                 [% IF !public || Koha.Preference('OpacAllowPublicListCreation') %]
                                     [% IF loggedinusername %]
-                                        <div id="toolbar" class="toolbar"
-                                            ><a class="btn btn-link newshelf" href="/cgi-bin/koha/opac-shelves.pl?op=add_form"><i class="fa fa-plus" aria-hidden="true"></i> New list</a></div
-                                        >
+                                        <fieldset>
+                                            <legend class="visually-hidden">List management</legend>
+                                            <div id="toolbar" class="toolbar"
+                                                ><a class="btn btn-link newshelf" href="/cgi-bin/koha/opac-shelves.pl?op=add_form"><i class="fa fa-plus" aria-hidden="true"></i> New list</a></div
+                                            >
+                                        </fieldset>
                                     [% ELSE %]
                                         [% IF Koha.Preference( 'opacuserlogin' ) == 1 %]
                                             <div class="alert alert-info"><a href="/cgi-bin/koha/opac-shelves.pl?op=add_form">Log in to create a new list</a></div>

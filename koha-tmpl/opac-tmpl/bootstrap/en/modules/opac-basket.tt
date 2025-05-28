@@ -49,20 +49,23 @@
                                 <a class="btn btn-link btn-sm send" href="opac-basket.pl"><i class="fa fa-fw fa-envelope" aria-hidden="true"></i> Send</a>
                             [% END %]
 
-                            <div id="download-cart" class="btn-group dropdown">
-                                <a id="format" class="btn btn-link dropdown-toggle" aria-haspopup="menu" aria-label="Select format and download cart" data-bs-toggle="dropdown" role="button" href="#"
-                                    ><i class="fa fa-fw fa-download" aria-hidden="true"></i> Download <b class="caret"></b
-                                ></a>
-                                <div class="dropdown-menu" role="menu" aria-labelledby="format">
-                                    <a role="menuitem" class="dropdown-item download-cart" data-format="bibtex" href="#">BibTeX</a>
-                                    <a role="menuitem" class="dropdown-item download-cart" data-format="isbd" href="#">ISBD</a>
-                                    <a role="menuitem" class="dropdown-item download-cart" data-format="iso2709" href="#">MARC</a>
-                                    <a role="menuitem" class="dropdown-item download-cart" data-format="ris" href="#">RIS (Zotero, EndNote, others)</a>
-                                    [% FOREACH csv_profile IN csv_profiles %]
-                                        <a role="menuitem" class="dropdown-item download-cart" data-format="[% csv_profile.export_format_id | html %]" href="#">CSV - [% csv_profile.profile | html %]</a>
-                                    [% END %]
+                            <fieldset>
+                                <legend class="visually-hidden">Download options</legend>
+                                <div id="download-cart" class="btn-group dropdown">
+                                    <a id="format" class="btn btn-link dropdown-toggle" aria-haspopup="menu" aria-label="Select format and download cart" data-bs-toggle="dropdown" role="button" href="#"
+                                        ><i class="fa fa-fw fa-download" aria-hidden="true"></i> Download <b class="caret"></b
+                                    ></a>
+                                    <div class="dropdown-menu" role="menu" aria-labelledby="format">
+                                        <a role="menuitem" class="dropdown-item download-cart" data-format="bibtex" href="#">BibTeX</a>
+                                        <a role="menuitem" class="dropdown-item download-cart" data-format="isbd" href="#">ISBD</a>
+                                        <a role="menuitem" class="dropdown-item download-cart" data-format="iso2709" href="#">MARC</a>
+                                        <a role="menuitem" class="dropdown-item download-cart" data-format="ris" href="#">RIS (Zotero, EndNote, others)</a>
+                                        [% FOREACH csv_profile IN csv_profiles %]
+                                            <a role="menuitem" class="dropdown-item download-cart" data-format="[% csv_profile.export_format_id | html %]" href="#">CSV - [% csv_profile.profile | html %]</a>
+                                        [% END %]
+                                    </div>
                                 </div>
-                            </div>
+                            </fieldset>
 
                             <a class="btn btn-link remove empty" href="opac-basket.pl"><i class="fa fa-fw fa-trash-can" aria-hidden="true"></i> Empty and close</a>
                             <a class="btn btn-link close" href="opac-basket.pl"><i class="fa fa-fw fa-times-circle" aria-hidden="true"></i> Hide window</a>
@@ -72,25 +75,28 @@
                         </div>
 
                         <div class="selections-toolbar toolbar noprint">
-                            <div class="check_control">
-                                <a id="CheckAll" class="btn btn-link btn-sm btn-sm" href="#">Select all</a>
-                                <a id="CheckNone" class="btn btn-link btn-sm btn-sm" href="#">Clear all</a>
-                            </div>
-                            <span class="links" id="tag_hides">
-                                <span class="selections">Select titles to: </span>
-                                <a href="#" class="btn btn-link btn-sm remove deleteshelf disabled" aria-disabled="true"><i class="fa fa-times" aria-hidden="true"></i> Remove</a>
-                                [% IF ( Koha.Preference( 'opacuserlogin' ) == 1 ) %]
-                                    [% IF ( ( Koha.Preference( 'virtualshelves' ) == 1 ) && loggedinusername ) %]
-                                        <a href="#" class="btn btn-link btn-sm newshelf disabled" aria-disabled="true"><i class="fa fa-fw fa-list" aria-hidden="true"></i> Add to list</a>
-                                    [% END %]
-                                    [% IF ( Koha.Preference( 'OPACHoldRequests' ) == 1 ) %]
-                                        <a href="#" class="btn btn-link btn-sm hold disabled" aria-disabled="true"><i class="fa fa-fw fa-bookmark" aria-hidden="true"></i> Place hold</a>
-                                    [% END %]
-                                    [% IF ( TagsInputEnabled && loggedinusername ) %]
-                                        <a href="#" id="tagsel_tag" class="btn btn-link btn-sm disabled" aria-disabled="true"><i class="fa fa-fw fa-tag" aria-hidden="true"></i> Tag</a>
-                                    [% END %]
-                                [% END # / IF opacuserlogin %]
-                            </span>
+                            <fieldset>
+                                <legend class="visually-hidden">Batch operations</legend>
+                                <div class="check_control">
+                                    <a id="CheckAll" class="btn btn-link btn-sm btn-sm" href="#">Select all</a>
+                                    <a id="CheckNone" class="btn btn-link btn-sm btn-sm" href="#">Clear all</a>
+                                </div>
+                                <span class="links" id="tag_hides">
+                                    <span class="selections">Select titles to: </span>
+                                    <a href="#" class="btn btn-link btn-sm remove deleteshelf disabled" aria-disabled="true"><i class="fa fa-times" aria-hidden="true"></i> Remove</a>
+                                    [% IF ( Koha.Preference( 'opacuserlogin' ) == 1 ) %]
+                                        [% IF ( ( Koha.Preference( 'virtualshelves' ) == 1 ) && loggedinusername ) %]
+                                            <a href="#" class="btn btn-link btn-sm newshelf disabled" aria-disabled="true"><i class="fa fa-fw fa-list" aria-hidden="true"></i> Add to list</a>
+                                        [% END %]
+                                        [% IF ( Koha.Preference( 'OPACHoldRequests' ) == 1 ) %]
+                                            <a href="#" class="btn btn-link btn-sm hold disabled" aria-disabled="true"><i class="fa fa-fw fa-bookmark" aria-hidden="true"></i> Place hold</a>
+                                        [% END %]
+                                        [% IF ( TagsInputEnabled && loggedinusername ) %]
+                                            <a href="#" id="tagsel_tag" class="btn btn-link btn-sm disabled" aria-disabled="true"><i class="fa fa-fw fa-tag" aria-hidden="true"></i> Tag</a>
+                                        [% END %]
+                                    [% END # / IF opacuserlogin %]
+                                </span>
+                            </fieldset>
                             [% IF ( TagsInputEnabled && loggedinusername ) %]
                                 <span id="tagsel_form" style="display:none">
                                     <label for="tagsel_new">New tag:</label>
@@ -111,7 +117,7 @@
                                 [% ELSE %]
                                     [% check_title = BIBLIO_RESULT.biblionumber %]
                                 [% END %]
-                                <label for="bib[% BIBLIO_RESULT.biblionumber | html %]" class="sr-only">[% check_title | html %]</label>
+                                <label for="bib[% BIBLIO_RESULT.biblionumber | html %]" class="visually-hidden">[% check_title | html %]</label>
                                 <h2>
                                     <input type="checkbox" class="cb" value="[% BIBLIO_RESULT.biblionumber | html %]" name="bib[% BIBLIO_RESULT.biblionumber | html %]" id="bib[% BIBLIO_RESULT.biblionumber | html %]" />
                                     [% INCLUDE 'biblio-title.inc' biblio=BIBLIO_RESULT %]

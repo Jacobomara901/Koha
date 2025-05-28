@@ -224,6 +224,7 @@
 
                                 [% IF ( bibitemloo.holdable ) %]
                                     <fieldset class="rows">
+                                        <legend class="visually-hidden">Hold request details</legend>
                                         <ul>
                                             <!-- HOLDABLE -->
                                             [% UNLESS ( item_level_itypes ) %]

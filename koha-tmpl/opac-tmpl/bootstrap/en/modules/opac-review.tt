@@ -51,10 +51,12 @@
                             <input type="hidden" name="op" value="cud-add" />
                         [% END %]
                         <fieldset>
+                            <legend class="visually-hidden">Review content</legend>
                             <textarea id="review" name="review" cols="60" rows="8">[% review | html %]</textarea>
                         </fieldset>
                         <p>Note: Your comment must be approved by a librarian. </p>
                         <fieldset class="action">
+                            <legend class="visually-hidden">Review actions</legend>
                             <input type="submit" class="btn btn-primary" value="Submit and close this window" />
                             <a class="cancel close" href="#">Cancel</a>
                         </fieldset>

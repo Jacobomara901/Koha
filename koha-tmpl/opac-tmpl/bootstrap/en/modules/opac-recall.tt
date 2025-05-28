@@ -160,6 +160,7 @@
                                             </table>
                                         </fieldset>
                                         <fieldset class="action">
+                                            <legend class="visually-hidden">Recall actions</legend>
                                             <input type="hidden" name="op" value="cud-request" />
                                             <input type="hidden" name="biblionumber" value="[% biblio.biblionumber | html %]" />
                                             <input type="submit" class="btn btn-primary" value="Confirm" />

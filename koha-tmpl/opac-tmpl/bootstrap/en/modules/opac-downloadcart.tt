@@ -23,6 +23,7 @@
                             [% END %]
                         </select>
                         <fieldset class="action">
+                            <legend class="visually-hidden">Actions</legend>
                             <input type="hidden" name="bib_list" value="[% bib_list | html %]" />
                             <input type="submit" name="save" value="Go" />
                             <a class="cancel close" href="#">Cancel</a>

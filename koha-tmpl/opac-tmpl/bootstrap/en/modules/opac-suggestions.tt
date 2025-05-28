@@ -90,6 +90,7 @@
                             <form action="/cgi-bin/koha/opac-suggestions.pl" method="post" id="add_suggestion_form">
                                 [% INCLUDE 'csrf-token.inc' %]
                                 <fieldset class="rows">
+                                    <legend class="visually-hidden">Suggestion details</legend>
                                     <ol>
                                         [% IF Koha.Preference( 'OPACSuggestionAutoFill' ) %]
                                             <li>
@@ -295,6 +296,7 @@
                                     </ol>
                                 </fieldset>
                                 <fieldset class="action">
+                                    <legend class="visually-hidden">Suggestion actions</legend>
                                     <input type="hidden" name="suggested_by_anyone" value="[% suggested_by_anyone | html %]" />
                                     [% IF need_confirm # Confirm that we want a duplicate %]
                                         <input type="hidden" name="op" value="cud-add_confirm" />
@@ -514,6 +516,7 @@
 
                                 [% IF ( loggedinusername && can_delete_suggestion ) %]
                                     <fieldset class="action">
+                                        <legend class="visually-hidden">Suggestion management actions</legend>
                                         <input type="submit" class="btn btn-danger removeitems" value="Delete selected" />
                                     </fieldset>
                                 [% END %]

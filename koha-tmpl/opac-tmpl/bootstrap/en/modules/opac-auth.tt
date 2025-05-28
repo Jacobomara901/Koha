@@ -241,6 +241,7 @@
 
                                     <div class="local-login">
                                         <fieldset class="brief">
+                                            <legend class="visually-hidden">Login details</legend>
                                             [% FOREACH INPUT IN INPUTS %]
                                                 [% NEXT IF INPUT.name == 'logout.x' %]
                                                 [% NEXT IF INPUT.name == "op" %]
@@ -257,6 +258,7 @@
                                                 <input class="form-control" type="password" size="25" id="password" name="login_password" autocomplete="off" />
                                             </div>
                                             <fieldset class="action">
+                                                <legend class="visually-hidden">Login actions</legend>
                                                 <input type="submit" value="Log in" class="btn btn-primary" />
                                             </fieldset>
                                         </fieldset>
