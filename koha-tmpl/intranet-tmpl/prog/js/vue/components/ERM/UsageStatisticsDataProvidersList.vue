@@ -40,7 +40,7 @@ import { inject, ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { APIClient } from "../../fetch/api-client.js";
 import KohaTable from "../KohaTable.vue";
-import { $__ } from "../../i18n/";
+import { $__ } from "@k/i18n/";
 
 export default {
     setup() {
@@ -55,7 +55,7 @@ export default {
         const getTableColumns = () => {
             return [
                 {
-                    title: __("Name"),
+                    title: $__("Name"),
                     data: "me.erm_usage_data_provider_id:me.name",
                     searchable: true,
                     orderable: true,
@@ -70,28 +70,25 @@ export default {
                     },
                 },
                 {
-                    title: __("Description"),
+                    title: $__("Description"),
                     data: "description",
                     searchable: true,
                     orderable: true,
                 },
                 {
-                    title: __("Status"),
-                    data: "active",
+                    title: $__("Status"),
                     render: function (data, type, row, meta) {
-                        const status = row.active
-                            ? __("Active")
-                            : __("Inactive");
+                        const status = row.active ? "Active" : "Inactive";
                         return status;
                     },
-                    searchable: false,
+                    searchable: true,
                     orderable: true,
                 },
                 {
-                    title: __("Last run"),
+                    title: $__("Last run"),
                     data: "last_run",
-                    searchable: false,
-                    orderable: false,
+                    searchable: true,
+                    orderable: true,
                 },
             ];
         };
