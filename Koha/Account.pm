@@ -848,6 +848,12 @@ Adds a print notice charge to the patron's account if charging is enabled.
 sub add_print_notice_charge {
     my ( $self, $params ) = @_;
 
+    # Validate parameters exist and are a hash reference
+    unless ($params && ref($params) eq 'HASH') {
+        carp "add_print_notice_charge requires a hash reference of parameters";
+        return;
+    }
+
     # Check if charging is enabled
     my $charging_pref = C4::Context->preference('PrintNoticeCharging');
     return unless $charging_pref && $charging_pref ne 'No';
@@ -878,19 +884,52 @@ sub add_print_notice_charge {
     # Return early for zero amounts (no warning needed)
     return unless $charge_amount > 0;
 
+    # Validate notice_code for security (prevent injection)
+    if (defined $params->{notice_code} && $params->{notice_code} =~ /[^\w\-_]/) {
+        carp "Invalid characters in notice_code: " . $params->{notice_code};
+        return;
+    }
+
+    # Validate library_id format if provided
+    if (defined $params->{library_id} && $params->{library_id} !~ /^[A-Za-z0-9_-]*$/) {
+        carp "Invalid library_id format: " . $params->{library_id};
+        return;
+    }
+
+    # Sanitize description to prevent any potential issues
     my $description = "Print notice";
-    $description .= ": " . $params->{notice_code} if $params->{notice_code};
+    if ($params->{notice_code}) {
+        # Only include alphanumeric, dash, underscore in description
+        my $safe_notice_code = $params->{notice_code};
+        $safe_notice_code =~ s/[^\w\-_]//g; # Remove any non-safe characters
+        $description .= ": " . $safe_notice_code if $safe_notice_code;
+    }
 
     my $userenv = C4::Context->userenv;
     my $library_id = $params->{library_id} || ($userenv ? $userenv->{branch} : undef);
 
-    return $self->add_debit({
+    # Use transaction for safety
+    my $schema = Koha::Database->new->schema;
+    my $result;
+
+    eval {
+        $schema->txn_do(sub {
+            $result = $self->add_debit({
         amount      => $charge_amount,
         description => $description,
         type        => 'PRINT_NOTICE',
         interface   => 'cron',
         library_id  => $library_id,
     });
+        });
+    };
+
+    if ($@) {
+        carp "Failed to add print notice charge: $@";
+        return;
+    }
+
+    return $result;
 }
 
 1;
