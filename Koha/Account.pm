@@ -832,6 +832,45 @@ sub reconcile_balance {
     return $self;
 }
 
+=head3 add_print_notice_charge
+
+    $account->add_print_notice_charge({
+        notice_code => $letter_code,
+        library_id  => $branchcode,
+        amount      => $charge_amount  # optional, uses syspref if not provided
+    });
+
+Adds a print notice charge to the patron's account if charging is enabled.
+
+=cut
+
+sub add_print_notice_charge {
+    my ( $self, $params ) = @_;
+
+    # Check if charging is enabled
+    return unless C4::Context->preference('PrintNoticeCharging');
+
+    my $charge_amount = $params->{amount} || C4::Context->preference('PrintNoticeChargeAmount');
+    return unless $charge_amount && $charge_amount > 0;
+
+    # Validate charge amount
+    if ($charge_amount !~ /^\d+\.?\d*$/ || $charge_amount < 0) {
+        carp "Invalid print notice charge amount: $charge_amount";
+        return;
+    }
+
+    my $description = "Print notice";
+    $description .= ": " . $params->{notice_code} if $params->{notice_code};
+
+    return $self->add_debit({
+        amount      => $charge_amount,
+        description => $description,
+        type        => 'PRINT_NOTICE',
+        interface   => 'cron',
+        library_id  => $params->{library_id} || C4::Context->userenv->{branch},
+    });
+}
+
 1;
 
 =head1 AUTHORS
