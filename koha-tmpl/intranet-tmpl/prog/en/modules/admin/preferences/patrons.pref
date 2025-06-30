@@ -194,6 +194,19 @@ Patrons:
                0: "Don't send"
          - email receipts to patrons for payments and writeoffs.
      -
+         - pref: PrintNoticeCharging
+           choices:
+               1: Enable
+               0: Disable
+         - charging for print notices to recover postage and processing costs.
+         - "<br><strong>NOTE:</strong> When enabled, patrons will be charged for each print notice sent via gather_print_notices.pl."
+     -
+         - Charge
+         - pref: PrintNoticeChargeAmount
+           class: currency
+         - for each print notice sent to patrons.
+         - "<br><strong>NOTE:</strong> Amount should reflect actual costs for postage and staff time."
+     -
          - "Use the patron's"
          - pref: EmailFieldPrimary
            default: ""

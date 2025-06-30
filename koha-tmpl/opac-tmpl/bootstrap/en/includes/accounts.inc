@@ -40,6 +40,8 @@
         <span>Hold fee</span>
     [%- CASE 'RESERVE_EXPIRED' -%]
         <span>Hold waiting too long</span>
+    [%- CASE 'PRINT_NOTICE' -%]
+        <span>Print notice charge</span>
     [%- CASE 'PAYOUT' -%]
         <span>Payment from library to patron</span>
     [%- CASE 'VOID' -%]

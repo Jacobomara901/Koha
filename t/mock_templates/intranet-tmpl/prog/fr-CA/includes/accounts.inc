@@ -38,6 +38,8 @@
         <span>Frais de réservation</span>
     [%- CASE 'RESERVE_EXPIRED' -%]
         <span>Réservation en attente depuis trop longtemps</span>
+    [%- CASE 'PRINT_NOTICE' -%]
+        <span>Frais d'avis imprimé</span>
     [%- CASE 'PAYOUT' -%]
         <span>Paiement de la bibliothèque à l'utilisateur</span>
     [%- CASE 'VOID' -%]
