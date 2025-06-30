@@ -855,6 +855,15 @@ if ( C4::Context->preference('EnhancedMessagingPreferences') ) {
     $template->param( SMSSendDriver         => C4::Context->preference("SMSSendDriver") );
     $template->param( SMSnumber             => $data{'smsalertnumber'} );
     $template->param( TalkingTechItivaPhone => C4::Context->preference("TalkingTechItivaPhoneNotification") );
+
+    # Print notice charging context
+    if (C4::Context->preference('PrintNoticeCharging')) {
+        $template->param(
+            print_notice_charging => 1,
+            print_notice_charge_amount => C4::Context->preference('PrintNoticeChargeAmount'),
+            patron_has_email => $patron && $patron->notice_email_address,
+        );
+    }
 }
 
 $template->param( borrower_data    => \%data );
