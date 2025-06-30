@@ -651,6 +651,8 @@ INSERT INTO systempreferences ( `variable`, `value`, `options`, `explanation`, `
 ('PreventWithdrawingItemsStatus', '', '', 'Prevent the withdrawing of items based on certain statuses' , 'multiple'),
 ('previousIssuesDefaultSortOrder','asc','asc|desc','Specify the sort order of Previous Issues on the circulation page','Choice'),
 ('PrintNoticesMaxLines','0','','If greater than 0, sets the maximum number of lines an overdue notice will print. If the number of items is greater than this number, the notice will end with a warning asking the borrower to check their online account for a full list of overdue items.','Integer'),
+('PrintNoticeCharging','0','','Enable charging for print notices to recover postage and processing costs','YesNo'),
+('PrintNoticeChargeAmount','0.50','','Amount to charge for each print notice sent to patrons','Float'),
 ('PrivacyPolicyConsent','','Enforced|Permissive|Disabled','Data privacy policy consent in the OPAC', 'Choice'),
 ('PrivacyPolicyURL','',NULL,'This URL is used in messages about GDPR consents.', 'Free'),
 ('ProcessingFeeNote', '', NULL, 'Set the text to be recorded in the column note, table accountlines when the processing fee (defined in item type) is applied', 'textarea'),
