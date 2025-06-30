@@ -835,13 +835,25 @@ sub reconcile_balance {
 
 =head3 add_print_notice_charge
 
-    $account->add_print_notice_charge({
-        notice_code => $letter_code,
-        library_id  => $branchcode,
-        amount      => $charge_amount  # optional, uses syspref if not provided
+    my $result = $account->add_print_notice_charge({
+        notice_code => $letter_code,    # optional, letter code for description
+        library_id  => $branchcode,     # optional, defaults to current branch
+        amount      => $charge_amount   # optional, uses syspref if not provided
     });
 
-Adds a print notice charge to the patron's account if charging is enabled.
+Adds a print notice charge to the patron's account if charging is enabled via the
+PrintNoticeCharging system preference. Returns the created account line on success,
+or undef if charging is disabled or invalid parameters are provided.
+
+This method performs comprehensive input validation and uses database transactions
+to ensure data integrity. All parameters are optional, with sensible defaults.
+
+Parameters:
+- notice_code: (optional) The letter code to include in the charge description
+- library_id: (optional) The library branch code, defaults to current user's branch
+- amount: (optional) The charge amount, defaults to PrintNoticeChargeAmount syspref
+
+Returns: Koha::Account::Line object on success, undef on failure or if charging disabled
 
 =cut
 
@@ -915,12 +927,12 @@ sub add_print_notice_charge {
     eval {
         $schema->txn_do(sub {
             $result = $self->add_debit({
-        amount      => $charge_amount,
-        description => $description,
-        type        => 'PRINT_NOTICE',
-        interface   => 'cron',
-        library_id  => $library_id,
-    });
+                amount      => $charge_amount,
+                description => $description,
+                type        => 'PRINT_NOTICE',
+                interface   => 'cron',
+                library_id  => $library_id,
+            });
         });
     };
 

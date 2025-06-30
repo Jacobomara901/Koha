@@ -355,7 +355,22 @@ sub send_files {
 
 =head2 apply_print_notice_charge
 
-Apply a print notice charge to the patron's account
+    apply_print_notice_charge($message);
+
+Applies a print notice charge to the patron's account for the given message,
+if print notice charging is enabled via system preferences.
+
+This function performs comprehensive validation of the message data to ensure
+security and data integrity. It validates borrowernumber, branchcode, and
+letter_code formats before attempting to apply charges.
+
+Parameters:
+- $message: hashref containing message data with keys:
+  * borrowernumber: numeric patron ID (required)
+  * branchcode: branch code (optional, validated if present)
+  * letter_code: notice type code (optional, validated if present)
+
+Returns: nothing (void function)
 
 =cut
 
@@ -402,12 +417,12 @@ sub apply_print_notice_charge {
 
         # Log successful charge application
         if ($result) {
-        cronlogaction({
-            action => 'Print notice charge',
-            info   => "Applied charge for patron " . $message->{borrowernumber} .
+            cronlogaction({
+                action => 'Print notice charge',
+                info   => "Applied charge for patron " . $message->{borrowernumber} .
                          " notice " . ($message->{letter_code} || 'unknown') .
                          " (charge ID: " . $result->id . ")"
-        });
+            });
         }
     };
 
