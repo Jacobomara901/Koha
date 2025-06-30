@@ -21,6 +21,7 @@ use Modern::Perl;
 
 use Carp;
 use Data::Dumper qw( Dumper );
+use Scalar::Util qw( looks_like_number );
 use Try::Tiny    qw( catch try );
 
 use C4::Letters;
@@ -848,26 +849,47 @@ sub add_print_notice_charge {
     my ( $self, $params ) = @_;
 
     # Check if charging is enabled
-    return unless C4::Context->preference('PrintNoticeCharging');
+    my $charging_pref = C4::Context->preference('PrintNoticeCharging');
+    return unless $charging_pref && $charging_pref ne 'No';
 
-    my $charge_amount = $params->{amount} || C4::Context->preference('PrintNoticeChargeAmount');
-    return unless $charge_amount && $charge_amount > 0;
+    my $charge_amount = defined $params->{amount} ? $params->{amount} : C4::Context->preference('PrintNoticeChargeAmount');
 
-    # Validate charge amount
-    if ($charge_amount !~ /^\d+\.?\d*$/ || $charge_amount < 0) {
+    # Return early for undefined amounts (no warning needed)
+    return unless defined $charge_amount;
+
+    # Reject values with leading/trailing whitespace (system preference hygiene)
+    if ($charge_amount =~ /^\s|\s$/) {
         carp "Invalid print notice charge amount: $charge_amount";
         return;
     }
 
+    # Use Perl's standard numeric validation to avoid warnings and database errors
+    unless (Scalar::Util::looks_like_number($charge_amount)) {
+        carp "Invalid print notice charge amount: $charge_amount";
+        return;
+    }
+
+    # Check for negative amounts (should warn)
+    if ($charge_amount < 0) {
+        carp "Invalid print notice charge amount: $charge_amount";
+        return;
+    }
+
+    # Return early for zero amounts (no warning needed)
+    return unless $charge_amount > 0;
+
     my $description = "Print notice";
     $description .= ": " . $params->{notice_code} if $params->{notice_code};
+
+    my $userenv = C4::Context->userenv;
+    my $library_id = $params->{library_id} || ($userenv ? $userenv->{branch} : undef);
 
     return $self->add_debit({
         amount      => $charge_amount,
         description => $description,
         type        => 'PRINT_NOTICE',
         interface   => 'cron',
-        library_id  => $params->{library_id} || C4::Context->userenv->{branch},
+        library_id  => $library_id,
     });
 }
 
