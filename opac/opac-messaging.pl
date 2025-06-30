@@ -87,6 +87,15 @@ $template->param(
     enforce_expiry_notice => $patron->category->enforce_expiry_notice,
 );
 
+# Print notice charging context
+if (C4::Context->preference('PrintNoticeCharging')) {
+    $template->param(
+        print_notice_charging => 1,
+        print_notice_charge_amount => C4::Context->preference('PrintNoticeChargeAmount'),
+        patron_has_email => $patron->notice_email_address,
+    );
+}
+
 if ( $opac_messaging && C4::Context->preference("SMSSendDriver") eq 'Email' ) {
     my @providers = Koha::SMS::Providers->search( {}, { order_by => 'name' } )->as_list;
     $template->param(
