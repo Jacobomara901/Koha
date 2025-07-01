@@ -30,11 +30,11 @@ $(document).ready(function () {
             }
             var jqxhr = $.getJSON(
                 "/cgi-bin/koha/members/default_messageprefs.pl?categorycode=" +
-                    categorycode,
+                categorycode,
                 function (data) {
                     $.each(data.messaging_preferences, function (i, item) {
                         var attrid = item.message_attribute_id;
-                        var transports = ["email", "rss", "sms"];
+                        var transports = ["email", "rss", "sms", "print"];
                         $.each(transports, function (j, transport) {
                             if (item["transports_" + transport] == 1) {
                                 $("#" + transport + attrid).prop(
@@ -74,8 +74,8 @@ $(document).ready(function () {
         let phone_checked = TalkingTechItivaPhoneNotification
             ? false
             : PhoneNotification
-              ? $("#phone" + id).prop("checked")
-              : false;
+                ? $("#phone" + id).prop("checked")
+                : false;
         if (
             $("#email" + id).prop("checked") ||
             $("#sms" + id).prop("checked") ||
@@ -105,5 +105,8 @@ $(document).ready(function () {
     });
     $(".pmp_phone").click(function () {
         toggle_digest(Number($(this).attr("id").replace("phone", "")));
+    });
+    $(".pmp_print").click(function () {
+        toggle_digest(Number($(this).attr("id").replace("print", "")));
     });
 });
