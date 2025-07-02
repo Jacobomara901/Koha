@@ -32,6 +32,32 @@ return {
         }
         );
 
-        say_success( $out, "Added system preferences and debit type for print notice charging" );
+        # Add comprehensive print transport entries for all standard notice types
+        # This enables print checkboxes to appear in messaging preferences
+        $dbh->do(
+            q{
+            INSERT IGNORE INTO message_transports (message_attribute_id, message_transport_type, is_digest, letter_module, letter_code, branchcode)
+            VALUES
+                (1, 'print', 0, 'circulation', 'DUE', ''),
+                (1, 'print', 1, 'circulation', 'DUEDGST', ''),
+                (2, 'print', 0, 'circulation', 'PREDUE', ''),
+                (2, 'print', 1, 'circulation', 'PREDUEDGST', ''),
+                (4, 'print', 0, 'reserves', 'HOLD', ''),
+                (4, 'print', 1, 'reserves', 'HOLDDGST', ''),
+                (5, 'print', 0, 'circulation', 'CHECKIN', ''),
+                (6, 'print', 0, 'circulation', 'CHECKOUT', ''),
+                (7, 'print', 0, 'ill', 'ILL_PICKUP_READY', ''),
+                (8, 'print', 0, 'ill', 'ILL_REQUEST_UNAVAIL', ''),
+                (9, 'print', 0, 'circulation', 'AUTO_RENEWALS', ''),
+                (9, 'print', 1, 'circulation', 'AUTO_RENEWALS_DGST', ''),
+                (10, 'print', 0, 'circulation', 'HOLD_REMINDER', ''),
+                (11, 'print', 0, 'ill', 'ILL_REQUEST_UPDATE', ''),
+                (12, 'print', 0, 'circulation', 'PICKUP_RECALLED_ITEM', ''),
+                (13, 'print', 0, 'circulation', 'RETURN_RECALLED_ITEM', ''),
+                (14, 'print', 0, 'members', 'MEMBERSHIP_EXPIRY', '')
+        }
+        );
+
+        say_success( $out, "Added system preferences, debit type, and comprehensive print transport entries for print notice charging" );
     },
 };
