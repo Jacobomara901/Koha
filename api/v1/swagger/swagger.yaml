@@ -40,6 +40,10 @@ definitions:
     $ref: ./definitions/circ-rule-kind.yaml
   city:
     $ref: ./definitions/city.yaml
+  display:
+    $ref: ./definitions/display.yaml
+  displayitem:
+    $ref: ./definitions/displayitem.yaml
   credit:
     $ref: ./definitions/credit.yaml
   debit:
@@ -311,6 +315,14 @@ paths:
     $ref: ./paths/cities.yaml#/~1cities
   "/cities/{city_id}":
     $ref: "./paths/cities.yaml#/~1cities~1{city_id}"
+  /displays:
+    $ref: ./paths/displays.yaml#/~1displays
+  "/displays/{display_id}":
+    $ref: "./paths/displays.yaml#/~1displays~1{display_id}"
+  /displayitems:
+    $ref: ./paths/displayitems.yaml#/~1displayitems
+  "/displayitems/{display_id}/{item_id}":
+    $ref: "./paths/displayitems.yaml#/~1displayitems~1{display_id}~1{item_id}"
   "/clubs/{club_id}/holds":
     $ref: "./paths/clubs.yaml#/~1clubs~1{club_id}~1holds"
   /config/smtp_servers:
@@ -697,6 +709,12 @@ parameters:
     description: City internal identifier
     in: path
     name: city_id
+    required: true
+    type: integer
+  display_id_pp:
+    description: Display internal identifier
+    in: path
+    name: display_id
     required: true
     type: integer
   club_id_pp:
@@ -1149,6 +1167,12 @@ tags:
   - description: "Manage cities\n"
     name: cities
     x-displayName: Cities
+  - description: "Manage displays\n"
+    name: displays
+    x-displayName: Displays
+  - description: "Manage display items\n"
+    name: displayitems
+    x-displayName: Display items
   - description: "Manage patron clubs\n"
     name: clubs
     x-displayName: Clubs
