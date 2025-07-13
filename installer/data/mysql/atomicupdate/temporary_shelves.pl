@@ -2,7 +2,7 @@ use Modern::Perl;
 
 return {
     bug_number  => "",
-    description => "Add displays table for display module",
+    description => "Add display tables for display module",
     up          => sub {
         my ($args) = @_;
         my ( $dbh, $out ) = @$args{qw(dbh out)};
@@ -33,6 +33,32 @@ return {
             );
 
             say $out "Added new table 'displays'";
+        }
+
+        # Create display_items table
+        unless ( TableExists('display_items') ) {
+            $dbh->do(
+                q{
+                CREATE TABLE IF NOT EXISTS `display_items` (
+                    `display_item_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'primary key',
+                    `display_id` int(11) NOT NULL COMMENT 'foreign key to link to displays.display_id',
+                    `itemnumber` int(11) DEFAULT NULL COMMENT 'items.itemnumber for the item on display',
+                    `biblionumber` int(11) DEFAULT NULL COMMENT 'biblio.biblionumber for the bibliographic record on display',
+                    `date_added` date DEFAULT NULL COMMENT 'the date the item was added to the display',
+                    `date_remove` date DEFAULT NULL COMMENT 'the date the item should be removed from the display',
+                    PRIMARY KEY (`display_item_id`),
+                    UNIQUE KEY `display_items_uniq` (`display_id`,`itemnumber`),
+                    KEY `display_id` (`display_id`),
+                    KEY `itemnumber` (`itemnumber`),
+                    KEY `biblionumber` (`biblionumber`),
+                    CONSTRAINT `display_items_ibfk_1` FOREIGN KEY (`display_id`) REFERENCES `displays` (`display_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+                    CONSTRAINT `display_items_ibfk_2` FOREIGN KEY (`itemnumber`) REFERENCES `items` (`itemnumber`) ON DELETE CASCADE ON UPDATE CASCADE,
+                    CONSTRAINT `display_items_ibfk_3` FOREIGN KEY (`biblionumber`) REFERENCES `biblio` (`biblionumber`) ON DELETE CASCADE ON UPDATE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            }
+            );
+
+            say $out "Added new table 'display_items'";
         }
     },
 };
