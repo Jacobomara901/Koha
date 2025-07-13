@@ -315,6 +315,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 display_items
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::DisplayItem>
+
+=cut
+
+__PACKAGE__->has_many(
+  "display_items",
+  "Koha::Schema::Result::DisplayItem",
+  { "foreign.biblionumber" => "self.biblionumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 erm_eholdings_titles
 
 Type: has_many
@@ -631,8 +646,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07051 @ 2024-07-31 14:45:08
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rLzlHl6jAwBmgmiXavpP0w
+# Created by DBIx::Class::Schema::Loader v0.07051 @ 2025-07-13 12:54:27
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:I7bkZXNyiYt9/JO2lXGo2w
 
 __PACKAGE__->has_many(
   "biblioitem",

@@ -680,6 +680,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 displays
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::Display>
+
+=cut
+
+__PACKAGE__->has_many(
+  "displays",
+  "Koha::Schema::Result::Display",
+  { "foreign.display_branch" => "self.branchcode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 edifact_eans
 
 Type: has_many
@@ -996,8 +1011,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07051 @ 2024-05-03 13:13:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:HiH1QNlDqKcq9GeM85Pu0A
+# Created by DBIx::Class::Schema::Loader v0.07051 @ 2025-07-13 12:54:27
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mcJUqunZdnt6xKXVjJFEiA
 
 __PACKAGE__->has_many(
     "additional_field_values",
