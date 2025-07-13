@@ -2907,6 +2907,31 @@ CREATE TABLE `displays` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `display_items`
+--
+
+DROP TABLE IF EXISTS `display_items`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `display_items` (
+  `display_item_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'primary key',
+  `display_id` int(11) NOT NULL COMMENT 'foreign key to link to displays.display_id',
+  `itemnumber` int(11) DEFAULT NULL COMMENT 'items.itemnumber for the item on display',
+  `biblionumber` int(11) DEFAULT NULL COMMENT 'biblio.biblionumber for the bibliographic record on display',
+  `date_added` date DEFAULT NULL COMMENT 'the date the item was added to the display',
+  `date_remove` date DEFAULT NULL COMMENT 'the date the item should be removed from the display',
+  PRIMARY KEY (`display_item_id`),
+  UNIQUE KEY `display_items_uniq` (`display_id`,`itemnumber`),
+  KEY `display_id` (`display_id`),
+  KEY `itemnumber` (`itemnumber`),
+  KEY `biblionumber` (`biblionumber`),
+  CONSTRAINT `display_items_ibfk_1` FOREIGN KEY (`display_id`) REFERENCES `displays` (`display_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `display_items_ibfk_2` FOREIGN KEY (`itemnumber`) REFERENCES `items` (`itemnumber`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `display_items_ibfk_3` FOREIGN KEY (`biblionumber`) REFERENCES `biblio` (`biblionumber`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `edifact_ean`
 --
 
