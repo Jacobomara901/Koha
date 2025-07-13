@@ -865,6 +865,7 @@ INSERT INTO systempreferences ( `variable`, `value`, `options`, `explanation`, `
 ('UseCirculationDesks','0','','Use circulation desks with circulation.','YesNo'),
 ('UseControlNumber','0','','If ON, record control number (w subfields) and control number (001) are used for linking of bibliographic records.','YesNo'),
 ('UseCourseReserves','0',NULL,'Enable the course reserves feature.','YesNo'),
+('UseDisplayModule','0',NULL,'Enable the display module for managing item displays.','YesNo'),
 ('useDaysMode','Calendar','Calendar|Days|Datedue|Dayweek','Choose the method for calculating due date: select Calendar, Datedue or Dayweek to use the holidays module, and Days to ignore the holidays module','Choice'),
 ('useDefaultReplacementCost', '0', NULL, 'default replacement cost defined in item type', 'YesNo'),
 ('useDischarge','0','','Allows librarians to discharge borrowers and borrowers to request a discharge','YesNo'),
