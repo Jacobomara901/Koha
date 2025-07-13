@@ -1,4 +1,4 @@
-package Koha::Display;
+package Koha::DisplayItem;
 
 # This file is part of Koha.
 #
@@ -20,14 +20,15 @@ use Modern::Perl;
 use Carp;
 
 use Koha::Database;
-use Koha::DisplayItems;
-use Koha::Library;
+use Koha::Display;
+use Koha::Item;
+use Koha::Biblio;
 
 use base qw(Koha::Object);
 
 =head1 NAME
 
-Koha::Display - Koha Display Object class
+Koha::DisplayItem - Koha Display Item Object class
 
 =head1 API
 
@@ -35,33 +36,48 @@ Koha::Display - Koha Display Object class
 
 =cut
 
-=head3 display_items
+=head3 display
 
-    my $display_items = $display->display_items;
+    my $display = $display_item->display;
 
-Returns the related Koha::DisplayItems object for this display.
+Returns the related Koha::Display object for this display item.
 
 =cut
 
-sub display_items {
+sub display {
     my ($self) = @_;
-    my $rs = $self->_result->display_items;
-    return Koha::DisplayItems->_new_from_dbic($rs);
+    my $rs = $self->_result->display;
+    return Koha::Display->_new_from_dbic($rs);
 }
 
-=head3 library
+=head3 item
 
-    my $library = $display->library;
+    my $item = $display_item->item;
 
-Returns the related Koha::Library object for this display's branch.
+Returns the related Koha::Item object for this display item.
 
 =cut
 
-sub library {
+sub item {
     my ($self) = @_;
-    my $rs = $self->_result->display_branch;
+    my $rs = $self->_result->itemnumber;
     return unless $rs;
-    return Koha::Library->_new_from_dbic($rs);
+    return Koha::Item->_new_from_dbic($rs);
+}
+
+=head3 biblio
+
+    my $biblio = $display_item->biblio;
+
+Returns the related Koha::Biblio object for this display item.
+
+=cut
+
+sub biblio {
+    my ($self) = @_;
+    my $rs = $self->_result->biblionumber;
+    return unless $rs;
+    return Koha::Biblio->_new_from_dbic($rs);
 }
 
 =head2 Internal methods
@@ -71,7 +87,7 @@ sub library {
 =cut
 
 sub _type {
-    return 'Display';
+    return 'DisplayItem';
 }
 
 =head1 AUTHOR
