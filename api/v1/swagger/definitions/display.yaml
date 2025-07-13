@@ -1,0 +1,83 @@
+---
+type: object
+properties:
+  display_id:
+    type: integer
+    description: internally assigned display identifier
+    readOnly: true
+  display_name:
+    description: display name
+    type: string
+  start_date:
+    description: display start date
+    type:
+      - string
+      - "null"
+    format: date
+  end_date:
+    description: display end date
+    type:
+      - string
+      - "null"
+    format: date
+  display_days:
+    description: number of days an item should stay in the display
+    type:
+      - integer
+      - "null"
+  enabled:
+    description: determines whether the display is active
+    type: boolean
+  display_location:
+    description: shelving location for the display
+    type:
+      - string
+      - "null"
+  display_code:
+    description: collection code for the display
+    type:
+      - string
+      - "null"
+  display_branch:
+    description: home branch for items while on display
+    type:
+      - string
+      - "null"
+  display_type:
+    description: item type for items while on display
+    type:
+      - string
+      - "null"
+  display_return_over:
+    description: should the item be removed from the display when it is returned
+    type: string
+    enum:
+      - "yes"
+      - "any library"
+      - "not home library"
+      - "no"
+    default: "no"
+  display_items:
+    type:
+      - array
+      - "null"
+    description: The object representing the display items
+  library:
+    type:
+      - object
+      - "null"
+    description: The object representing the display library
+  item_type:
+    type:
+      - object
+      - "null"
+    description: The object representing the display item type
+  _strings:
+    type:
+      - object
+      - "null"
+additionalProperties: false
+required:
+  - display_name
+  - enabled
+  - display_return_over 
