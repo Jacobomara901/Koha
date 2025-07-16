@@ -64,7 +64,7 @@ subtest 'list() tests' => sub {
 
     ## Authorized user tests
     # No displayitems, so empty array should be returned
-    $t->get_ok("//$userid:$password@/api/v1/displayitems")->status_is(200)->json_is( [] );
+    $t->get_ok("//$userid:$password@/api/v1/display/items")->status_is(200)->json_is( [] );
 
     # Create test data
     my $display = $builder->build_object( { class => 'Koha::Displays' } );
@@ -83,7 +83,7 @@ subtest 'list() tests' => sub {
     );
 
     # One displayitem created, should get returned
-    $t->get_ok("//$userid:$password@/api/v1/displayitems")->status_is(200)->json_is( [ $displayitem->to_api ] );
+    $t->get_ok("//$userid:$password@/api/v1/display/items")->status_is(200)->json_is( [ $displayitem->to_api ] );
 
     # Create another displayitem with same display
     my $item2               = $builder->build_sample_item( { biblionumber => $biblio->biblionumber } );
@@ -113,7 +113,7 @@ subtest 'list() tests' => sub {
     );
 
     # Three displayitems created, they should all be returned
-    $t->get_ok("//$userid:$password@/api/v1/displayitems")->status_is(200)->json_is(
+    $t->get_ok("//$userid:$password@/api/v1/display/items")->status_is(200)->json_is(
         [
             $displayitem->to_api,
             $another_displayitem->to_api,
@@ -122,7 +122,7 @@ subtest 'list() tests' => sub {
     );
 
     # Filtering works, two displayitems sharing display_id
-    $t->get_ok( "//$userid:$password@/api/v1/displayitems?display_id=" . $display->display_id )->status_is(200)
+    $t->get_ok( "//$userid:$password@/api/v1/display/items?display_id=" . $display->display_id )->status_is(200)
         ->json_is(
         [
             $displayitem->to_api,
@@ -130,15 +130,15 @@ subtest 'list() tests' => sub {
         ]
         );
 
-    $t->get_ok( "//$userid:$password@/api/v1/displayitems?itemnumber=" . $item->itemnumber )->status_is(200)
+    $t->get_ok( "//$userid:$password@/api/v1/display/items?itemnumber=" . $item->itemnumber )->status_is(200)
         ->json_is( [ $displayitem->to_api ] );
 
     # Warn on unsupported query parameter
-    $t->get_ok("//$userid:$password@/api/v1/displayitems?displayitem_blah=blah")->status_is(400)
+    $t->get_ok("//$userid:$password@/api/v1/display/items?displayitem_blah=blah")->status_is(400)
         ->json_is( [ { path => '/query/displayitem_blah', message => 'Malformed query string' } ] );
 
     # Unauthorized access
-    $t->get_ok("//$unauth_userid:$password@/api/v1/displayitems")->status_is(403);
+    $t->get_ok("//$unauth_userid:$password@/api/v1/display/items")->status_is(403);
 
     $schema->storage->txn_rollback;
 };
@@ -186,12 +186,12 @@ subtest 'get() tests' => sub {
     my $unauth_userid = $patron->userid;
 
     $t->get_ok(
-        "//$userid:$password@/api/v1/displayitems/" . $displayitem->display_id . "/" . $displayitem->itemnumber )
+        "//$userid:$password@/api/v1/display/items/" . $displayitem->display_id . "/" . $displayitem->itemnumber )
         ->status_is(200)->json_is( $displayitem->to_api );
 
-    $t->get_ok(
-        "//$unauth_userid:$password@/api/v1/displayitems/" . $displayitem->display_id . "/" . $displayitem->itemnumber )
-        ->status_is(403);
+    $t->get_ok( "//$unauth_userid:$password@/api/v1/display/items/"
+            . $displayitem->display_id . "/"
+            . $displayitem->itemnumber )->status_is(403);
 
     # Create displayitem to delete
     my $item_to_delete        = $builder->build_sample_item( { biblionumber => $biblio->biblionumber } );
@@ -209,11 +209,11 @@ subtest 'get() tests' => sub {
     my $non_existent_item_id    = $displayitem_to_delete->itemnumber;
     $displayitem_to_delete->delete;
 
-    $t->get_ok("//$userid:$password@/api/v1/displayitems/$non_existent_display_id/$non_existent_item_id")
+    $t->get_ok("//$userid:$password@/api/v1/display/items/$non_existent_display_id/$non_existent_item_id")
         ->status_is(404)->json_is( '/error' => 'Display item not found' );
 
     # Test with completely non-existent IDs
-    $t->get_ok("//$userid:$password@/api/v1/displayitems/99999/99999")->status_is(404)
+    $t->get_ok("//$userid:$password@/api/v1/display/items/99999/99999")->status_is(404)
         ->json_is( '/error' => 'Display item not found' );
 
     $schema->storage->txn_rollback;
@@ -259,7 +259,7 @@ subtest 'add() tests' => sub {
     };
 
     # Unauthorized attempt to write
-    $t->post_ok( "//$unauth_userid:$password@/api/v1/displayitems" => json => $displayitem )->status_is(403);
+    $t->post_ok( "//$unauth_userid:$password@/api/v1/display/items" => json => $displayitem )->status_is(403);
 
     # Authorized attempt to write invalid data
     my $displayitem_with_invalid_field = {
@@ -269,7 +269,7 @@ subtest 'add() tests' => sub {
         biblionumber => $biblio->biblionumber
     };
 
-    $t->post_ok( "//$userid:$password@/api/v1/displayitems" => json => $displayitem_with_invalid_field )
+    $t->post_ok( "//$userid:$password@/api/v1/display/items" => json => $displayitem_with_invalid_field )
         ->status_is(400)->json_is(
         "/errors" => [
             {
@@ -280,9 +280,9 @@ subtest 'add() tests' => sub {
         );
 
     # Authorized attempt to write
-    $t->post_ok( "//$userid:$password@/api/v1/displayitems" => json => $displayitem )->status_is( 201, 'REST3.2.1' )
+    $t->post_ok( "//$userid:$password@/api/v1/display/items" => json => $displayitem )->status_is( 201, 'REST3.2.1' )
         ->header_like(
-        Location => qr|^\/api\/v1\/displayitems/\d+/\d+|,
+        Location => qr|^\/api\/v1\/display/items/\d+/\d+|,
         'REST3.4.1'
     )->json_is( '/display_id' => $displayitem->{display_id} )
         ->json_is( '/itemnumber'   => $displayitem->{itemnumber} )
@@ -297,7 +297,7 @@ subtest 'add() tests' => sub {
             # Missing biblionumber
     };
 
-    $t->post_ok( "//$userid:$password@/api/v1/displayitems" => json => $displayitem_missing_field )->status_is(400)
+    $t->post_ok( "//$userid:$password@/api/v1/display/items" => json => $displayitem_missing_field )->status_is(400)
         ->json_has('/errors');
 
     # Test duplicate creation (should fail as display_id + itemnumber is primary key)
@@ -310,7 +310,7 @@ subtest 'add() tests' => sub {
         date_added   => "2024-01-16",
         date_remove  => "2024-02-16"
     };
-    $t->post_ok( "//$userid:$password@/api/v1/displayitems" => json => $displayitem2 )->status_is(201);
+    $t->post_ok( "//$userid:$password@/api/v1/display/items" => json => $displayitem2 )->status_is(201);
 
     $schema->storage->txn_rollback;
 };
@@ -358,7 +358,7 @@ subtest 'update() tests' => sub {
     );
 
     # Unauthorized attempt to update
-    $t->put_ok( "//$unauth_userid:$password@/api/v1/displayitems/"
+    $t->put_ok( "//$unauth_userid:$password@/api/v1/display/items/"
             . $displayitem->display_id . "/"
             . $displayitem->itemnumber => json => { date_added => '2024-01-20' } )->status_is(403);
 
@@ -370,7 +370,7 @@ subtest 'update() tests' => sub {
             # Missing biblionumber
     };
 
-    $t->put_ok( "//$userid:$password@/api/v1/displayitems/"
+    $t->put_ok( "//$userid:$password@/api/v1/display/items/"
             . $displayitem->display_id . "/"
             . $displayitem->itemnumber => json => $displayitem_with_missing_field )->status_is(400)
         ->json_is( "/errors" => [ { message => "Missing property.", path => "/body/biblionumber" } ] );
@@ -384,7 +384,7 @@ subtest 'update() tests' => sub {
         date_remove  => "2024-03-20"
     };
 
-    $t->put_ok( "//$userid:$password@/api/v1/displayitems/"
+    $t->put_ok( "//$userid:$password@/api/v1/display/items/"
             . $displayitem->display_id . "/"
             . $displayitem->itemnumber => json => $displayitem_with_updated_field )->status_is(200)
         ->json_is( '/date_added' => '2024-01-20' );
@@ -397,7 +397,7 @@ subtest 'update() tests' => sub {
         biblionumber => $biblio->biblionumber
     };
 
-    $t->put_ok( "//$userid:$password@/api/v1/displayitems/"
+    $t->put_ok( "//$userid:$password@/api/v1/display/items/"
             . $displayitem->display_id . "/"
             . $displayitem->itemnumber => json => $displayitem_with_invalid_field )->status_is(400)->json_is(
         "/errors" => [
@@ -409,11 +409,11 @@ subtest 'update() tests' => sub {
             );
 
     # Test with non-existent displayitem
-    $t->put_ok( "//$userid:$password@/api/v1/displayitems/99999/99999" => json => $displayitem_with_updated_field )
+    $t->put_ok( "//$userid:$password@/api/v1/display/items/99999/99999" => json => $displayitem_with_updated_field )
         ->status_is(404);
 
     # Wrong method (POST)
-    $t->post_ok( "//$userid:$password@/api/v1/displayitems/"
+    $t->post_ok( "//$userid:$password@/api/v1/display/items/"
             . $displayitem->display_id . "/"
             . $displayitem->itemnumber => json => $displayitem_with_updated_field )->status_is(404);
 
@@ -463,16 +463,16 @@ subtest 'delete() tests' => sub {
     );
 
     # Unauthorized attempt to delete
-    $t->delete_ok(
-        "//$unauth_userid:$password@/api/v1/displayitems/" . $displayitem->display_id . "/" . $displayitem->itemnumber )
-        ->status_is(403);
+    $t->delete_ok( "//$unauth_userid:$password@/api/v1/display/items/"
+            . $displayitem->display_id . "/"
+            . $displayitem->itemnumber )->status_is(403);
 
     $t->delete_ok(
-        "//$userid:$password@/api/v1/displayitems/" . $displayitem->display_id . "/" . $displayitem->itemnumber )
+        "//$userid:$password@/api/v1/display/items/" . $displayitem->display_id . "/" . $displayitem->itemnumber )
         ->status_is( 204, 'REST3.2.4' )->content_is( '', 'REST3.3.4' );
 
     $t->delete_ok(
-        "//$userid:$password@/api/v1/displayitems/" . $displayitem->display_id . "/" . $displayitem->itemnumber )
+        "//$userid:$password@/api/v1/display/items/" . $displayitem->display_id . "/" . $displayitem->itemnumber )
         ->status_is(404);
 
     $schema->storage->txn_rollback;
