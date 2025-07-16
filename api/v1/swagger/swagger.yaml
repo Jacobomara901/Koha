@@ -319,10 +319,10 @@ paths:
     $ref: ./paths/displays.yaml#/~1displays
   "/displays/{display_id}":
     $ref: "./paths/displays.yaml#/~1displays~1{display_id}"
-  /displayitems:
-    $ref: ./paths/displayitems.yaml#/~1displayitems
-  "/displayitems/{display_id}/{item_id}":
-    $ref: "./paths/displayitems.yaml#/~1displayitems~1{display_id}~1{item_id}"
+  "/display/items":
+    $ref: ./paths/displayitems.yaml#/~1display~1items
+  "/display/items/{display_id}/{item_id}":
+    $ref: "./paths/displayitems.yaml#/~1display~1items~1{display_id}~1{item_id}"
   "/clubs/{club_id}/holds":
     $ref: "./paths/clubs.yaml#/~1clubs~1{club_id}~1holds"
   /config/smtp_servers:
