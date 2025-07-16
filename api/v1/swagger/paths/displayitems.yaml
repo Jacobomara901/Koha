@@ -1,5 +1,5 @@
 ---
-/displayitems:
+/display/items:
   get:
     x-mojo-to: DisplayItems#list
     operationId: listDisplayItems
@@ -126,7 +126,7 @@
     x-koha-authorization:
       permissions:
         displays: add_items_to_display
-"/displayitems/{display_id}/{item_id}":
+"/display/items/{display_id}/{item_id}":
   get:
     x-mojo-to: DisplayItems#get
     operationId: getDisplayItem
