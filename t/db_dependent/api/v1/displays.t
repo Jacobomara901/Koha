@@ -18,7 +18,7 @@
 use Modern::Perl;
 
 use Test::NoWarnings;
-use Test::More tests => 6;
+use Test::More tests => 7;
 use Test::Mojo;
 use JSON;
 
@@ -33,6 +33,44 @@ my $builder = t::lib::TestBuilder->new;
 
 my $t = Test::Mojo->new('Koha::REST::V1');
 t::lib::Mocks::mock_preference( 'RESTBasicAuth', 1 );
+
+subtest 'config() tests' => sub {
+
+    plan tests => 5;
+
+    $schema->storage->txn_begin;
+
+    my $librarian = $builder->build_object(
+        {
+            class => 'Koha::Patrons',
+            value => { flags => 1 }     # displays permission
+        }
+    );
+    my $password = 'thePassword123';
+    $librarian->set_password( { password => $password, skip_validation => 1 } );
+    my $userid = $librarian->userid;
+
+    my $patron = $builder->build_object(
+        {
+            class => 'Koha::Patrons',
+            value => { flags => 0 }
+        }
+    );
+
+    $patron->set_password( { password => $password, skip_validation => 1 } );
+    my $unauth_userid = $patron->userid;
+
+    ## Authorized user tests
+    # No displays, so empty array should be returned
+    $t->get_ok("//$userid:$password@/api/v1/displays/config")
+        ->status_is(200)
+        ->json_is( { settings => { enabled => 1 } } );
+
+    # Unauthorized access
+    $t->get_ok("//$unauth_userid:$password@/api/v1/displays/config")->status_is(403);
+
+    $schema->storage->txn_rollback;
+};
 
 subtest 'list() tests' => sub {
 
