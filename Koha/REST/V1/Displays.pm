@@ -28,6 +28,27 @@ use Try::Tiny qw( catch try );
 
 =head2 Methods
 
+=head3 config
+
+Return the configuration options needed for the Display Vue app
+
+=cut
+
+sub config {
+    my $c = shift->openapi->valid_input or return;
+
+    my $patron = $c->stash('koha.user');
+
+    return $c->render(
+        status  => 200,
+        openapi => {
+            settings => {
+                enabled => C4::Context->preference('UseDisplayModule'),
+            },
+        },
+    );
+}
+
 =head3 list
 
 =cut
