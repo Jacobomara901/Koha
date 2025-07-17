@@ -2,6 +2,8 @@ import { markRaw } from "vue";
 
 import Home from "../components/Display/Home.vue";
 
+import ResourceWrapper from "../components/ResourceWrapper.vue";
+
 import { $__ } from "@koha-vue/i18n";
 
 export const routes = [
@@ -16,6 +18,38 @@ export const routes = [
                 name: "Home",
                 component: markRaw(Home),
                 is_navigation_item: false,
+            },
+            {
+                path: "/cgi-bin/koha/display/displays",
+                title: $__("Displays"),
+                icon: "fa-solid fa-image-portrait",
+                is_end_node: true,
+                resource: "Display/DisplaysResource.vue",
+                children: [
+                    {
+                        path: "",
+                        name: "DisplaysList",
+                        component: markRaw(ResourceWrapper),
+                    },
+                    {
+                        path: ":display_id",
+                        name: "DisplaysShow",
+                        component: markRaw(ResourceWrapper),
+                        title: $__("Show {name}"),
+                    },
+                    {
+                        path: "add",
+                        name: "DisplaysFormAdd",
+                        component: markRaw(ResourceWrapper),
+                        title: $__("Add display"),
+                    },
+                    {
+                        path: "edit/:display_id",
+                        name: "DisplaysFormAddEdit",
+                        component: markRaw(ResourceWrapper),
+                        title: $__("Edit display"),
+                    },
+                ],
             },
         ],
     },
