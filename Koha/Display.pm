@@ -22,6 +22,7 @@ use Carp;
 use Koha::Database;
 use Koha::DisplayItems;
 use Koha::Library;
+use Koha::ItemType;
 
 use base qw(Koha::Object);
 
@@ -44,9 +45,23 @@ Returns the related Koha::DisplayItems object for this display.
 =cut
 
 sub display_items {
-    my ($self) = @_;
-    my $rs = $self->_result->display_items;
-    return Koha::DisplayItems->_new_from_dbic($rs);
+    my ( $self, $display_items ) = @_;
+
+    if ($display_items) {
+        my $schema = $self->_result->result_source->schema;
+        $schema->txn_do(
+            sub {
+                $self->display_items->delete;
+
+                for my $display_item (@$display_items) {
+                    $self->_result->add_to_display_items($display_item);
+                }
+            }
+        );
+    }
+
+    my $display_items_rs = $self->_result->display_items;
+    return Koha::DisplayItems->_new_from_dbic($display_items_rs);
 }
 
 =head3 library
@@ -62,6 +77,21 @@ sub library {
     my $rs = $self->_result->display_branch;
     return unless $rs;
     return Koha::Library->_new_from_dbic($rs);
+}
+
+=head3 item_type
+
+    my $item_type = $display->item_type;
+
+Returns the related Koha::ItemType object for this display's item type.
+
+=cut
+
+sub item_type {
+    my ($self) = @_;
+    my $rs = $self->_result->display_type;
+    return unless $rs;
+    return Koha::ItemType->_new_from_dbic($rs);
 }
 
 =head2 Internal methods
