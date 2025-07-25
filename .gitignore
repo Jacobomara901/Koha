@@ -36,3 +36,5 @@ how-to.pl
 koha-tmpl/intranet-tmpl/prog/en/modules/how-to.tt
 
 misc/translator/po
+
+t/cypress/plugins/dist/
