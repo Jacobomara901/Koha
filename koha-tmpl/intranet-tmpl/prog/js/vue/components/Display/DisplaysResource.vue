@@ -195,12 +195,16 @@ export default {
                         hidden: display => !!display.display_items?.length,
                         columns: [
                             {
-                                name: $__("biblionumber"),
+                                name: $__("Record number"),
                                 value: "biblionumber",
                             },
                             {
-                                name: $__("itemnumber"),
+                                name: $__("Internal item number"),
                                 value: "itemnumber",
+                            },
+                            {
+                                name: $__("Item barcode"),
+                                value: "barcode",
                             },
                             {
                                 name: $__("Date added"),
@@ -229,6 +233,7 @@ export default {
                             value: {
                                 biblionumber: null,
                                 itemnumber: null,
+                                barcode: null,
                                 date_added: null,
                                 date_remove: null,
                             },
@@ -236,16 +241,9 @@ export default {
                     },
                     relationshipFields: [
                         {
-                            name: "biblionumber",
-                            type: "text",
-                            label: $__("biblionumber"),
-                            required: true,
-                            indexRequired: true,
-                        },
-                        {
-                            name: "itemnumber",
-                            type: "text",
-                            label: $__("itemnumber"),
+                            name: "barcode",
+                            type: "number",
+                            label: $__("Item barcode"),
                             required: true,
                             indexRequired: true,
                         },
@@ -284,13 +282,44 @@ export default {
             },
         };
 
-        const checkForm = (display => {
+        const getItemFromId = (async id => {
+            const itemsApiClient = APIClient.item.items;
+            let item = undefined;
+
+            await itemsApiClient.get(id)
+            .then(data => {
+                item = data;
+            })
+            .catch(error => {
+                console.error(error);
+            });
+
+            return item;
+        });
+
+        const getItemFromExternalId = (async external_id => {
+            const itemsApiClient = APIClient.item.items;
+            let item = undefined;
+
+            await itemsApiClient.getByExternalId(external_id)
+            .then(data => {
+                if (data.length == 1)
+                    item = data[0];
+            })
+            .catch(error => {
+                console.error(error);
+            });
+
+            return item;
+        });
+
+        const checkForm = (async display => {
             let errors = [];
 
-            let display_display_items = display.display_display_items;
+            let display_items = display.display_items;
             // Do not use di.display_item.name here! Its name is not the one linked with di.display_item_id
             // At this point di.display_item is meaningless, form/template only modified di.display_item_id
-            const display_item_ids = display_display_items.map(di => di.display_item_id);
+            const display_item_ids = display_items.map(di => di.display_item_id);
             const duplicate_display_item_ids = display_item_ids.filter(
                 (id, i) => display_item_ids.indexOf(id) !== i
             );
@@ -299,13 +328,25 @@ export default {
                 errors.push($__("A display item is used several times"));
             }
 
+            for await (const display_item of display_items) {
+                const item = await getItemFromExternalId(display_item.barcode);
+                
+                if (item == undefined || item.item_id === undefined || item.external_id !== display_item.barcode)
+                    errors.push($__("The barcode entered does not match an item"));
+            }
+
             baseResource.setWarning(errors.join("<br>"));
             return !errors.length;
         });
-        const onFormSave = ((e, displayToSave) => {
+        const onFormSave = (async (e, displayToSave) => {
             e.preventDefault();
+
             const display = JSON.parse(JSON.stringify(displayToSave));
             const displayId = display.display_id;
+
+            if (!await checkForm(display)) {
+                return false;
+            }
 
             delete display.display_id;
             delete display.item_type;
@@ -316,6 +357,21 @@ export default {
                 ({ display_item_id, ...keepAttrs }) =>
                     keepAttrs
             );
+
+            let display_items = display.display_items;
+            delete display.display_items;
+            display.display_items = [];
+
+            for await (const display_item of display_items) {
+                const item = await getItemFromExternalId(display_item.barcode);
+
+                delete display_item.barcode;
+
+                display_item.biblionumber = item.biblio_id;
+                display_item.itemnumber = item.item_id;
+
+                await display.display_items.push(display_item);
+            }
 
             if (displayId) {
                 baseResource.apiClient
@@ -337,6 +393,27 @@ export default {
                 );
             }
         });
+        const afterResourceFetch = ((componentData, resource, caller) => {
+            if(caller === "show" || caller === "form") {
+                let display_items = [];
+
+                resource.display_items.forEach(display_item => {
+                    getItemFromId(display_item.itemnumber)
+                    .then(item => {
+                        display_items.push({
+                            barcode: item.external_id,
+                            ...display_item,
+                        });
+                    })
+                    .then(() => {
+                        componentData.resource.value.display_items = display_items;
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    });
+                });
+            }
+        });
 
         onBeforeMount(() => {});
 
@@ -345,6 +422,7 @@ export default {
             tableOptions,
             checkForm,
             onFormSave,
+            afterResourceFetch,
         };
     },
     emits: ["select-resource"],
