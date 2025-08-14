@@ -14,6 +14,18 @@ export class ItemAPIClient {
                     params,
                     headers,
                 }),
+            get: id =>
+                this.httpClient.get({
+                    endpoint: "item/" + id,
+                }),
+            getByExternalId: external_id =>
+                this.httpClient.get({
+                    endpoint: "items?" +
+                    new URLSearchParams({
+                        _match: 'starts_with',
+                        external_id: external_id,
+                    }),
+                }),
         };
     }
 }

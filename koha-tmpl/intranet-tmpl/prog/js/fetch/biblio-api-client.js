@@ -14,6 +14,10 @@ export class BiblioAPIClient {
                     params,
                     headers,
                 }),
+            get: id =>
+                this.httpClient.get({
+                    endpoint: "items/" + id,
+                }),
         };
     }
 }
