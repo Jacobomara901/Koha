@@ -2091,7 +2091,14 @@ sub effective_location {
 
     if ( my $display_item = $display_item_rs->first ) {
         my $display = $display_item->display;
-        return $display->display_location if $display->display_location;
+
+        # If display has a specific location set, use it
+        if ( $display->display_location ) {
+            return $display->display_location;
+        }
+
+        # Otherwise, return "DISPLAY: <display_name>"
+        return "DISPLAY: " . $display->display_name;
     }
 
     return $self->location;
