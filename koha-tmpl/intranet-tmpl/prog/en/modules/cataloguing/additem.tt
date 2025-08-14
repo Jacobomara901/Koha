@@ -213,6 +213,13 @@
                                         <td class="[% can_mod | html %]" data-order="[% item.$attribute | html %]">[% item.$attribute | $Price %]</td>
                                     [% ELSIF item.$attribute && attribute == 'itemcallnumber' %]
                                         <td class="[% can_mod | html %]" data-order="[% item.cn_sort | html %]">[% item.$attribute | html %]</td>
+                                    [% ELSIF attribute == 'location' && Koha.Preference('UseDisplayModule') && item.effective_location %]
+                                        [% SET effective_loc = item.effective_location %]
+                                        [% IF effective_loc.match('^DISPLAY:') %]
+                                            <td class="[% can_mod | html %]">[% effective_loc | html %]</td>
+                                        [% ELSE %]
+                                            <td class="[% can_mod | html %]">[% item.$attribute | html %]</td>
+                                        [% END %]
                                     [% ELSE %]
                                         <td class="[% can_mod | html %]">[% item.$attribute | html %]</td>
                                     [% END %]
