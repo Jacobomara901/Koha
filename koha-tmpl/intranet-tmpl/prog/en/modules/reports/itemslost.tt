@@ -127,8 +127,13 @@
                                 <td>[% AuthorisedValues.GetDescriptionByKohaField( kohafield => 'items.ccode', authorised_value => item.ccode ) | html %]</td>
                                 <td>[% Branches.GetName(item.holdingbranch) | html %]</td>
                                 <td>
-                                    [% IF Koha.Preference('UseDisplayModule') %]
-                                        [% AuthorisedValues.GetDescriptionByKohaField( kohafield => 'items.location', authorised_value => item.effective_location ) | html %]
+                                    [% IF Koha.Preference('UseDisplayModule') && item.effective_location %]
+                                        [% SET effective_loc = item.effective_location %]
+                                        [% IF effective_loc.match('^DISPLAY:') %]
+                                            [% effective_loc | html %]
+                                        [% ELSE %]
+                                            [% AuthorisedValues.GetDescriptionByKohaField( kohafield => 'items.location', authorised_value => effective_loc ) | html %]
+                                        [% END %]
                                     [% ELSE %]
                                         [% AuthorisedValues.GetDescriptionByKohaField( kohafield => 'items.location', authorised_value => item.location ) | html %]
                                     [% END %]
