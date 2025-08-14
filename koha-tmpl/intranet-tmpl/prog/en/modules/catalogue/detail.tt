@@ -2466,12 +2466,24 @@
                         }
                     },
                     {
+                        [% IF Koha.Preference('UseDisplayModule') %]
+                        data: "me.effective_location",
+                        searchable: false,
+                        orderable: false,
+                        [% ELSE %]
                         data: "me.location",
                         searchable: true,
                         orderable: true,
+                        [% END %]
                         render: function (data, type, row, meta) {
+                            [% IF Koha.Preference('UseDisplayModule') %]
+                            // Get the display name for effective location
+                            let effective_loc_str = av_loc.get(row.effective_location) || row.effective_location;
+                            return escape_str(effective_loc_str || '');
+                            [% ELSE %]
                             let loc_str = row._strings.location ? row._strings.location.str : row.location;
                             return escape_str(loc_str || '');
+                            [% END %]
                         }
                     },
                     {
@@ -2505,6 +2517,16 @@
                         }
                     }
                 ],
+                [% IF Koha.Preference('UseDisplayModule') %]
+                rowCallback: function(row, data) {
+                    // Hide items that are already on displays (effective_location starts with "DISPLAY:")
+                    if (data.effective_location && data.effective_location.startsWith && data.effective_location.startsWith('DISPLAY:')) {
+                        $(row).hide();
+                        return;
+                    }
+                    $(row).show();
+                },
+                [% END %]
                 drawCallback: function(settings) {
                     // Handle individual checkbox changes
                     $('.display-item-checkbox').off('change').on('change', function() {

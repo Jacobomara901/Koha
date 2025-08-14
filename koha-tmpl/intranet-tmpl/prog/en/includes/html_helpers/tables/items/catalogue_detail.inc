@@ -427,7 +427,7 @@
                 {
                     [% IF Koha.Preference('UseDisplayModule') %]
                     data: "me.effective_location",
-                    searchable: true,
+                    searchable: false,
                     orderable: false,
                     [% ELSE %]
                     data: "me.location",
@@ -437,20 +437,17 @@
                     render: function (data, type, row, meta) {
                         let nodes = '<span class="shelvingloc">';
                         [% IF Koha.Preference('UseDisplayModule') %]
-                        [%# Use effective_location which shows display location when item is on display %]
+                        // Use effective_location directly - API handles all logic
+                        let loc_str = av_loc.get(row.effective_location) || row.effective_location;
 
-                        // Get the display name for effective location
-                        let effective_loc_str = av_loc.get(row.effective_location) || row.effective_location;
-                        let original_loc_str = row._strings.location ? row._strings.location.str : row.location;
-
-                        // If effective location differs from original, item is on display
-                        if ( row.effective_location && row.effective_location !== row.location ) {
-                            nodes += '<span class="display-location" title="Item is currently on display">%s</span>'.format(escape_str(effective_loc_str));
+                        // Style display items differently (those starting with "DISPLAY:")
+                        if (row.effective_location && row.effective_location.startsWith && row.effective_location.startsWith('DISPLAY:')) {
+                            nodes += '<span class="display-location" title="Item is currently on display">%s</span>'.format(escape_str(loc_str));
                         } else if ( row.permanent_location && row.permanent_location != row.location ) {
                             let permanent_loc_str = av_loc.get(row.permanent_location);
-                            nodes += '%s (%s)'.format(escape_str(permanent_loc_str), escape_str(effective_loc_str));
+                            nodes += '%s (%s)'.format(escape_str(permanent_loc_str), escape_str(loc_str));
                         } else {
-                            nodes += escape_str(effective_loc_str);
+                            nodes += escape_str(loc_str);
                         }
                         [% ELSE %]
                         [%# Standard location logic when Display module is disabled %]
