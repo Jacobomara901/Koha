@@ -16,7 +16,7 @@ export class ItemAPIClient {
                 }),
             get: id =>
                 this.httpClient.get({
-                    endpoint: "item/" + id,
+                    endpoint: "items/" + id,
                 }),
             getByExternalId: external_id =>
                 this.httpClient.get({
