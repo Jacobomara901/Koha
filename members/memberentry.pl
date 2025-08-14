@@ -394,17 +394,18 @@ if ( $op eq 'cud-save' || $op eq 'cud-insert' ) {
         }
 
         # Check password history
-        if ($patron && $is_valid) {  # Only check if other validations passed and we have a patron
-            my $is_used = Koha::PatronPasswordHistories->has_used_password({
-                borrowernumber => $patron->borrowernumber,
-                password => $password,
-                current_password => $patron->password
-            });
+        if ( $patron && $is_valid ) {    # Only check if other validations passed and we have a patron
+            my $is_used = Koha::PatronPasswordHistories->has_used_password(
+                {
+                    borrowernumber   => $patron->borrowernumber,
+                    password         => $password,
+                    current_password => $patron->password
+                }
+            );
 
             if ($is_used) {
                 push @errors, 'ERROR_password_used_before';
-                my $count = C4::Context->preference('PasswordHistoryCount') || 0;
-                $template->param( password_history_count => $count );
+                $template->param( password_history_count => $patron->category->effective_password_history_count );
             }
         }
     }
