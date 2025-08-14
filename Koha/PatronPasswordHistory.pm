@@ -40,6 +40,7 @@ Return the DBIC resultset type for this object
 =cut
 
 sub _type {
+
     # The table name in DB is borrower_password_history
     return 'BorrowerPasswordHistory';
 }
@@ -65,7 +66,7 @@ sub store {
     my ($self) = @_;
 
     my $borrowernumber = $self->borrowernumber;
-    my $password = $self->password;
+    my $password       = $self->password;
 
     unless ($password) {
         return;
@@ -78,20 +79,23 @@ sub store {
     # Store in database
     $self = $self->SUPER::store();
 
+    # Get the patron and their category
+    my $patron = Koha::Patrons->find($borrowernumber);
+    return $self unless $patron;
+
     # Get the history count preference
-    my $history_count = C4::Context->preference('PasswordHistoryCount') || 0;
+    my $history_count =
+      $patron->category->effective_password_history_count || 0;
 
     # Clean up old history entries
     # Adjust history count to account for current password
     my $history_entries_to_keep = $history_count <= 1
-        ? $history_count  # If 0 or 1, keep that many
-        : $history_count - 1;  # Otherwise keep historical entries minus current
+      ? $history_count         # If 0 or 1, keep that many
+      : $history_count - 1;    # Otherwise keep historical entries minus current
 
     # Clean up old entries
     Koha::PatronPasswordHistories->cleanup_old_password_history(
-        $borrowernumber,
-        $history_entries_to_keep
-    );
+        $borrowernumber, $history_entries_to_keep );
 
     return $self;
 }
