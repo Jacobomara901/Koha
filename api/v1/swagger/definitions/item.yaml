@@ -223,6 +223,11 @@ properties:
       - string
       - "null"
     description: Effective itemtype defining the type for this item_id
+  effective_location:
+    type:
+      - string
+      - "null"
+    description: Effective location code - shows display location if item is on an active display, otherwise regular location
   extended_subfields:
     type:
       - string
