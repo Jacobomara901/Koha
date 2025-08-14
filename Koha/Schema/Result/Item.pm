@@ -1083,6 +1083,14 @@ __PACKAGE__->has_many(
 # Relationship with bundled items
 __PACKAGE__->many_to_many( bundle_items => 'item_bundles_hosts', 'item' );
 
+# Relationship with display items
+__PACKAGE__->has_many(
+  "display_items",
+  "Koha::Schema::Result::DisplayItem",
+  { "foreign.itemnumber" => "self.itemnumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 __PACKAGE__->might_have(
   "last_returned_by",
   "Koha::Schema::Result::ItemsLastBorrower",
