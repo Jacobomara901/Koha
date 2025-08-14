@@ -243,7 +243,18 @@
                                         [% FOREACH ITEM_RESULT IN BIBLIO_RESULT.ITEM_RESULTS %]
                                             <p>
                                                 [% Branches.GetName(ITEM_RESULT.holdingbranch) | html %]
-                                                <span class="shelvingloc"> [% AuthorisedValues.GetDescriptionByKohaField( kohafield => 'items.location', authorised_value => ITEM_RESULT.location ) | html %] </span>
+                                                <span class="shelvingloc">
+                                                    [% IF Koha.Preference('UseDisplayModule') %]
+                                                        [% SET item_obj = Koha::Items.find(ITEM_RESULT.itemnumber) %]
+                                                        [% IF item_obj %]
+                                                            [% AuthorisedValues.GetDescriptionByKohaField( kohafield => 'items.location', authorised_value => item_obj.effective_location ) | html %]
+                                                        [% ELSE %]
+                                                            [% AuthorisedValues.GetDescriptionByKohaField( kohafield => 'items.location', authorised_value => ITEM_RESULT.location ) | html %]
+                                                        [% END %]
+                                                    [% ELSE %]
+                                                        [% AuthorisedValues.GetDescriptionByKohaField( kohafield => 'items.location', authorised_value => ITEM_RESULT.location ) | html %]
+                                                    [% END %]
+                                                </span>
                                                 [% IF ( ITEM_RESULT.itemcallnumber ) %]
                                                     ([% ITEM_RESULT.itemcallnumber | html %])
                                                 [% END %]
@@ -337,7 +348,18 @@
                                                         <span class="callnumber">[% ITEM_RESULT.itemcallnumber | html %]</span>
                                                     </strong>
                                                     [% Branches.GetName(ITEM_RESULT.holdingbranch) | html %]
-                                                    <span class="shelvingloc"> [% AuthorisedValues.GetDescriptionByKohaField( kohafield => 'items.location', authorised_value => ITEM_RESULT.location ) | html %] </span>
+                                                    <span class="shelvingloc">
+                                                        [% IF Koha.Preference('UseDisplayModule') %]
+                                                            [% SET item_obj = Koha::Items.find(ITEM_RESULT.itemnumber) %]
+                                                            [% IF item_obj %]
+                                                                [% AuthorisedValues.GetDescriptionByKohaField( kohafield => 'items.location', authorised_value => item_obj.effective_location ) | html %]
+                                                            [% ELSE %]
+                                                                [% AuthorisedValues.GetDescriptionByKohaField( kohafield => 'items.location', authorised_value => ITEM_RESULT.location ) | html %]
+                                                            [% END %]
+                                                        [% ELSE %]
+                                                            [% AuthorisedValues.GetDescriptionByKohaField( kohafield => 'items.location', authorised_value => ITEM_RESULT.location ) | html %]
+                                                        [% END %]
+                                                    </span>
                                                 </span>
                                             </div>
                                         [% END %]

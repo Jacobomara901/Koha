@@ -1362,7 +1362,13 @@
                             [%- END -%]
                         </td>
                         <td class="ci-shelvinglocation">
-                            <span class="shelvingloc">[% checkin.item_location | html %]</span>
+                            <span class="shelvingloc">
+                                [% IF Koha.Preference('UseDisplayModule') %]
+                                    [% checkin.item.effective_location | html %]
+                                [% ELSE %]
+                                    [% checkin.item_location | html %]
+                                [% END %]
+                            </span>
                         </td>
                         <td class="ci-callnumber"> [% checkin.item.itemcallnumber | html %] </td>
                         <td class="ci-dateaccessioned"> [% checkin.item.dateaccessioned | $KohaDates %] </td>

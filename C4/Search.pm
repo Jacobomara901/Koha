@@ -29,6 +29,8 @@ use C4::XSLT     qw( XSLTParse4Display );
 use C4::Reserves qw( GetReserveStatus );
 use C4::Charset  qw( SetUTF8Flag );
 use Koha::AuthorisedValues;
+use Koha::Displays;
+use Koha::Items;
 use Koha::ItemTypes;
 use Koha::Libraries;
 use Koha::Logger;
@@ -1689,6 +1691,34 @@ sub searchResults {
         )
     };
 
+    # Cache for display lookups to avoid repeated queries
+    my $display_cache = {};
+
+    # Helper function to get effective location for search results
+    my $get_effective_location_display = sub {
+        my ($item) = @_;
+        return $shelflocations->{ $item->{location} } unless C4::Context->preference('UseDisplayModule');
+
+        my $item_obj = Koha::Items->find( $item->{itemnumber} );
+        return $shelflocations->{ $item->{location} } unless $item_obj;
+
+        my $effective_loc = $item_obj->effective_location;
+
+        # If it starts with "DISPLAY:", validate against displays table
+        if ( $effective_loc =~ /^DISPLAY:\s*(.+)$/ ) {
+            my $display_name = $1;
+
+            # Use cache to avoid repeated database queries
+            if ( !exists $display_cache->{$display_name} ) {
+                my $display = Koha::Displays->search( { display_name => $display_name } )->next;
+                $display_cache->{$display_name} = $display ? $display->display_name : undef;
+            }
+            return $display_cache->{$display_name} ? "DISPLAY: " . $display_cache->{$display_name} : $effective_loc;
+        } else {
+            return $shelflocations->{$effective_loc};
+        }
+    };
+
     # get notforloan authorised value list (see $shelflocations  FIXME)
     my $av = Koha::MarcSubfieldStructures->search(
         {
@@ -1914,7 +1944,7 @@ sub searchResults {
                 $onloan_items->{$key}->{count}++ if $item->{$hbranch};
                 $onloan_items->{$key}->{branchname}     = $item->{branchname};
                 $onloan_items->{$key}->{branchcode}     = $item->{branchcode};
-                $onloan_items->{$key}->{location}       = $shelflocations->{ $item->{location} } if $item->{location};
+                $onloan_items->{$key}->{location}       = $get_effective_location_display->($item) if $item->{location};
                 $onloan_items->{$key}->{itemcallnumber} = $item->{itemcallnumber};
                 $onloan_items->{$key}->{description}    = $item->{description};
                 $onloan_items->{$key}->{imageurl}       = getitemtypeimagelocation(
@@ -2032,7 +2062,7 @@ sub searchResults {
                         GetAuthorisedValueDesc( '', '', $item->{notforloan}, '', '', $notforloan_authorised_value )
                         if $notforloan_authorised_value and $item->{notforloan};
                     $other_items->{$key}->{count}++ if $item->{$hbranch};
-                    $other_items->{$key}->{location}    = $shelflocations->{ $item->{location} } if $item->{location};
+                    $other_items->{$key}->{location}    = $get_effective_location_display->($item) if $item->{location};
                     $other_items->{$key}->{description} = $item->{description};
                     $other_items->{$key}->{imageurl}    = getitemtypeimagelocation(
                         $search_context->{'interface'},
@@ -2053,7 +2083,7 @@ sub searchResults {
                     }
                     $available_items->{$prefix}->{branchavailablecount} = $branch_available_count;
                     $available_items->{$prefix}->{branchcode}           = $item->{branchcode};
-                    $available_items->{$prefix}->{location}             = $shelflocations->{ $item->{location} }
+                    $available_items->{$prefix}->{location}             = $get_effective_location_display->($item)
                         if $item->{location};
                     $available_items->{$prefix}->{imageurl} = getitemtypeimagelocation(
                         $search_context->{'interface'},
