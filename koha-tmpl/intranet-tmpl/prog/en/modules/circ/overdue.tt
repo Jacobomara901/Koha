@@ -145,12 +145,12 @@
                                             <td>[% Branches.GetName( overdueloo.homebranchcode ) | html %]</td>
                                             <td>[% Branches.GetName( overdueloo.holdingbranchcode ) | html %]</td>
                                             <td>
-                                                [% IF Koha.Preference('UseDisplayModule') %]
-                                                    [% SET overdueitem = Koha::Items.find(overdueloo.itemnum) %]
-                                                    [% IF overdueitem %]
-                                                        [% AuthorisedValues.GetDescriptionByKohaField( kohafield => 'items.location', authorised_value => overdueitem.effective_location ) | html %]
+                                                [% IF Koha.Preference('UseDisplayModule') && overdueloo.effective_location %]
+                                                    [% SET effective_loc = overdueloo.effective_location %]
+                                                    [% IF effective_loc.match('^DISPLAY:') %]
+                                                        [% effective_loc | html %]
                                                     [% ELSE %]
-                                                        [% AuthorisedValues.GetDescriptionByKohaField( kohafield => 'items.location', authorised_value => overdueloo.location ) | html %]
+                                                        [% AuthorisedValues.GetDescriptionByKohaField( kohafield => 'items.location', authorised_value => effective_loc ) | html %]
                                                     [% END %]
                                                 [% ELSE %]
                                                     [% AuthorisedValues.GetDescriptionByKohaField( kohafield => 'items.location', authorised_value => overdueloo.location ) | html %]
