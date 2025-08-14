@@ -762,8 +762,15 @@ if ( not $viewallitems and $items->count > $max_items_to_display ) {
             && defined($copynumber)
             && exists( $copynumbers->{$copynumber} ) );
 
-        if ( defined $item->location ) {
-            $item_info->{'location_description'} = $shelflocations->{ $item->location };
+        if ( defined $item->effective_location ) {
+            my $effective_loc = $item->effective_location;
+
+            # If it starts with "DISPLAY:", use it as-is, otherwise look it up
+            if ( $effective_loc =~ /^DISPLAY:/ ) {
+                $item_info->{'location_description'} = $effective_loc;
+            } else {
+                $item_info->{'location_description'} = $shelflocations->{$effective_loc};
+            }
         }
 
         my $itemtype = $item->itemtype;
