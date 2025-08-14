@@ -1929,6 +1929,7 @@ sub to_api {
     $overrides->{effective_item_type_id}        = $self->effective_itemtype;
     $overrides->{effective_not_for_loan_status} = $self->effective_not_for_loan_status;
     $overrides->{effective_bookable}            = $self->effective_bookable;
+    $overrides->{effective_location}            = $self->effective_location;
 
     return { %$response, %$overrides };
 }
@@ -2047,6 +2048,53 @@ sub effective_bookable {
     my ($self) = @_;
 
     return $self->bookable // $self->itemtype->bookable;
+}
+
+=head3 effective_location
+
+  my $location = $item->effective_location;
+
+Returns the effective location of the item. If the item is on an active display
+with a display_location, returns the display_location. Otherwise, returns
+the item's location.
+
+=cut
+
+sub effective_location {
+    my ($self) = @_;
+
+    return $self->location unless C4::Context->preference('UseDisplayModule');
+
+    my $display_item_rs = $self->_result->display_items(
+        {
+            'display.enabled' => 1,
+            '-or'             => [
+                'display.start_date' => { '<=', \'CURDATE()' },
+                'display.start_date' => undef
+            ],
+            '-and' => [
+                '-or' => [
+                    'display.end_date' => { '>=', \'CURDATE()' },
+                    'display.end_date' => undef
+                ],
+                '-or' => [
+                    'date_remove' => { '>=', \'CURDATE()' },
+                    'date_remove' => undef
+                ]
+            ]
+        },
+        {
+            join     => 'display',
+            order_by => { -desc => 'date_added' }
+        }
+    );
+
+    if ( my $display_item = $display_item_rs->first ) {
+        my $display = $display_item->display;
+        return $display->display_location if $display->display_location;
+    }
+
+    return $self->location;
 }
 
 =head3 orders
