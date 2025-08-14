@@ -425,31 +425,44 @@
                     }
                 },
                 {
+                    [% IF Koha.Preference('UseDisplayModule') %]
+                    data: "me.effective_location",
+                    searchable: true,
+                    orderable: false,
+                    [% ELSE %]
                     data: "me.location",
                     searchable: true,
                     orderable: true,
+                    [% END %]
                     render: function (data, type, row, meta) {
                         let nodes = '<span class="shelvingloc">';
-                        [%# If permanent location is defined, show description or code and             %]
-                        [%# display current location in parentheses. If not, display current location. %]
-                        [%# Note that permanent location is a code, and location may be an authval.    %]
+                        [% IF Koha.Preference('UseDisplayModule') %]
+                        [%# Use effective_location which shows display location when item is on display %]
 
-                        let effective_loc = row.effective_location || row.location;
-                        let effective_loc_str = effective_loc ? (av_loc.get(effective_loc) || effective_loc) : '';
-                        let loc_str = row._strings.location ? row._strings.location.str : row.location;
+                        // Get the display name for effective location
+                        let effective_loc_str = av_loc.get(row.effective_location) || row.effective_location;
+                        let original_loc_str = row._strings.location ? row._strings.location.str : row.location;
 
+                        // If effective location differs from original, item is on display
                         if ( row.effective_location && row.effective_location !== row.location ) {
-                            // Item is on display with a different location
                             nodes += '<span class="display-location" title="Item is currently on display">%s</span>'.format(escape_str(effective_loc_str));
-                            if ( row.location ) {
-                                nodes += ' <span class="original-location text-muted">(%s)</span>'.format(_("normally %s").format(escape_str(loc_str)));
-                            }
                         } else if ( row.permanent_location && row.permanent_location != row.location ) {
                             let permanent_loc_str = av_loc.get(row.permanent_location);
-                            nodes += '%s (%s)'.format(escape_str(permanent_loc_str), escape_str(loc_str));
+                            nodes += '%s (%s)'.format(escape_str(permanent_loc_str), escape_str(effective_loc_str));
                         } else {
                             nodes += escape_str(effective_loc_str);
                         }
+                        [% ELSE %]
+                        [%# Standard location logic when Display module is disabled %]
+                        let loc_str = row._strings.location ? row._strings.location.str : row.location;
+
+                        if ( row.permanent_location && row.permanent_location != row.location ) {
+                            let permanent_loc_str = av_loc.get(row.permanent_location);
+                            nodes += '%s (%s)'.format(escape_str(permanent_loc_str), escape_str(loc_str));
+                        } else {
+                            nodes += escape_str(loc_str);
+                        }
+                        [% END %]
                         nodes += '</span>';
                         return nodes;
                     }
