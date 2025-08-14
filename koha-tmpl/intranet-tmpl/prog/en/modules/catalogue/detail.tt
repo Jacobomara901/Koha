@@ -2608,15 +2608,27 @@
                 $('#addToDisplayModal').modal('hide');
                 $('#addToDisplayForm')[0].reset();
                 selectedDisplayItems = [];
-                if (displayItemsTable) {
-                    displayItemsTable.draw();
+
+                // Safely refresh modal table
+                try {
+                    if (displayItemsTable && displayItemsTable.DataTable) {
+                        displayItemsTable.DataTable().draw();
+                    }
+                } catch (e) {
+                    // Modal table refresh failed - not critical
                 }
-                // Refresh the main items table to show updated locations
-                if (typeof build_items_table === 'function') {
-                    $('.items_table').each(function() {
-                        let table_id = $(this).attr('id').replace('_table', '');
-                        build_items_table(table_id, false, { destroy: true });
-                    });
+
+                // Safely refresh the main items table to show updated locations
+                try {
+                    if (typeof build_items_table === 'function') {
+                        $('.items_table').each(function() {
+                            let table_id = $(this).attr('id').replace('_table', '');
+                            build_items_table(table_id, false, { destroy: true });
+                        });
+                    }
+                } catch (e) {
+                    // Main table refresh failed - reload page as fallback
+                    window.location.reload();
                 }
             }).catch((error) => {
                 console.error('Error adding items to display:', error);
