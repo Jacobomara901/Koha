@@ -53,10 +53,10 @@ export class ShibbolethAPIClient {
                 this.httpClientMappings
                     .getAll({
                         endpoint: "",
-                        params: { _per_page: 1 },
-                        query,
+                        ...(Object.keys(query).length > 0 && { query }),
                     })
-                    .then(data => data.length),
+                    .then(data => (Array.isArray(data) ? data.length : 0))
+                    .catch(() => 0),
         };
     }
 }
