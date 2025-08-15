@@ -1364,7 +1364,7 @@
                         <td class="ci-shelvinglocation">
                             <span class="shelvingloc">
                                 [% IF Koha.Preference('UseDisplayModule') %]
-                                    [% checkin.item.effective_location | html %]
+                                    [% checkin.item.effective_location_description | html %]
                                 [% ELSE %]
                                     [% checkin.item_location | html %]
                                 [% END %]
