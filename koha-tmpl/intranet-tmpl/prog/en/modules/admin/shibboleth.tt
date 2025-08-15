@@ -36,6 +36,8 @@
 
 [% MACRO jsinclude BLOCK %]
     [% INCLUDE 'datatables.inc' %]
+    [% INCLUDE 'js-patron-format.inc' %]
+    [% INCLUDE 'js-date-format.inc' %]
     [% Asset.js("js/vue/dist/admin/shibboleth.js") | $raw %]
 [% END %]
 
