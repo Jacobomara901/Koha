@@ -687,10 +687,8 @@ for my $item ( $biblio->items->as_list, $biblio->host_items->as_list ) {
     my $i = $item->columns_to_str;
     $i->{nomod} = 1 unless $patron->can_edit_items_from( $item->homebranch );
 
-    # Add effective_location for display module support
-    if ( C4::Context->preference('UseDisplayModule') ) {
-        $i->{effective_location} = $item->effective_location;
-    }
+    # Add effective_location_description for display module support
+    $i->{effective_location_description} = $item->effective_location_description;
 
     push @items, $i;
 }
