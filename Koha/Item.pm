@@ -31,6 +31,7 @@ use C4::Reserves;
 use C4::ClassSource qw( GetClassSort );
 use C4::Log         qw( logaction );
 
+use Koha::AuthorisedValues;
 use Koha::BackgroundJob::BatchUpdateBiblioHoldsQueue;
 use Koha::Biblio::ItemGroups;
 use Koha::Checkouts;
