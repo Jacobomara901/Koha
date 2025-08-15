@@ -14,6 +14,7 @@ import SysprefAPIClient from "./system-preferences-api-client.js";
 import TicketAPIClient from "./ticket-api-client.js";
 import AcquisitionAPIClient from "./acquisition-api-client.js";
 import DefaultAPIClient from "./default-api-client.js";
+import ShibbolethAPIClient from "./shibboleth-api-client.js";
 
 export const APIClient = {
     article_request: new ArticleRequestAPIClient(HttpClient),
@@ -30,4 +31,5 @@ export const APIClient = {
     sysprefs: new SysprefAPIClient(HttpClient),
     ticket: new TicketAPIClient(HttpClient),
     default: new DefaultAPIClient(HttpClient),
+    shibboleth: new ShibbolethAPIClient(HttpClient),
 };
