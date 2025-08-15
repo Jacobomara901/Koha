@@ -49,6 +49,7 @@ export class ShibbolethAPIClient {
                 this.httpClientMappings.delete({
                     endpoint: "" + id,
                 }),
+            count: () => Promise.resolve(0),
         };
     }
 }
