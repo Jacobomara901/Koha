@@ -79,7 +79,7 @@ export default {
                     type: "select",
                     options: kohaFields,
                     selectLabel: "label",
-                    requiredKey: "value",
+                    selectValue: "value",
                     required: true,
                 },
                 {
