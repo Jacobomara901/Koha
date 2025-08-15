@@ -23,6 +23,8 @@ module.exports = [
                 "./koha-tmpl/intranet-tmpl/prog/js/vue/modules/preservation.ts",
             "admin/record_sources":
                 "./koha-tmpl/intranet-tmpl/prog/js/vue/modules/admin/record_sources.ts",
+            "admin/shibboleth":
+                "./koha-tmpl/intranet-tmpl/prog/js/vue/modules/admin/shibboleth.ts",
             acquisitions:
                 "./koha-tmpl/intranet-tmpl/prog/js/vue/modules/acquisitions.ts",
             islands: "./koha-tmpl/intranet-tmpl/prog/js/vue/modules/islands.ts",
