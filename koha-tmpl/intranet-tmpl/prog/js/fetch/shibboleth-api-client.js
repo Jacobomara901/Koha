@@ -1,11 +1,11 @@
 export class ShibbolethAPIClient {
     constructor(HttpClient) {
         this.httpClientConfig = new HttpClient({
-            baseURL: "http://localhost:8081/api/v1/shibboleth/config",
+            baseURL: "/api/v1/shibboleth/config/",
         });
 
         this.httpClientMappings = new HttpClient({
-            baseURL: "http://localhost:8081/api/v1/shibboleth/mappings",
+            baseURL: "/api/v1/shibboleth/mappings/",
         });
     }
 
@@ -13,11 +13,11 @@ export class ShibbolethAPIClient {
         return {
             get: () =>
                 this.httpClientConfig.get({
-                    endpoint: "/",
+                    endpoint: "",
                 }),
             update: config =>
                 this.httpClientConfig.put({
-                    endpoint: "/",
+                    endpoint: "",
                     body: config,
                 }),
         };
@@ -27,37 +27,27 @@ export class ShibbolethAPIClient {
         return {
             create: mapping =>
                 this.httpClientMappings.post({
-                    endpoint: "/",
+                    endpoint: "",
                     body: mapping,
                 }),
             get: id =>
                 this.httpClientMappings.get({
-                    endpoint: "/" + id,
+                    endpoint: "" + id,
                 }),
             getAll: (query, params) =>
                 this.httpClientMappings.getAll({
-                    endpoint: "/",
+                    endpoint: "",
                     params,
                     query,
                 }),
             update: (mapping, id) =>
                 this.httpClientMappings.put({
-                    endpoint: "/" + id,
+                    endpoint: "" + id,
                     body: mapping,
                 }),
             delete: id =>
                 this.httpClientMappings.delete({
-                    endpoint: "/" + id,
-                }),
-            count: (query = {}) =>
-                this.httpClientMappings.count({
-                    endpoint:
-                        "?" +
-                        new URLSearchParams({
-                            _page: 1,
-                            _per_page: 1,
-                            ...(query && { q: JSON.stringify(query) }),
-                        }),
+                    endpoint: "" + id,
                 }),
         };
     }
