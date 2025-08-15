@@ -1,11 +1,11 @@
 export class ShibbolethAPIClient {
     constructor(HttpClient) {
         this.httpClientConfig = new HttpClient({
-            baseURL: "/api/v1/shibboleth/config/",
+            baseURL: "/api/v1/shibboleth/config",
         });
 
         this.httpClientMappings = new HttpClient({
-            baseURL: "/api/v1/shibboleth/mappings/",
+            baseURL: "/api/v1/shibboleth/mappings",
         });
     }
 
