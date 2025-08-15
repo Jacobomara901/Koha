@@ -5,7 +5,7 @@ export class ShibbolethAPIClient {
         });
 
         this.httpClientMappings = new HttpClient({
-            baseURL: "/api/v1/shibboleth/mappings/",
+            baseURL: "/api/v1/shibboleth/mappings",
         });
     }
 
@@ -35,10 +35,8 @@ export class ShibbolethAPIClient {
                     endpoint: "" + id,
                 }),
             getAll: (query, params) =>
-                this.httpClientMappings.getAll({
+                this.httpClientMappings.get({
                     endpoint: "",
-                    params,
-                    query,
                 }),
             update: (mapping, id) =>
                 this.httpClientMappings.put({
