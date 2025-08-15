@@ -8,7 +8,7 @@
 import { inject } from "vue";
 import BaseResource from "../BaseResource.vue";
 import { useBaseResource } from "../../composables/base-resource.js";
-import { APIClient } from "../../fetch/api-client.js";
+import { APIClient } from "@fetch/api-client.js";
 import { $__ } from "@koha-vue/i18n";
 
 export default {
@@ -60,7 +60,7 @@ export default {
                 newLabel: $__("New field mapping"),
             },
             table: {
-                addFilters: true,
+                addFilters: false,
                 resourceTableUrl:
                     APIClient.shibboleth.httpClientMappings._baseURL + "",
             },

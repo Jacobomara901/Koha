@@ -49,14 +49,6 @@ export class ShibbolethAPIClient {
                 this.httpClientMappings.delete({
                     endpoint: "" + id,
                 }),
-            count: (query = {}) =>
-                this.httpClientMappings
-                    .getAll({
-                        endpoint: "",
-                        ...(Object.keys(query).length > 0 && { query }),
-                    })
-                    .then(data => (Array.isArray(data) ? data.length : 0))
-                    .catch(() => 0),
         };
     }
 }
