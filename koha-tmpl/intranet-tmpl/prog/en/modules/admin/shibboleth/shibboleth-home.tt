@@ -14,7 +14,7 @@
 
 <body id="admin_shibboleth_home" class="admin">
 [% WRAPPER 'header.inc' %]
-    [% INCLUDE 'shibboleth-admin-search.inc' %]
+    [% INCLUDE 'prefs-admin-search.inc' %]
 [% END %]
 
 [% WRAPPER 'sub-header.inc' %]
