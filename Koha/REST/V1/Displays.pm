@@ -57,7 +57,22 @@ sub list {
     my $c = shift->openapi->valid_input or return;
 
     return try {
-        my $displays = $c->objects->search( Koha::Displays->new );
+        my $displays_set = Koha::Displays->new;
+        
+        # Filter displays based on user's library permissions
+        my $patron = $c->stash('koha.user');
+        if ($patron) {
+            my @restricted_branchcodes = $patron->libraries_where_can_edit_displays;
+            if (@restricted_branchcodes) {
+                # User can only see displays from specific libraries
+                $displays_set = $displays_set->search({
+                    'me.display_branch' => { -in => \@restricted_branchcodes }
+                });
+            }
+            # If @restricted_branchcodes is empty, user has access to all displays
+        }
+        
+        my $displays = $c->objects->search( $displays_set );
         return $c->render( status => 200, openapi => $displays );
     } catch {
         $c->unhandled_exception($_);
@@ -76,6 +91,19 @@ sub get {
         my $display = Koha::Displays->find( $c->param('display_id') );
         return $c->render_resource_not_found("Display")
             unless $display;
+
+        # Check if user has permission to view this display
+        my $patron = $c->stash('koha.user');
+        if ($patron) {
+            my @restricted_branchcodes = $patron->libraries_where_can_edit_displays;
+            if (@restricted_branchcodes) {
+                # User can only see displays from specific libraries
+                unless (grep { $_ eq $display->display_branch } @restricted_branchcodes) {
+                    return $c->render_resource_not_found("Display");
+                }
+            }
+            # If @restricted_branchcodes is empty, user has access to all displays
+        }
 
         return $c->render( status => 200, openapi => $c->objects->to_api($display), );
     } catch {
