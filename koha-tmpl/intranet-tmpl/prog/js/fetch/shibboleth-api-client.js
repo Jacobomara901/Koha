@@ -13,11 +13,11 @@ export class ShibbolethAPIClient {
         return {
             get: () =>
                 this.httpClientConfig.get({
-                    endpoint: "",
+                    endpoint: "/",
                 }),
             update: config =>
                 this.httpClientConfig.put({
-                    endpoint: "",
+                    endpoint: "/",
                     body: config,
                 }),
         };
@@ -27,27 +27,27 @@ export class ShibbolethAPIClient {
         return {
             create: mapping =>
                 this.httpClientMappings.post({
-                    endpoint: "",
+                    endpoint: "/",
                     body: mapping,
                 }),
             get: id =>
                 this.httpClientMappings.get({
-                    endpoint: "" + id,
+                    endpoint: "/" + id,
                 }),
             getAll: (query, params) =>
                 this.httpClientMappings.getAll({
-                    endpoint: "",
+                    endpoint: "/",
                     params,
                     query,
                 }),
             update: (mapping, id) =>
                 this.httpClientMappings.put({
-                    endpoint: "" + id,
+                    endpoint: "/" + id,
                     body: mapping,
                 }),
             delete: id =>
                 this.httpClientMappings.delete({
-                    endpoint: "" + id,
+                    endpoint: "/" + id,
                 }),
             count: (query = {}) =>
                 this.httpClientMappings.count({
