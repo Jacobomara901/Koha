@@ -135,7 +135,7 @@
 
 <script>
 import { ref, onMounted } from "vue";
-import { APIClient } from "../../fetch/api-client.js";
+import { APIClient } from "@fetch/api-client.js";
 import { useMainStore } from "../../stores/main.js";
 import LeftMenu from "../LeftMenu.vue";
 
@@ -177,7 +177,15 @@ export default {
 
         const updateConfig = async () => {
             try {
-                await APIClient.shibboleth.config.update(config.value);
+                // Remove read-only fields before sending - exclude shibboleth_config_id
+                const configToSend = {
+                    force_opac_sso: config.value.force_opac_sso,
+                    force_staff_sso: config.value.force_staff_sso,
+                    autocreate: config.value.autocreate,
+                    sync: config.value.sync,
+                    welcome: config.value.welcome
+                };
+                await APIClient.shibboleth.config.update(configToSend);
                 setMessage("Shibboleth configuration updated successfully");
             } catch (error) {
                 console.error("Error updating config:", error);
