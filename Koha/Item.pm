@@ -2104,6 +2104,80 @@ sub effective_location {
     return $self->location;
 }
 
+=head3 effective_location_description
+
+    my $description = $item->effective_location_description();
+
+Returns the human-readable description for the item's effective location.
+This handles display locations and regular locations, returning a formatted
+string ready for display in templates without additional processing.
+
+=cut
+
+sub effective_location_description {
+    my ($self) = @_;
+
+    return $self->location_description unless C4::Context->preference('UseDisplayModule');
+
+    my $display_item_rs = $self->_result->display_items(
+        {
+            'display.enabled' => 1,
+            '-or'             => [
+                'display.start_date' => { '<=', \'CURDATE()' },
+                'display.start_date' => undef
+            ],
+            '-and' => [
+                '-or' => [
+                    'display.end_date' => { '>=', \'CURDATE()' },
+                    'display.end_date' => undef
+                ],
+                '-or' => [
+                    'date_remove' => { '>=', \'CURDATE()' },
+                    'date_remove' => undef
+                ]
+            ]
+        },
+        {
+            join     => 'display',
+            order_by => { -desc => 'date_added' }
+        }
+    );
+
+    if ( my $display_item = $display_item_rs->first ) {
+        my $display = $display_item->display;
+
+        # If display has a specific location set, get its description
+        if ( $display->display_location ) {
+            my $av = Koha::AuthorisedValues->get_description_by_koha_field(
+                { kohafield => 'items.location', authorised_value => $display->display_location } );
+            return $av->{lib} || $display->display_location;
+        }
+
+        # Otherwise, return "DISPLAY: <display_name>"
+        return "DISPLAY: " . $display->display_name;
+    }
+
+    return $self->location_description;
+}
+
+=head3 location_description
+
+    my $description = $item->location_description();
+
+Returns the human-readable description for the item's location from authorised values.
+
+=cut
+
+sub location_description {
+    my ($self) = @_;
+
+    return '' unless $self->location;
+
+    my $av = Koha::AuthorisedValues->get_description_by_koha_field(
+        { kohafield => 'items.location', authorised_value => $self->location } );
+    return $av->{lib} || $self->location;
+}
+
 =head3 orders
 
   my $orders = $item->orders();
