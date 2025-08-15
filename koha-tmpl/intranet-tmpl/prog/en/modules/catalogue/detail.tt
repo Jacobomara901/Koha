@@ -2413,8 +2413,8 @@
         }
 
         function initializeDisplayItemsTable() {
-            if (displayItemsTable) {
-                displayItemsTable.destroy();
+            if (displayItemsTable && displayItemsTable.DataTable) {
+                displayItemsTable.DataTable().destroy();
                 displayItemsTable = null;
             }
 
@@ -2658,6 +2658,16 @@
             }).finally(() => {
                 $('#add-to-display-btn').prop('disabled', false).text('Add to display');
             });
+        });
+
+        // Clean up when modal is hidden
+        $('#addToDisplayModal').on('hidden.bs.modal', function() {
+            if (displayItemsTable && displayItemsTable.DataTable) {
+                displayItemsTable.DataTable().destroy();
+                displayItemsTable = null;
+            }
+            selectedDisplayItems = [];
+            $('#addToDisplayForm')[0].reset();
         });
         [% END %]
     </script>
