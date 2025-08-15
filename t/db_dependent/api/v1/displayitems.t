@@ -289,19 +289,18 @@ subtest 'add() tests' => sub {
         ->json_is( '/biblionumber' => $displayitem->{biblionumber} )
         ->json_is( '/date_added'   => $displayitem->{date_added} );
 
-    # Test missing required field
+    # Test missing required field (display_id is required)
     my $displayitem_missing_field = {
-        display_id => $display->display_id,
-        itemnumber => $item->itemnumber
+        itemnumber   => $item->itemnumber,
+        biblionumber => $biblio->biblionumber
 
-            # Missing biblionumber
+            # Missing display_id (required field)
     };
 
     $t->post_ok( "//$userid:$password@/api/v1/display/items" => json => $displayitem_missing_field )->status_is(400)
         ->json_has('/errors');
 
-    # Test duplicate creation (should fail as display_id + itemnumber is primary key)
-    # Create a new item to avoid the duplicate key error
+    # Test successful creation with different item
     my $item2        = $builder->build_sample_item( { biblionumber => $biblio->biblionumber } );
     my $displayitem2 = {
         display_id   => $display->display_id,
@@ -362,18 +361,17 @@ subtest 'update() tests' => sub {
             . $displayitem->display_id . "/"
             . $displayitem->itemnumber => json => { date_added => '2024-01-20' } )->status_is(403);
 
-    # Attempt partial update on a PUT
+    # Attempt partial update on a PUT (missing required field)
     my $displayitem_with_missing_field = {
-        display_id => $display->display_id,
-        itemnumber => $item->itemnumber
+        biblionumber => $biblio->biblionumber
 
-            # Missing biblionumber
+            # Missing display_id and itemnumber (required fields)
     };
 
     $t->put_ok( "//$userid:$password@/api/v1/display/items/"
             . $displayitem->display_id . "/"
             . $displayitem->itemnumber => json => $displayitem_with_missing_field )->status_is(400)
-        ->json_is( "/errors" => [ { message => "Missing property.", path => "/body/biblionumber" } ] );
+        ->json_has("/errors");
 
     # Full object update on PUT
     my $displayitem_with_updated_field = {

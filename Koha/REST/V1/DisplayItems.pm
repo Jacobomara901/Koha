@@ -22,7 +22,8 @@ use Mojo::Base 'Mojolicious::Controller';
 use Koha::DisplayItem;
 use Koha::DisplayItems;
 
-use Try::Tiny qw( catch try );
+use Try::Tiny    qw( catch try );
+use Scalar::Util qw( blessed );
 
 =head1 API
 
