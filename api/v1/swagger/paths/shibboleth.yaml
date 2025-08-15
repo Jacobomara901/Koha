@@ -23,7 +23,7 @@
           $ref: "../swagger.yaml#/definitions/error"
     x-koha-authorization:
       permissions:
-        parameters: manage_shibboleth
+        parameters: manage_identity_providers
   put:
     x-mojo-to: ShibbolethConfig#update
     operationId: updateShibbolethConfig
@@ -58,7 +58,7 @@
           $ref: "../swagger.yaml#/definitions/error"
     x-koha-authorization:
       permissions:
-        parameters: manage_shibboleth
+        parameters: manage_identity_providers
 
 /shibboleth/mappings:
   get:
@@ -78,7 +78,7 @@
             $ref: "../swagger.yaml#/definitions/shibboleth_mapping"
     x-koha-authorization:
       permissions:
-        parameters: manage_shibboleth
+        parameters: manage_identity_providers
   post:
     x-mojo-to: ShibbolethFieldMappings#add
     operationId: addShibbolethMapping
@@ -113,7 +113,7 @@
           $ref: "../swagger.yaml#/definitions/error"
     x-koha-authorization:
       permissions:
-        parameters: manage_shibboleth
+        parameters: manage_identity_providers
 
 "/shibboleth/mappings/{mapping_id}":
   get:
@@ -137,7 +137,7 @@
           $ref: "../swagger.yaml#/definitions/error"
     x-koha-authorization:
       permissions:
-        parameters: manage_shibboleth
+        parameters: manage_identity_providers
   put:
     x-mojo-to: ShibbolethFieldMappings#update
     operationId: updateShibbolethMapping
@@ -169,7 +169,7 @@
           $ref: "../swagger.yaml#/definitions/error"
     x-koha-authorization:
       permissions:
-        parameters: manage_shibboleth
+        parameters: manage_identity_providers
   delete:
     x-mojo-to: ShibbolethFieldMappings#delete
     operationId: deleteShibbolethMapping
@@ -189,4 +189,4 @@
           $ref: "../swagger.yaml#/definitions/error"
     x-koha-authorization:
       permissions:
-        parameters: manage_shibboleth
+        parameters: manage_identity_providers
