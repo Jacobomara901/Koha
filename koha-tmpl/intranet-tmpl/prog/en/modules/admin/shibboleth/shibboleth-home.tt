@@ -1,0 +1,57 @@
+[% USE raw %]
+[% USE Asset %]
+[% PROCESS 'i18n.inc' %]
+[% SET footerjs = 1 %]
+[% INCLUDE 'doc-head-open.inc' %]
+<title
+    >[% FILTER collapse %]
+        [% t("Shibboleth configuration") | html %]
+        &rsaquo; [% t("Administration") | html %] &rsaquo; [% t("Koha") | html %]
+    [% END %]</title
+>
+[% INCLUDE 'doc-head-close.inc' %]
+</head>
+
+<body id="admin_shibboleth_home" class="admin">
+[% WRAPPER 'header.inc' %]
+    [% INCLUDE 'shibboleth-admin-search.inc' %]
+[% END %]
+
+[% WRAPPER 'sub-header.inc' %]
+    [% WRAPPER breadcrumbs %]
+        [% WRAPPER breadcrumb_item %]
+            <a href="/cgi-bin/koha/admin/admin-home.pl">Administration</a>
+        [% END %]
+        [% WRAPPER breadcrumb_item bc_active= 1 %]
+            <span>Shibboleth configuration</span>
+        [% END %]
+    [% END #/ WRAPPER breadcrumbs %]
+[% END #/ WRAPPER sub-header.inc %]
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-10 col-sm-push-2">
+            <main>
+                <div id="shibboleth_home" v-show="true" style="display:none">
+                    <router-view></router-view>
+                </div>
+            </main>
+        </div>
+
+        <div class="col-sm-2 col-sm-pull-10">
+            <aside>
+                <div id="navmenu">
+                    <ul>
+                        <li><a href="/cgi-bin/koha/admin/admin-home.pl">Administration home</a></li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </div>
+</div>
+
+[% MACRO jsinclude BLOCK %]
+    [% Asset.js("js/vue/dist/admin/shibboleth.js") | $raw %]
+[% END %]
+
+[% INCLUDE 'intranet-bottom.inc' %]

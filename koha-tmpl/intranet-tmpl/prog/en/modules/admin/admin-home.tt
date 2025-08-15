@@ -262,6 +262,8 @@
                     [% IF ( CAN_user_parameters_manage_identity_providers) %]
                         <dt><a href="/cgi-bin/koha/admin/identity_providers.pl">Identity providers</a></dt>
                         <dd>Define which external identity providers to use</dd>
+                        <dt><a href="/cgi-bin/koha/admin/shibboleth/shibboleth-home.pl">Shibboleth configuration</a></dt>
+                        <dd>Configure Shibboleth authentication and field mappings</dd>
                     [% END %]
                     [% IF ( CAN_user_parameters_manage_search_targets ) %]
                         <dt><a href="/cgi-bin/koha/admin/z3950servers.pl">Z39.50/SRU servers</a></dt>
