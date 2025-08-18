@@ -395,18 +395,13 @@ export default {
         });
         const afterResourceFetch = ((componentData, resource, caller) => {
             if(caller === "show" || caller === "form") {
-                let display_items = [];
-
-                resource.display_items.forEach(display_item => {
+                resource.display_items.forEach((display_item, idx) => {
                     getItemFromId(display_item.itemnumber)
                     .then(item => {
-                        display_items.push({
+                        componentData.resource.value.display_items[idx] = {
                             barcode: item.external_id,
                             ...display_item,
-                        });
-                    })
-                    .then(() => {
-                        componentData.resource.value.display_items = display_items;
+                        };
                     })
                     .catch(error => {
                         console.log(error);
