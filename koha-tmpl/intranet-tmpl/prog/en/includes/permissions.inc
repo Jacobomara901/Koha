@@ -502,20 +502,11 @@
     [%- CASE 'add_display' -%]
         <span class="sub_permission add_display_subpermission"> Add displays </span>
         <span class="permissioncode">([% name | html %])</span>
-    [%- CASE 'add_display_from_any_libraries' -%]
-        <span class="sub_permission add_display_from_any_libraries_subpermission"> Add displays from any libraries </span>
-        <span class="permissioncode">([% name | html %])</span>
     [%- CASE 'edit_display' -%]
         <span class="sub_permission edit_display_subpermission"> Edit displays </span>
         <span class="permissioncode">([% name | html %])</span>
-    [%- CASE 'edit_display_from_any_libraries' -%]
-        <span class="sub_permission edit_display_from_any_libraries_subpermission"> Edit displays from any libraries </span>
-        <span class="permissioncode">([% name | html %])</span>
     [%- CASE 'delete_display' -%]
         <span class="sub_permission delete_display_subpermission"> Delete displays </span>
-        <span class="permissioncode">([% name | html %])</span>
-    [%- CASE 'delete_display_from_any_libraries' -%]
-        <span class="sub_permission delete_display_from_any_libraries_subpermission"> Delete displays from any libraries </span>
         <span class="permissioncode">([% name | html %])</span>
     [%- CASE 'add_items_to_display' -%]
         <span class="sub_permission add_items_to_display_subpermission"> Add items to displays </span>
@@ -525,9 +516,6 @@
         <span class="permissioncode">([% name | html %])</span>
     [%- CASE 'remove_items_from_display' -%]
         <span class="sub_permission remove_items_from_display_subpermission"> Remove items from displays </span>
-        <span class="permissioncode">([% name | html %])</span>
-    [%- CASE 'remove_items_from_display_from_any_libraries' -%]
-        <span class="sub_permission remove_items_from_display_from_any_libraries_subpermission"> Remove items from displays from any libraries </span>
         <span class="permissioncode">([% name | html %])</span>
     [%- CASE 'configure' -%]
         <span class="sub_permission configure_subpermission"> Configure plugins </span>

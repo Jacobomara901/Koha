@@ -167,13 +167,9 @@ INSERT INTO permissions (module_bit, code, description) VALUES
    (26, 'manage_problem_reports', 'Manage OPAC problem reports'),
    (27, 'manage_recalls', 'Manage recalls for patrons'),
    (31, 'add_display', 'Add displays'),
-   (31, 'add_display_from_any_libraries', 'Add displays from any libraries'),
    (31, 'edit_display', 'Edit displays'),
-   (31, 'edit_display_from_any_libraries', 'Edit displays from any libraries'),
    (31, 'delete_display', 'Delete displays'),
-   (31, 'delete_display_from_any_libraries', 'Delete displays from any libraries'),
    (31, 'add_items_to_display', 'Add items to displays'),
    (31, 'add_items_to_display_from_any_libraries', 'Add items to displays from any libraries'),
    (31, 'remove_items_from_display', 'Remove items from displays'),
-   (31, 'remove_items_from_display_from_any_libraries', 'Remove items from displays from any libraries')
 ;
