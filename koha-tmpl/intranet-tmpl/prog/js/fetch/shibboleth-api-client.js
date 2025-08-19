@@ -1,11 +1,15 @@
 export class ShibbolethAPIClient {
     constructor(HttpClient) {
+        this.httpClient = new HttpClient({
+            baseURL: "/api/v1/shibboleth/",
+        });
+
         this.httpClientConfig = new HttpClient({
             baseURL: "/api/v1/shibboleth/config/",
         });
 
         this.httpClientMappings = new HttpClient({
-            baseURL: "/api/v1/shibboleth/mappings",
+            baseURL: "/api/v1/shibboleth/mappings/",
         });
     }
 
@@ -36,7 +40,12 @@ export class ShibbolethAPIClient {
                 }),
             getAll: (query, params) =>
                 this.httpClientMappings.get({
-                    endpoint: "",
+                    endpoint:
+                        "?" +
+                        new URLSearchParams({
+                            _per_page: -1,
+                            ...(query && { q: JSON.stringify(query) }),
+                        }),
                 }),
             update: (mapping, id) =>
                 this.httpClientMappings.put({
@@ -47,7 +56,16 @@ export class ShibbolethAPIClient {
                 this.httpClientMappings.delete({
                     endpoint: "" + id,
                 }),
-            count: () => Promise.resolve(0),
+            count: (query = {}) =>
+                this.httpClient.count({
+                    endpoint:
+                        "mappings?" +
+                        new URLSearchParams({
+                            _page: 1,
+                            _per_page: 1,
+                            ...(query && { q: JSON.stringify(query) }),
+                        }),
+                }),
         };
     }
 }

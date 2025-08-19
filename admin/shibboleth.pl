@@ -10,7 +10,7 @@ my $input = CGI->new;
 
 my ( $template, $borrowernumber, $cookie ) = get_template_and_user(
     {
-        template_name => "admin/shibboleth/shibboleth-home.tt",
+        template_name => "admin/shibboleth.tt",
         query         => $input,
         type          => "intranet",
         flagsrequired => { parameters => 'manage_identity_providers' },
