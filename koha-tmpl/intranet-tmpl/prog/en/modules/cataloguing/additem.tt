@@ -5,6 +5,7 @@
 [% USE KohaDates %]
 [% USE Price %]
 [% USE Item %]
+[% USE AuthorisedValues %]
 [% USE TablesSettings %]
 [% PROCESS 'i18n.inc' %]
 [% INCLUDE 'doc-head-open.inc' %]
@@ -214,7 +215,9 @@
                                     [% ELSIF item.$attribute && attribute == 'itemcallnumber' %]
                                         <td class="[% can_mod | html %]" data-order="[% item.cn_sort | html %]">[% item.$attribute | html %]</td>
                                     [% ELSIF attribute == 'location' %]
-                                        <td class="[% can_mod | html %]">[% item.effective_location_description | html %]</td>
+                                        <td class="[% can_mod | html %]">
+                                            [% AuthorisedValues.GetDescriptionByKohaField( kohafield => 'items.location', authorised_value => item.effective_location ) | html %]
+                                        </td>
                                     [% ELSE %]
                                         <td class="[% can_mod | html %]">[% item.$attribute | html %]</td>
                                     [% END %]

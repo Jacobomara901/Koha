@@ -187,10 +187,10 @@
                                 [% IF ( ITEM_DAT.displaycopy ) %]
                                     <li class="copynumber"><span class="label">Copy number:</span> [% ITEM_DAT.copyvol | html %]&nbsp;</li>
                                 [% END %]
-                                [% IF ( ITEM_DAT.effective_location_description ) %]
+                                [% IF ( ITEM_DAT.effective_location ) %]
                                     <li class="location">
                                         <span class="label">Shelving location:</span>
-                                        [% ITEM_DAT.effective_location_description | html %]
+                                        [% AuthorisedValues.GetDescriptionByKohaField( kohafield => 'items.location', authorised_value => ITEM_DAT.effective_location ) | html %]
                                     </li>
                                 [% END %]
                                 [% IF ( ITEM_DAT.replacementprice ) %]

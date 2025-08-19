@@ -380,9 +380,9 @@ if ($noreport) {
             homebranchcode                 => $data->{homebranch},
             holdingbranchcode              => $data->{holdingbranch},
             location                       => $data->{location},
-            effective_location_description => do {
+            effective_location             => do {
                 my $item = Koha::Items->find( $data->{itemnumber} );
-                $item ? $item->effective_location_description : '';
+                $item ? $item->effective_location : '';
             },
             itemcallnumber          => $data->{itemcallnumber},
             replacementprice        => $data->{replacementprice},

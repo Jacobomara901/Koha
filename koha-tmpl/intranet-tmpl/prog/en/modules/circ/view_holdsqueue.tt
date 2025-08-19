@@ -216,11 +216,7 @@
                                                     <td class="hq-homebranch">[% Branches.GetName( itemsloo.item.homebranch ) | html %]</td>
                                                     <td class="hq-collection">[% AuthorisedValues.GetDescriptionByKohaField( kohafield => 'items.ccode', authorised_value => itemsloo.item.ccode ) | html %]</td>
                                                     <td class="hq-location">
-                                                        [% IF Koha.Preference('UseDisplayModule') %]
-                                                            [% itemsloo.item.effective_location_description | html %]
-                                                        [% ELSE %]
-                                                            [% AuthorisedValues.GetDescriptionByKohaField( kohafield => 'items.location', authorised_value => itemsloo.item.location ) | html %]
-                                                        [% END %]
+                                                        [% AuthorisedValues.GetDescriptionByKohaField( kohafield => 'items.location', authorised_value => itemsloo.item.effective_location ) | html %]
                                                     </td>
                                                     <td class="hq-itemtype">[% ItemTypes.GetDescription( itemsloo.item.effective_itemtype ) | html %]</td>
                                                     <td class="hq-callnumber"><span class="itemcallnumber">[% itemsloo.item.itemcallnumber | html %]</span></td>
