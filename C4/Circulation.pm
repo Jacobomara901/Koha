@@ -4701,8 +4701,7 @@ sub GetPendingOnSiteCheckouts {
 
     my $use_display_module = C4::Context->preference('UseDisplayModule');
 
-    my $results = $dbh->selectall_arrayref(
-        q|
+    my $sql = q|
         SELECT
           items.barcode,
           items.biblionumber,
@@ -4718,25 +4717,59 @@ sub GetPendingOnSiteCheckouts {
           borrowers.firstname,
           borrowers.surname,
           borrowers.cardnumber,
-          borrowers.borrowernumber
+          borrowers.borrowernumber|;
+
+    if ($use_display_module) {
+        $sql .= q|,
+          COALESCE(active_display.display_location, items.location) AS effective_location,
+          active_display.display_name,
+          active_display.display_location AS raw_display_location|;
+    } else {
+        $sql .= q|,
+          items.location AS effective_location,
+          NULL AS display_name,
+          NULL AS raw_display_location|;
+    }
+
+    $sql .= q|
         FROM items
         LEFT JOIN issues ON items.itemnumber = issues.itemnumber
         LEFT JOIN biblio ON items.biblionumber = biblio.biblionumber
-        LEFT JOIN borrowers ON issues.borrowernumber = borrowers.borrowernumber
-        WHERE issues.onsite_checkout = 1
-    |, { Slice => {} }
-    );
+        LEFT JOIN borrowers ON issues.borrowernumber = borrowers.borrowernumber|;
 
-    # Add effective location for each item
+    if ($use_display_module) {
+        $sql .= q|
+        LEFT JOIN (
+          SELECT 
+            di.itemnumber,
+            d.display_location,
+            d.display_name,
+            ROW_NUMBER() OVER (PARTITION BY di.itemnumber ORDER BY di.date_added DESC) as rn
+          FROM display_items di
+          JOIN displays d ON di.display_id = d.display_id
+          WHERE d.enabled = 1
+            AND (d.start_date IS NULL OR d.start_date <= CURDATE())
+            AND (d.end_date IS NULL OR d.end_date >= CURDATE())
+            AND (di.date_remove IS NULL OR di.date_remove >= CURDATE())
+        ) active_display ON items.itemnumber = active_display.itemnumber AND active_display.rn = 1|;
+    }
+
+    $sql .= q|
+        WHERE issues.onsite_checkout = 1|;
+
+    my $results = $dbh->selectall_arrayref( $sql, { Slice => {} } );
+
+    # Add effective location description for each item
     foreach my $checkout (@$results) {
-        if ($use_display_module) {
-            my $item = Koha::Items->find( $checkout->{itemnumber} );
-            $checkout->{effective_location_description} = $item ? $item->effective_location_description : '';
+        if ( $checkout->{display_name} && !$checkout->{raw_display_location} ) {
+
+            # Item is on display with no specific display location
+            $checkout->{effective_location_description} = "DISPLAY: " . $checkout->{display_name};
         } else {
 
-            # Use AuthorisedValues to get location description
+            # Use AuthorisedValues to get effective location description
             my $av = Koha::AuthorisedValues->get_description_by_koha_field(
-                { kohafield => 'items.location', authorised_value => $checkout->{location} } );
+                { kohafield => 'items.location', authorised_value => $checkout->{effective_location} } );
             $checkout->{effective_location_description} = $av->{lib} || '';
         }
     }
