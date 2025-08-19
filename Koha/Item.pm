@@ -2862,6 +2862,14 @@ sub strings_map {
         }
     }
 
+    if ( $self->effective_location_description ) {
+        $strings->{effective_location} = {
+            category => 'LOC',
+            str      => $self->effective_location_description,
+            type     => 'av',
+        };
+    }
+
     return $strings;
 }
 
