@@ -139,11 +139,6 @@ export default {
                     },
                 },
                 {
-                    name: "display_days",
-                    label: $__("Display duration (days)"),
-                    type: "number",
-                },
-                {
                     name: "display_return_over",
                     label: $__("Return behaviour"),
                     type: "select",
