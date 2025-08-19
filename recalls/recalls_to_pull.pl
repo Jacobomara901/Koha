@@ -128,10 +128,6 @@ if ( $op eq 'list' ) {
             }
         }
     }
-use Data::Dumper; $Data::Dumper::Maxdepth = 2;
-print STDERR "##### " . __LINE__ . " #######################################################\n";
-print STDERR Dumper(@pull_list);
-print STDERR "##### " . __LINE__ . " #######################################################\n";
     $template->param(
         recalls => \@pull_list,
     );
