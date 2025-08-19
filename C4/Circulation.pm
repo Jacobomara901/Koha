@@ -4698,7 +4698,10 @@ sub GetAgeRestriction {
 
 sub GetPendingOnSiteCheckouts {
     my $dbh = C4::Context->dbh;
-    return $dbh->selectall_arrayref(
+
+    my $use_display_module = C4::Context->preference('UseDisplayModule');
+
+    my $results = $dbh->selectall_arrayref(
         q|
         SELECT
           items.barcode,
@@ -4723,6 +4726,22 @@ sub GetPendingOnSiteCheckouts {
         WHERE issues.onsite_checkout = 1
     |, { Slice => {} }
     );
+
+    # Add effective location for each item
+    foreach my $checkout (@$results) {
+        if ($use_display_module) {
+            my $item = Koha::Items->find( $checkout->{itemnumber} );
+            $checkout->{effective_location_description} = $item ? $item->effective_location_description : '';
+        } else {
+
+            # Use AuthorisedValues to get location description
+            my $av = Koha::AuthorisedValues->get_description_by_koha_field(
+                { kohafield => 'items.location', authorised_value => $checkout->{location} } );
+            $checkout->{effective_location_description} = $av->{lib} || '';
+        }
+    }
+
+    return $results;
 }
 
 =head2 GetTopIssues
