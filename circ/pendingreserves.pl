@@ -268,13 +268,14 @@ foreach my $bibnum (@biblionumbers) {
 
     # get available values for each biblio
     my $fields = {
-        collections     => 'ccode',
-        locations       => 'location',
-        callnumbers     => 'itemcallnumber',
-        enumchrons      => 'enumchron',
-        copynumbers     => 'copynumber',
-        barcodes        => 'barcode',
-        holdingbranches => 'holdingbranch'
+        collections         => 'ccode',
+        locations           => 'location',
+        effective_locations => 'effective_location',
+        callnumbers         => 'itemcallnumber',
+        enumchrons          => 'enumchron',
+        copynumbers         => 'copynumber',
+        barcodes            => 'barcode',
+        holdingbranches     => 'holdingbranch'
     };
 
     while ( my ( $key, $field ) = each %$fields ) {

@@ -181,8 +181,8 @@
                                         </td>
                                         <td>
                                             <ul>
-                                                [% FOREACH loc IN hold_info.locations %]
-                                                    <li>[% AuthorisedValues.GetDescriptionByKohaField( kohafield => 'items.location', authorised_value => loc ) | html %]</li>
+                                                [% FOREACH effective_location IN hold_info.effective_locations %]
+                                                    <li>[% AuthorisedValues.GetDescriptionByKohaField( kohafield => 'items.location', authorised_value => effective_location ) | html %]</li>
                                                 [% END %]
                                             </ul>
                                         </td>
