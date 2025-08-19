@@ -12,7 +12,7 @@
 "[% AuthorisedValues.GetDescriptionByKohaField( kohafield => 'items.ccode', authorised_value => item.ccode ) | replace('"', '""') | $raw %]" [%- delimiter | $raw -%] "[% item.barcode | replace('"', '""') | $raw %]" [%- delimiter | $raw -%]
 "[% item.itemnumber | replace('"', '""') | $raw %]" [%- delimiter | $raw -%] "[% item.enumchron | replace('"', '""') | $raw %]" [%- delimiter | $raw -%] "[% item.itemcallnumber | replace('"', '""') | $raw %]" [%- delimiter | $raw -%]
 "[% Branches.GetName(item.homebranch) | replace('"', '""') | $raw %]" [%- delimiter | $raw -%] "[% Branches.GetName(item.holdingbranch) | replace('"', '""') | $raw %]" [%- delimiter | $raw -%]
-"[% AuthorisedValues.GetDescriptionByKohaField(frameworkcode => biblio.frameworkcode, kohafield => 'items.location', authorised_value => item.location) | replace('"', '""') | $raw %]" [%- delimiter | $raw -%]
+"[% AuthorisedValues.GetDescriptionByKohaField(frameworkcode => biblio.frameworkcode, kohafield => 'items.location', authorised_value => item.effective_location) | replace('"', '""') | $raw %]" [%- delimiter | $raw -%]
 "[% ItemTypes.GetDescription(item.itype) | replace('"', '""') | $raw %]" [%- delimiter | $raw -%] "[% item.stocknumber | replace('"', '""') | $raw %]" [%- delimiter | $raw -%]
 "[% AuthorisedValues.GetDescriptionByKohaField(frameworkcode => biblio.frameworkcode, kohafield => 'items.notforloan', authorised_value => item.notforloan) | replace('"', '""') | $raw %]" [%- delimiter | $raw -%]
 "[% AuthorisedValues.GetDescriptionByKohaField( kohafield => 'items.itemlost', authorised_value => item.itemlost ) || "" | replace('"', '""') | $raw %]" [%- delimiter | $raw -%]
