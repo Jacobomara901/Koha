@@ -62,8 +62,7 @@ subtest 'config() tests' => sub {
 
     ## Authorized user tests
     # No displays, so empty array should be returned
-    $t->get_ok("//$userid:$password@/api/v1/displays/config")
-        ->status_is(200)
+    $t->get_ok("//$userid:$password@/api/v1/displays/config")->status_is(200)
         ->json_is( { settings => { enabled => 1 } } );
 
     # Unauthorized access
@@ -219,7 +218,6 @@ subtest 'add() tests' => sub {
         display_return_over => "no",
         start_date          => "2024-01-01",
         end_date            => "2024-12-31",
-        display_days        => 30,
         display_location    => "DISPLAY",
         display_code        => "TEST",
         display_branch      => "CPL",
@@ -324,7 +322,6 @@ subtest 'update() tests' => sub {
         display_return_over => "yes",
         start_date          => "2024-02-01",
         end_date            => "2024-11-30",
-        display_days        => 45,
         display_location    => "NEWDISPLAY",
         display_code        => "UPDATED",
         display_branch      => "CPL",

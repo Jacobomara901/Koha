@@ -20,11 +20,6 @@ properties:
       - string
       - "null"
     format: date
-  display_days:
-    description: number of days an item should stay in the display
-    type:
-      - integer
-      - "null"
   enabled:
     description: determines whether the display is active
     type: boolean

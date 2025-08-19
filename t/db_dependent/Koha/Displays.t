@@ -51,7 +51,6 @@ my $new_display_1 = Koha::Display->new(
         display_return_over => 'no',
         start_date          => $yesterday->ymd,
         end_date            => $tomorrow->ymd,
-        display_days        => 30,
         display_location    => 'DISPLAY_LOC_1',
         display_code        => 'DISPLAY_CODE_1',
         display_branch      => $library->{branchcode},

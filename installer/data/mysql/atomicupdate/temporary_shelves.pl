@@ -16,7 +16,6 @@ return {
                     `display_name` varchar(255) DEFAULT NULL COMMENT 'the name of the display',
                     `start_date` date DEFAULT NULL COMMENT 'the start date of the display (optional)',
                     `end_date` date DEFAULT NULL COMMENT 'the end date of the display (optional)',
-                    `display_days` int(11) DEFAULT NULL COMMENT 'the number of days an item should stay in the display (optional)',
                     `enabled` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'determines whether the display is active',
                     `display_location` varchar(80) DEFAULT NULL COMMENT 'the shelving location for the display (optional)',
                     `display_code` varchar(80) DEFAULT NULL COMMENT 'the collection code for the display (optional)',
