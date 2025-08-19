@@ -35,7 +35,7 @@ export const routes = [
                         path: ":display_id",
                         name: "DisplaysShow",
                         component: markRaw(ResourceWrapper),
-                        title: $__("Show {name}"),
+                        title: "{display_name}",
                     },
                     {
                         path: "add",
@@ -47,7 +47,14 @@ export const routes = [
                         path: "edit/:display_id",
                         name: "DisplaysFormAddEdit",
                         component: markRaw(ResourceWrapper),
-                        title: $__("Edit display"),
+                        title: "{display_name}",
+                        breadcrumbFormat: ({ match, params, query }) => {
+                            match.name = "DisplaysShow";
+                            return match;
+                        },
+                        additionalBreadcrumbs: [
+                            { title: $__("Modify display"), disabled: true },
+                        ],
                     },
                 ],
             },
