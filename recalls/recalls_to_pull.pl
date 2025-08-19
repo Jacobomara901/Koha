@@ -98,7 +98,7 @@ if ( $op eq 'list' ) {
                     push( @copynumbers, $item->copynumber )         if ( $item->copynumber );
                     push( @enumchrons,  $item->enumchron )          if ( $item->enumchron );
                     push( @itemtypes,   $item->effective_itemtype ) if ( $item->effective_itemtype );
-                    push( @locations,   $item->location )           if ( $item->location );
+                    push( @locations,   $item->effective_location ) if ( $item->effective_location );
                     push( @libraries,   $item->holdingbranch )      if ( $item->holdingbranch );
                 }
             }
@@ -128,6 +128,10 @@ if ( $op eq 'list' ) {
             }
         }
     }
+use Data::Dumper; $Data::Dumper::Maxdepth = 2;
+print STDERR "##### " . __LINE__ . " #######################################################\n";
+print STDERR Dumper(@pull_list);
+print STDERR "##### " . __LINE__ . " #######################################################\n";
     $template->param(
         recalls => \@pull_list,
     );
