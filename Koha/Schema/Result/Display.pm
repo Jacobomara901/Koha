@@ -55,13 +55,6 @@ the start date of the display (optional)
 
 the end date of the display (optional)
 
-=head2 display_days
-
-  data_type: 'integer'
-  is_nullable: 1
-
-the number of days an item should stay in the display (optional)
-
 =head2 enabled
 
   data_type: 'tinyint'
@@ -124,8 +117,6 @@ __PACKAGE__->add_columns(
   { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
   "end_date",
   { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
-  "display_days",
-  { data_type => "integer", is_nullable => 1 },
   "enabled",
   { data_type => "tinyint", default_value => 1, is_nullable => 0 },
   "display_location",
@@ -215,8 +206,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07051 @ 2025-08-13 15:26:03
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OOAxWxunDopXq0HKXRmvow
+# Created by DBIx::Class::Schema::Loader v0.07051 @ 2025-09-17 15:36:34
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nM8VhnNrh8HIuLmrox2jlA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
