@@ -171,5 +171,5 @@ INSERT INTO permissions (module_bit, code, description) VALUES
    (31, 'delete_display', 'Delete displays'),
    (31, 'add_items_to_display', 'Add items to displays'),
    (31, 'add_items_to_display_from_any_libraries', 'Add items to displays from any libraries'),
-   (31, 'remove_items_from_display', 'Remove items from displays'),
+   (31, 'remove_items_from_display', 'Remove items from displays')
 ;
