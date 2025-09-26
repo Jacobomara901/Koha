@@ -21,9 +21,13 @@ use Mojo::Base 'Mojolicious::Controller';
 
 use Koha::DisplayItem;
 use Koha::DisplayItems;
+use Koha::Displays;
 
 use Try::Tiny    qw( catch try );
 use Scalar::Util qw( blessed );
+
+use Koha::BackgroundJob::BatchAddDisplayItems;
+use Koha::BackgroundJob::BatchDeleteDisplayItems;
 
 =head1 API
 
@@ -138,6 +142,72 @@ sub delete {
     return try {
         $displayitem->delete;
         return $c->render_resource_deleted;
+    } catch {
+        $c->unhandled_exception($_);
+    };
+}
+
+=head3 batch_add
+
+Add multiple items to a display
+
+=cut
+
+sub batch_add {
+    my $c = shift->openapi->valid_input or return;
+
+    return try {
+        my $body = $c->req->json;
+
+        # Validate that display exists
+        my $display = Koha::Displays->find($body->{display_id});
+        return $c->render_resource_not_found("Display")
+            unless $display;
+
+        # Enqueue background job for batch processing
+        my $job_id = Koha::BackgroundJob::BatchAddDisplayItems->new->enqueue({
+            display_id => $body->{display_id},
+            item_ids   => $body->{item_ids},
+            date_remove => $body->{date_remove} // undef,
+        });
+
+        return $c->render(
+            status  => 202,
+            openapi => {
+                job_id => $job_id,
+                message => "Batch add operation queued"
+            }
+        );
+    } catch {
+        $c->unhandled_exception($_);
+    };
+}
+
+=head3 batch_delete
+
+Remove multiple items from displays
+
+=cut
+
+sub batch_delete {
+    my $c = shift->openapi->valid_input or return;
+
+    return try {
+        my $body = $c->req->json;
+
+        # Enqueue background job for batch processing
+        my $job_id = Koha::BackgroundJob::BatchDeleteDisplayItems->new->enqueue({
+            item_ids    => $body->{item_ids},
+            display_id  => $body->{display_id} // undef,
+        });
+
+        return $c->render(
+            status  => 202,
+            openapi => {
+                job_id => $job_id,
+                message => "Batch delete operation queued"
+            }
+        );
     } catch {
         $c->unhandled_exception($_);
     };
