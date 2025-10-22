@@ -480,6 +480,13 @@ Patrons:
          - pref: PatronRemovalDelay
          - "days.<br>IMPORTANT: No action is performed when these delays are empty (no text). But a zero value ('0') is interpreted as no delay (do it now)! The actions are performed by the cleanup database cron job."
      -
+         - pref: AllowDeletedPatronRestoration
+           choices:
+               1: "Allow"
+               0: "Don't allow"
+         - 'for the restoration of deleted borrowers from the deletedborrowers table.'
+    Security:
+     -
          - pref: CookieConsent
            choices:
                1: Require

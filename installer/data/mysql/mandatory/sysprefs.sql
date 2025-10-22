@@ -31,6 +31,7 @@ INSERT INTO systempreferences ( `variable`, `value` ) VALUES
 ('AllNoticeStylesheet',''),
 ('AllowAllMessageDeletion','0'),
 ('AllowCheckoutNotes', '0'),
+('AllowDeletedPatronRestoration','0'),
 ('AllowFineOverride','0'),
 ('AllowFineOverrideRenewing','0'),
 ('AllowHoldCheckoutOverride','1'),

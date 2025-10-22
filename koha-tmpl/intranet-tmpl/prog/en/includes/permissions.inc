@@ -257,6 +257,9 @@
     [%- CASE 'send_messages_to_borrowers_sms' -%]
         <span class="sub_permission send_messages_to_borrowers_sms_subpermission"> Send messages to patrons via sms</span>
         <span class="permissioncode">([% name | html %])</span>
+    [%- CASE 'restore_deleted_borrowers' -%]
+        <span class="sub_permission restore_deleted_borrowers_subpermission"> Restore deleted patrons </span>
+        <span class="permissioncode">([% name | html %])</span>
     [%- CASE 'modify_holds_priority' -%]
         <span class="sub_permission modify_holds_priority_subpermission"> Modify holds priority </span>
         <span class="permissioncode">([% name | html %])</span>
