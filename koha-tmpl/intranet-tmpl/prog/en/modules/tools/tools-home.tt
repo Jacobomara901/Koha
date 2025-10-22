@@ -43,6 +43,11 @@
                     <dd>Manage patron clubs</dd>
                 [% END %]
 
+                [% IF (CAN_user_tools_restore_deleted_borrowers) %]
+                    <dt><a href="/cgi-bin/koha/tools/restore_deleted_borrowers.pl">Restore deleted patrons</a></dt>
+                    <dd>Restore deleted patrons from the deletedborrowers table</dd>
+                [% END %]
+
                 [% IF ( CAN_user_tools_moderate_comments ) %]
                     <dt>
                         <a href="/cgi-bin/koha/reviews/reviewswaiting.pl">Comments</a>

@@ -1,0 +1,241 @@
+[% USE raw %]
+[% USE Asset %]
+[% SET footerjs = 1 %]
+[% USE Branches %]
+[% USE Categories %]
+[% USE KohaDates %]
+[% PROCESS 'html_helpers.inc' %]
+[% PROCESS 'i18n.inc' %]
+[% INCLUDE 'doc-head-open.inc' %]
+[% FILTER collapse %]
+    <title>[% t("Restore deleted patrons") | html %] &rsaquo; [% t("Tools") | html %] &rsaquo; [% t("Koha") | html %]</title>
+[% END %]
+[% INCLUDE 'doc-head-close.inc' %]
+</head>
+
+<body id="tools_restore_deleted_borrowers" class="tools">
+[% WRAPPER 'header.inc' %]
+    [% INCLUDE 'patron-search-header.inc' %]
+[% END %]
+[% WRAPPER 'sub-header.inc' %]
+    [% WRAPPER breadcrumbs %]
+        [% WRAPPER breadcrumb_item %]
+            <a href="/cgi-bin/koha/tools/tools-home.pl">Tools</a>
+        [% END %]
+        [% IF ( view == 'restored' ) %]
+            [% WRAPPER breadcrumb_item %]
+                <a href="/cgi-bin/koha/tools/restore_deleted_borrowers.pl">Restore deleted patrons</a>
+            [% END %]
+            [% WRAPPER breadcrumb_item bc_active=1 %]
+                <span>Restored patrons</span>
+            [% END %]
+        [% ELSE %]
+            [% WRAPPER breadcrumb_item bc_active=1 %]
+                <span>Restore deleted patrons</span>
+            [% END %]
+        [% END %]
+    [% END #/ WRAPPER breadcrumbs %]
+[% END #/ WRAPPER sub-header.inc %]
+
+<div class="main container-fluid">
+    <div class="row">
+        <div class="col-sm-10 col-sm-push-2 order-sm-1">
+            <main>
+                [% IF view == "search" %]
+                    <h1>Restore deleted patrons</h1>
+
+                    <div id="search_deleted_borrowers">
+                        <form method="get" action="/cgi-bin/koha/tools/restore_deleted_borrowers.pl" id="search_form">
+                            <fieldset class="rows">
+                                <legend>Search for deleted patrons:</legend>
+                                <ol>
+                                    <li>
+                                        <label for="cardnumber">Cardnumber:</label>
+                                        <input type="text" id="cardnumber" name="cardnumber" value="[% cardnumber | html %]" />
+                                    </li>
+                                    <li>
+                                        <label for="borrowernumber">Borrowernumber:</label>
+                                        <input type="text" id="borrowernumber" name="borrowernumber" value="[% borrowernumber | html %]" />
+                                    </li>
+                                    <li>
+                                        <label for="firstname">First name:</label>
+                                        <input type="text" id="firstname" name="firstname" value="[% firstname | html %]" />
+                                    </li>
+                                    <li>
+                                        <label for="surname">Surname:</label>
+                                        <input type="text" id="surname" name="surname" value="[% surname | html %]" />
+                                    </li>
+                                    <li>
+                                        <label for="categorycode">Patron category:</label>
+                                        <select name="categorycode" id="categorycode">
+                                            <option value="">All categories</option>
+                                            [% FOREACH cat IN Categories.all() %]
+                                                <option value="[% cat.categorycode | html %]"> [% cat.description | html %] </option>
+                                            [% END %]
+                                        </select>
+                                    </li>
+                                    <li>
+                                        <label for="branchcode">Library:</label>
+                                        <select name="branchcode" id="branchcode">
+                                            <option value="">All libraries</option>
+                                            [% PROCESS options_for_libraries libraries => Branches.all() %]
+                                        </select>
+                                    </li>
+                                </ol>
+                            </fieldset>
+                            <fieldset class="action">
+                                <input type="hidden" name="op" value="search" />
+                                <input type="submit" class="btn btn-primary" value="Search" />
+                            </fieldset>
+                        </form>
+                    </div>
+                [% ELSIF view == "results" %]
+                    <h1>Restore deleted patrons</h1>
+
+                    [% IF deleted_patrons.size > 0 %]
+                        <div id="results_wrapper" class="page-section">
+                            <h3>Deleted patrons found: [% deleted_patrons.size | html %]</h3>
+
+                            <form method="post" action="/cgi-bin/koha/tools/restore_deleted_borrowers.pl" id="restore_form">
+                                [% INCLUDE 'csrf-token.inc' %]
+                                <input type="hidden" name="op" value="cud-restore" />
+
+                                <table id="deleted_patrons_table">
+                                    <thead>
+                                        <tr>
+                                            <th><input type="checkbox" id="select_all" /></th>
+                                            <th>Card number</th>
+                                            <th>Borrowernumber</th>
+                                            <th>Surname</th>
+                                            <th>First name</th>
+                                            <th>Category</th>
+                                            <th>Library</th>
+                                            <th>Date deleted</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        [% FOREACH patron IN deleted_patrons %]
+                                            <tr>
+                                                <td>
+                                                    <input type="checkbox" name="borrowernumber" value="[% patron.borrowernumber | html %]" />
+                                                </td>
+                                                <td>[% patron.cardnumber | html %]</td>
+                                                <td>[% patron.borrowernumber | html %]</td>
+                                                <td>[% patron.surname | html %]</td>
+                                                <td>[% patron.firstname | html %]</td>
+                                                <td>[% patron.category.description | html %]</td>
+                                                <td>[% patron.library.branchname | html %]</td>
+                                                <td>[% patron.updated_on | $KohaDates %]</td>
+                                            </tr>
+                                        [% END %]
+                                    </tbody>
+                                </table>
+
+                                <fieldset class="action">
+                                    <input type="submit" class="btn btn-primary" value="Restore selected patrons" id="restore_button" />
+                                </fieldset>
+                            </form>
+                        </div>
+                    [% ELSE %]
+                        <div class="dialog message"> No deleted patrons found matching your search criteria. </div>
+                        <fieldset class="action">
+                            <a class="btn btn-default" href="/cgi-bin/koha/tools/restore_deleted_borrowers.pl">New search</a>
+                        </fieldset>
+                    [% END %]
+                [% ELSIF view == "restored" %]
+                    <h1>Patrons restored</h1>
+
+                    [% IF restored_patrons.size > 0 %]
+                        <div class="dialog message">
+                            <p>Successfully restored [% restored_patrons.size | html %] patron(s).</p>
+                        </div>
+
+                        <div id="restored_results" class="page-section">
+                            <table id="restored_patrons_table">
+                                <thead>
+                                    <tr>
+                                        <th>Card number</th>
+                                        <th>Borrowernumber</th>
+                                        <th>Name</th>
+                                        <th>Category</th>
+                                        <th>Library</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    [% FOREACH patron IN restored_patrons %]
+                                        <tr>
+                                            <td>[% patron.cardnumber | html %]</td>
+                                            <td>[% patron.borrowernumber | html %]</td>
+                                            <td>[% patron.firstname | html %] [% patron.surname | html %]</td>
+                                            <td>[% patron.category.description | html %]</td>
+                                            <td>[% patron.library.branchname | html %]</td>
+                                            <td>
+                                                <a href="/cgi-bin/koha/members/moremember.pl?borrowernumber=[% patron.borrowernumber | uri %]" class="btn btn-default btn-xs"> <i class="fa fa-user"></i> View patron </a>
+                                            </td>
+                                        </tr>
+                                    [% END %]
+                                </tbody>
+                            </table>
+                        </div>
+                    [% END %]
+
+                    [% IF errors.size > 0 %]
+                        <div class="dialog alert">
+                            <h3>Errors occurred:</h3>
+                            <ul>
+                                [% FOREACH error IN errors %]
+                                    <li>[% error | html %]</li>
+                                [% END %]
+                            </ul>
+                        </div>
+                    [% END %]
+
+                    <fieldset class="action">
+                        <a class="btn btn-default" href="/cgi-bin/koha/tools/restore_deleted_borrowers.pl">Restore more patrons</a>
+                    </fieldset>
+                [% END %]
+            </main>
+        </div>
+        <!-- /.col-sm-10.col-sm-push-2 -->
+
+        <div class="col-sm-2 col-sm-pull-10">
+            <aside> [% INCLUDE 'tools-menu.inc' %] </aside>
+        </div>
+        <!-- /.col-sm-2.col-sm-pull-10 -->
+    </div>
+    <!-- /.row -->
+</div>
+<!-- /.main.container-fluid -->
+
+[% MACRO jsinclude BLOCK %]
+    [% Asset.js("js/tools-menu.js") | $raw %]
+    [% INCLUDE 'datatables.inc' %]
+    <script>
+        $(document).ready(function() {
+            // Select all checkbox functionality
+            $("#select_all").on("click", function() {
+                $("#deleted_patrons_table tbody input[type='checkbox']").prop('checked', this.checked);
+            });
+
+            // Initialize #deleted_patrons_table table
+            [% IF view == "results" && deleted_patrons.size > 0 %]
+                $("#deleted_patrons_table").kohaTable({
+                    "paging": true,
+                    "order": [[1, 'asc']]
+                });
+            [% END %]
+
+            // Initialize #restored_patrons_table table
+            [% IF view == "restored" && restored_patrons.size > 0 %]
+                $("#restored_patrons_table").kohaTable({
+                    "paging": true,
+                    "order": [[1, 'asc']]
+                });
+            [% END %]
+
+        });
+    </script>
+[% END %]
+
+[% INCLUDE 'intranet-bottom.inc' %]

@@ -29,6 +29,45 @@ Koha::Old::Patron - Koha Old::Patron Object class
 
 =cut
 
+=head3 restore_deleted_borrower
+
+    my $patron = $old_patron->restore_deleted_borrower;
+
+Restores a deleted patron from the deletedborrowers table back to the borrowers table.
+This only restores the patron account record itself, not any associated historical data.
+The patron will retain their original borrowernumber.
+
+Returns the restored Koha::Patron object on success.
+Throws an exception on failure.
+
+=cut
+
+sub restore_deleted_borrower {
+    my ($self) = @_;
+
+    my $schema = Koha::Database->new->schema;
+    my $restored_patron;
+
+    $schema->txn_do(
+        sub {
+            # Retrive all the data about this patron from deleteborrowers table
+            my $patron_data = $self->unblessed;
+
+            # Create the Koha::Patron object
+            my $patron = Koha::Patron->new($patron_data);
+
+            # Create the "new" patron using SUPER::store to bypass any Koha::Patron->store() and restore the patron as it was
+            $restored_patron = $patron->SUPER::store();
+
+            # Delete the entry from deletedborrowers
+            Koha::Old::Patrons->search( { borrowernumber => $patron_data->{borrowernumber} } )->delete;
+
+        }
+    );
+
+    return $restored_patron;
+}
+
 =head2 Internal methods
 
 =head3 _type

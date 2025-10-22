@@ -1,0 +1,154 @@
+#!/usr/bin/perl
+
+# This file is part of Koha.
+#
+# Copyright 2024 Koha Development Team
+#
+# Koha is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3
+# of the License, or (at your option) any later version.
+#
+# Koha is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General
+# Public License along with Koha; if not, see
+# <https://www.gnu.org/licenses>
+
+use Modern::Perl;
+use CGI qw ( -utf8 );
+use Try::Tiny;
+use Scalar::Util qw( blessed );
+
+use C4::Auth   qw( get_template_and_user );
+use C4::Output qw( output_html_with_http_headers );
+use C4::Context;
+
+use Koha::Old::Patrons;
+use Koha::Patron::Categories;
+use Koha::Libraries;
+
+my $input = CGI->new;
+my $op    = $input->param('op') || 'search';
+
+my ( $template, $loggedinuser, $cookie ) = get_template_and_user(
+    {
+        template_name => "tools/restore_deleted_borrowers.tt",
+        query         => $input,
+        type          => "intranet",
+        flagsrequired => { tools => 'restore_deleted_patrons' },
+    }
+);
+
+if ( $op eq 'search' ) {
+
+    # Get search parameters
+    my $cardnumber     = $input->param('cardnumber');
+    my $borrowernumber = $input->param('borrowernumber');
+    my $surname        = $input->param('surname');
+    my $firstname      = $input->param('firstname');
+    my $email          = $input->param('email');
+    my $categorycode   = $input->param('categorycode');
+    my $branchcode     = $input->param('branchcode');
+
+    # No empty searches, if no search critrea is added, do nothing.
+    if ( $cardnumber || $borrowernumber || $surname || $firstname || $email || $categorycode || $branchcode ) {
+
+        # empty search parameters
+        my %search_params;
+
+        # these params should be exact matches
+        $search_params{cardnumber}     = $cardnumber     if $cardnumber;
+        $search_params{borrowernumber} = $borrowernumber if $borrowernumber;
+        $search_params{categorycode}   = $categorycode   if $categorycode;
+        $search_params{branchcode}     = $branchcode     if $branchcode;
+
+        # these params don't necessarily have to be exact matches
+        $search_params{surname}   = { 'like' => "%$surname%" }   if $surname;
+        $search_params{firstname} = { 'like' => "%$firstname%" } if $firstname;
+        $search_params{email}     = { 'like' => "%$email%" }     if $email;
+
+        my $deleted_patrons_rs = Koha::Old::Patrons->search(
+            \%search_params,
+            {
+                order_by => { -desc => 'updated_on' },
+                rows     => 100,
+            }
+        );
+
+        my @deleted_patrons;
+
+        while ( my $patron = $deleted_patrons_rs->next ) {
+
+            #collect patron data to use in the results table
+            my $patron_data = {
+                borrowernumber => $patron->borrowernumber,
+                cardnumber     => $patron->cardnumber,
+                surname        => $patron->surname,
+                firstname      => $patron->firstname,
+                email          => $patron->email,
+                branchcode     => $patron->branchcode,
+                updated_on     => $patron->updated_on,
+            };
+
+            push @deleted_patrons, $patron_data;
+        }
+
+        $template->param(
+            view            => 'results',
+            deleted_patrons => \@deleted_patrons,
+            cardnumber      => $cardnumber,
+            borrowernumber  => $borrowernumber,
+            surname         => $surname,
+            firstname       => $firstname,
+            email           => $email,
+        );
+    } else {
+        $template->param( view => 'search' );
+    }
+
+} elsif ( $op eq 'cud-restore' ) {
+
+    my @borrowernumbers = $input->multi_param('borrowernumber');
+
+    my @restored_patrons;
+    my @errors;
+
+    foreach my $borrowernumber (@borrowernumbers) {
+        try {
+            # Find the deleted patron
+            my $deleted_patron = Koha::Old::Patrons->search( { borrowernumber => $borrowernumber } )->next;
+
+            unless ($deleted_patron) {
+                push @errors, "Borrowernumber $borrowernumber not found in deleted patrons";
+                next;
+            }
+
+            # Attempt to restore
+            my $restored_patron = $deleted_patron->restore_deleted_borrower;
+
+            push @restored_patrons, {
+                borrowernumber => $restored_patron->borrowernumber,
+                cardnumber     => $restored_patron->cardnumber,
+                firstname      => $restored_patron->firstname,
+                surname        => $restored_patron->surname,
+            };
+        } catch {
+            push @errors, "Error restoring borrower $borrowernumber: $_";
+        };
+    }
+
+    $template->param(
+        view             => 'restored',
+        restored_patrons => \@restored_patrons,
+        errors           => \@errors,
+    );
+
+} else {
+    $template->param( view => 'search' );
+}
+
+output_html_with_http_headers $input, $cookie, $template->output;
