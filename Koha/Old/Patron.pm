@@ -17,6 +17,8 @@ package Koha::Old::Patron;
 
 use Modern::Perl;
 
+use C4::Log qw( logaction );
+
 use base qw(Koha::Object);
 
 =head1 NAME
@@ -61,6 +63,14 @@ sub restore_deleted_borrower {
 
             # Delete the entry from deletedborrowers
             Koha::Old::Patrons->search( { borrowernumber => $patron_data->{borrowernumber} } )->delete;
+
+            # Log the restoration
+            logaction(
+                'MEMBERS',
+                'RESTORE',
+                $restored_patron->borrowernumber,
+                "Patron restored from deletedborrowers: " . $restored_patron->cardnumber
+            ) if C4::Context->preference('BorrowersLog');
 
         }
     );
