@@ -50,6 +50,35 @@ sub restore_deleted_borrower {
     my $schema = Koha::Database->new->schema;
     my $restored_patron;
 
+    # Check if borrowernumber exists in borrowers. If it does thrown an exception, cannot restore.
+    my $existing_borrower = Koha::Patrons->find( $self->borrowernumber );
+    if ($existing_borrower) {
+        Koha::Exceptions::Patron::CannotRestore->throw(
+            error => 'Borrowernumber already exists',
+            type  => 'borrowernumber',
+        );
+    }
+
+    # Check if cardnumber exists in borrowers. If it does thrown an exception, cannot restore.
+    my $existing_cardnumber = Koha::Patrons->find( { cardnumber => $self->cardnumber } );
+    if ($existing_cardnumber) {
+        Koha::Exceptions::Patron::CannotRestore->throw(
+            error => 'Cardnumber already in use',
+            type  => 'cardnumber',
+        );
+    }
+
+    # Check if userid exists. If it does thrown an exception, cannot restore.
+    if ( $self->userid ) {
+        my $existing_userid = Koha::Patrons->find( { userid => $self->userid } );
+        if ($existing_userid) {
+            Koha::Exceptions::Patron::CannotRestore->throw(
+                error => 'Username already in use',
+                type  => 'userid',
+            );
+        }
+    }
+
     $schema->txn_do(
         sub {
             # Retrive all the data about this patron from deleteborrowers table

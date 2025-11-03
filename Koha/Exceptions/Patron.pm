@@ -41,6 +41,11 @@ use Exception::Class (
         isa         => 'Koha::Exceptions::Patron',
         description => "Patron not found"
     },
+    'Koha::Exceptions::Patron::CannotRestore' => {
+        isa         => 'Koha::Exceptions::Patron',
+        description => 'The patron cannot be restored due to conflicts',
+        fields      => ['type'],
+    },
 );
 
 sub full_message {
