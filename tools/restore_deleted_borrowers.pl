@@ -23,7 +23,7 @@ use CGI qw ( -utf8 );
 use Try::Tiny;
 use Scalar::Util qw( blessed );
 
-use C4::Auth   qw( get_template_and_user );
+use C4::Auth   qw( get_template_and_user haspermission );
 use C4::Output qw( output_html_with_http_headers );
 use C4::Context;
 
@@ -39,8 +39,32 @@ my ( $template, $loggedinuser, $cookie ) = get_template_and_user(
         template_name => "tools/restore_deleted_borrowers.tt",
         query         => $input,
         type          => "intranet",
-        flagsrequired => { tools => 'restore_deleted_patrons' },
+        flagsrequired => { borrowers => 'restore_deleted_borrowers' },
     }
+);
+
+#check if the user can view patrons from any branch, or just thier own
+my $logged_in_patron = Koha::Patrons->find($loggedinuser);
+my $can_view_all_libraries =
+    haspermission( $logged_in_patron->userid, { borrowers => 'view_borrower_infos_from_any_libraries' } );
+
+my @libraries;
+if ($can_view_all_libraries) {
+
+    # User can view all branches, get them all
+    @libraries = Koha::Libraries->search( {}, { order_by => 'branchname' } )->as_list;
+} else {
+
+    # User can only view their branch or branches in the group, get only those
+    @libraries = Koha::Libraries->search_filtered(
+        { only_from_group => 1 },
+        { order_by        => ['branchname'] }
+    )->as_list;
+}
+
+$template->param(
+    allowed_libraries      => \@libraries,
+    can_view_all_libraries => $can_view_all_libraries,
 );
 
 if ( $op eq 'search' ) {

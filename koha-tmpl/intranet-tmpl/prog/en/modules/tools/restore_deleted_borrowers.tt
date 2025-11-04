@@ -77,8 +77,12 @@
                                     <li>
                                         <label for="branchcode">Library:</label>
                                         <select name="branchcode" id="branchcode">
-                                            <option value="">All libraries</option>
-                                            [% PROCESS options_for_libraries libraries => Branches.all() %]
+                                            [% IF can_view_all_libraries %]
+                                                <option value="">All libraries</option>
+                                            [% END %]
+                                            [% FOREACH lib IN allowed_libraries %]
+                                                <option value="[% lib.branchcode | html %]" [% IF branchcode == lib.branchcode %]selected="selected"[% END %]> [% lib.branchname | html %] </option>
+                                            [% END %]
                                         </select>
                                     </li>
                                     <li>
@@ -242,6 +246,25 @@
                     "order": [[1, 'asc']]
                 });
             [% END %]
+
+            $("#restore_form").on("submit", function(e) {
+                var checked = $("#deleted_patrons_table tbody input[type='checkbox']:checked").length;
+
+                if (checked === 0) {
+                    e.preventDefault();
+                    alert(_("Please select at least one patron to restore."));
+                    return false;
+                }
+
+                var message = __("Are you sure you want to restore %s patron(s)?").format(checked);
+
+                if (!confirm(message)) {
+                    e.preventDefault();
+                    return false;
+                }
+
+                return true;
+            });
 
         });
     </script>

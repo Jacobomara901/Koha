@@ -84,6 +84,14 @@ sub restore_deleted_borrower {
             # Retrive all the data about this patron from deleteborrowers table
             my $patron_data = $self->unblessed;
 
+            # some fields must be cleared
+            # borrower_debarments table is cleared on delete, we must also removed the debarment from the patron record
+            $patron_data->{debarred}        = undef;
+            $patron_data->{debarredcomment} = undef;
+
+            #dont restore borrowers with flags, those will have to be re-added
+            $patron_data->{flags} = undef;
+
             # Create the Koha::Patron object
             my $patron = Koha::Patron->new($patron_data);
 
