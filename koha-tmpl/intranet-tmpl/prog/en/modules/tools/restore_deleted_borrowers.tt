@@ -81,6 +81,14 @@
                                             [% PROCESS options_for_libraries libraries => Branches.all() %]
                                         </select>
                                     </li>
+                                    <li>
+                                        <label for="deleted_from">Deleted after:</label>
+                                        <input type="text" size="10" id="deleted_from" name="deleted_from" value="[% deleted_from | html %]" class="flatpickr" />
+                                    </li>
+                                    <li>
+                                        <label for="deleted_to">Deleted before:</label>
+                                        <input type="text" size="10" id="deleted_to" name="deleted_to" value="[% deleted_to | html %]" class="flatpickr" />
+                                    </li>
                                 </ol>
                             </fieldset>
                             <fieldset class="action">
@@ -209,6 +217,7 @@
 <!-- /.main.container-fluid -->
 
 [% MACRO jsinclude BLOCK %]
+    [% INCLUDE 'calendar.inc' %]
     [% Asset.js("js/tools-menu.js") | $raw %]
     [% INCLUDE 'datatables.inc' %]
     <script>

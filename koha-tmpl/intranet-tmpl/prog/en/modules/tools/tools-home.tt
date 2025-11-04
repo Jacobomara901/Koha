@@ -43,7 +43,7 @@
                     <dd>Manage patron clubs</dd>
                 [% END %]
 
-                [% IF (CAN_user_tools_restore_deleted_borrowers) %]
+                [% IF (CAN_user_tools_restore_deleted_borrowers && Koha.Preference('AllowDeletedPatronRestoration')) %]
                     <dt><a href="/cgi-bin/koha/tools/restore_deleted_borrowers.pl">Restore deleted patrons</a></dt>
                     <dd>Restore deleted patrons from the deletedborrowers table</dd>
                 [% END %]

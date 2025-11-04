@@ -53,9 +53,20 @@ if ( $op eq 'search' ) {
     my $email          = $input->param('email');
     my $categorycode   = $input->param('categorycode');
     my $branchcode     = $input->param('branchcode');
+    my $deleted_from   = $input->param('deleted_from');
+    my $deleted_to     = $input->param('deleted_to');
 
     # No empty searches, if no search critrea is added, do nothing.
-    if ( $cardnumber || $borrowernumber || $surname || $firstname || $email || $categorycode || $branchcode ) {
+    if (   $cardnumber
+        || $borrowernumber
+        || $surname
+        || $firstname
+        || $email
+        || $categorycode
+        || $branchcode
+        || $deleted_from
+        || $deleted_to )
+    {
 
         # empty search parameters
         my %search_params;
@@ -70,6 +81,15 @@ if ( $op eq 'search' ) {
         $search_params{surname}   = { 'like' => "%$surname%" }   if $surname;
         $search_params{firstname} = { 'like' => "%$firstname%" } if $firstname;
         $search_params{email}     = { 'like' => "%$email%" }     if $email;
+
+        #date parameters
+        if ( $deleted_from && $deleted_to ) {
+            $search_params{updated_on} = { -between => [ $deleted_from, $deleted_to ] };
+        } elsif ($deleted_from) {
+            $search_params{updated_on} = { '>=' => $deleted_from };
+        } elsif ($deleted_to) {
+            $search_params{updated_on} = { '<=' => $deleted_to };
+        }
 
         my $deleted_patrons_rs = Koha::Old::Patrons->search(
             \%search_params,
@@ -105,6 +125,8 @@ if ( $op eq 'search' ) {
             surname         => $surname,
             firstname       => $firstname,
             email           => $email,
+            deleted_from    => $deleted_from,
+            deleted_to      => $deleted_to,
         );
     } else {
         $template->param( view => 'search' );
