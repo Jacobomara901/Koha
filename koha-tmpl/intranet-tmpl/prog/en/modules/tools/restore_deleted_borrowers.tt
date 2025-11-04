@@ -43,6 +43,66 @@
             <main>
                 [% IF view == "search" %]
                     <h1>Restore deleted patrons</h1>
+                    <div class="dialog alert bg-info-subtle">
+                        <h3><i class="fa fa-exclamation-triangle"></i> Important: Limited restoration</h3>
+                        <p><strong>This tool ONLY restores the borrowers table and not related entries in other tables.</strong></p>
+                        <p><strong>The following will NOT be restored because it is permanently deleted:</strong></p>
+
+                        <h4>Circulation & Holdings:</h4>
+                        <ul>
+                            <li>Holds</li>
+                            <li>Recalls</li>
+                            <li>Bookings</li>
+                            <li>Article requests</li>
+                            <li>Curbside pickups</li>
+                            <li>Lists</li>
+                        </ul>
+
+                        <h4>Patron Settings & Preferences:</h4>
+                        <ul>
+                            <li>Messaging preferences</li>
+                            <li>Patron attributes (extended attributes)</li>
+                            <li>Patron image/photo</li>
+                        </ul>
+
+                        <h4>History & Records:</h4>
+                        <ul>
+                            <li>Debarments/restrictions</li>
+                            <li>Messages and notices</li>
+                            <li>Notification history</li>
+                            <li>Discharges</li>
+                            <li>Alerts</li>
+                            <li>Return claims</li>
+                            <li>Item ratings and reviews</li>
+                            <li>Last borrower records</li>
+                        </ul>
+
+                        <h4>Relationships & Memberships:</h4>
+                        <ul>
+                            <li>Guarantor/guarantee relationships</li>
+                            <li>Club enrollments</li>
+                            <li>Housebound profile, role, and visits</li>
+                        </ul>
+
+                        <h4>Staff Functions:</h4>
+                        <ul>
+                            <li>ILL requests and comments</li>
+                            <li>User permissions</li>
+                            <li>ERM counter logs and user roles</li>
+                            <li>Cash register actions</li>
+                            <li>Acquisitions baskets, budgets, and orders</li>
+                            <li>Course instructors</li>
+                            <li>Label/card creator batches</li>
+                            <li>Advanced editor macros</li>
+                            <li>API keys</li>
+                        </ul>
+
+                        <h4>Other:</h4>
+                        <ul>
+                            <li>Subscription routing lists</li>
+                            <li>Patron files/attachments</li>
+                        </ul>
+                    </div>
 
                     <div id="search_deleted_borrowers">
                         <form method="get" action="/cgi-bin/koha/tools/restore_deleted_borrowers.pl" id="search_form">
