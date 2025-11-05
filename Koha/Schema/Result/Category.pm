@@ -173,6 +173,13 @@ if patrons of this category can do the password reset flow,
 
 if patrons of this category can change their passwords in the OAPC
 
+=head2 password_history_count
+
+  data_type: 'smallint'
+  is_nullable: 1
+
+Number of previous passwords to check against when changing password for this patron type
+
 =head2 min_password_length
 
   data_type: 'smallint'
@@ -287,6 +294,8 @@ __PACKAGE__->add_columns(
   { data_type => "tinyint", is_nullable => 1 },
   "change_password",
   { data_type => "tinyint", is_nullable => 1 },
+  "password_history_count",
+  { data_type => "smallint", is_nullable => 1 },
   "min_password_length",
   { data_type => "smallint", is_nullable => 1 },
   "require_strong_password",
@@ -410,8 +419,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07051 @ 2025-07-10 07:11:31
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ADt+iDjteg9Jb81L2FMIvg
+# Created by DBIx::Class::Schema::Loader v0.07051 @ 2025-11-05 22:26:11
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:uHP1QyUDe5A5RWqMVC7iBw
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 
