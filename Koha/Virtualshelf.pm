@@ -70,6 +70,9 @@ sub store {
     $self->created_on(dt_from_string)
         unless defined $self->created_on;
 
+    $self->sortfield( $self->_validate_sortfield( $self->sortfield ) )
+        if $self->sortfield;
+
     return $self->SUPER::store($self);
 }
 
@@ -546,6 +549,28 @@ sub public_read_list {
 }
 
 =head2 Internal methods
+
+=head3 _validate_sortfield
+
+Validates and normalizes the sortfield value.
+Defaults to 'title' if invalid, and converts 'copyrightdate' to 'publicationyear' for UNIMARC.
+
+=cut
+
+sub _validate_sortfield {
+    my ( $self, $sortfield ) = @_;
+
+    # Default to 'title' if invalid
+    $sortfield = 'title'
+        unless grep { $_ eq $sortfield } qw( title author copyrightdate publicationyear itemcallnumber dateadded );
+
+    # Convert copyrightdate to publicationyear for UNIMARC
+    if ( $sortfield eq 'copyrightdate' && C4::Context->preference('marcflavour') eq 'UNIMARC' ) {
+        $sortfield = 'publicationyear';
+    }
+
+    return $sortfield;
+}
 
 =head3 _type
 

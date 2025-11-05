@@ -123,11 +123,7 @@ if ( $op eq 'add_form' ) {
     if ($shelf) {
         $op = $referer;
         my $sortfield = $query->param('sortfield');
-        $sortfield = 'title'
-            unless grep { $_ eq $sortfield } qw( title author copyrightdate publicationyear itemcallnumber dateadded );
-        if ( $sortfield eq 'copyrightdate' and C4::Context->preference('marcflavour') eq 'UNIMARC' ) {
-            $sortfield = 'publicationyear';
-        }
+        $sortfield = $shelf->_validate_sortfield($sortfield);
         if ( $shelf->can_be_managed($loggedinuser) ) {
             $shelf->shelfname( scalar $query->param('shelfname') );
             $shelf->sortfield($sortfield);
@@ -294,12 +290,7 @@ if ( $op eq 'view' ) {
                    $query->param('sortfield')
                 || $shelf->sortfield
                 || 'title';    # Passed in sorting overrides default sorting
-            $sortfield = 'title'
-                unless grep { $_ eq $sortfield }
-                qw( title author copyrightdate publicationyear itemcallnumber dateadded );
-            if ( $sortfield eq 'copyrightdate' and C4::Context->preference('marcflavour') eq 'UNIMARC' ) {
-                $sortfield = 'publicationyear';
-            }
+            $sortfield = $shelf->_validate_sortfield($sortfield);
             my $direction = $query->param('direction') || 'asc';
             $direction = 'asc' if $direction ne 'asc' and $direction ne 'desc';
             my $rows;
