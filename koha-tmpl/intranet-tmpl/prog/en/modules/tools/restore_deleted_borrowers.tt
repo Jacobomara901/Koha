@@ -43,8 +43,8 @@
             <main>
                 [% IF view == "search" %]
                     <h1>Restore deleted patrons</h1>
-                    <div class="dialog alert bg-info-subtle">
-                        <h3><i class="fa fa-exclamation-triangle"></i> Important: Limited restoration</h3>
+                    <div class="alert alert-info">
+                        <h2><i class="fa fa-exclamation-triangle"></i> Important: Limited restoration</h2>
                         <p><strong>This tool ONLY restores the borrowers table and not related entries in other tables.</strong></p>
                         <p><strong>The following will NOT be restored because it is permanently deleted:</strong></p>
 
@@ -316,7 +316,7 @@
                     return false;
                 }
 
-                var message = __("Are you sure you want to restore %s patron(s)?").format(checked);
+                var message = _("Are you sure you want to restore %s patron(s)?").format(checked);
 
                 if (!confirm(message)) {
                     e.preventDefault();

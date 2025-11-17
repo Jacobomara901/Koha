@@ -43,7 +43,7 @@ my ( $template, $loggedinuser, $cookie ) = get_template_and_user(
     }
 );
 
-#check if the user can view patrons from any branch, or just thier own
+#check if the user can view patrons from any branch, or just their own
 my $logged_in_patron = Koha::Patrons->find($loggedinuser);
 my $can_view_all_libraries =
     haspermission( $logged_in_patron->userid, { borrowers => 'view_borrower_infos_from_any_libraries' } );

@@ -81,7 +81,7 @@ sub restore_deleted_borrower {
 
     $schema->txn_do(
         sub {
-            # Retrive all the data about this patron from deleteborrowers table
+            # Retrieve all the data about this patron from deleteborrowers table
             my $patron_data = $self->unblessed;
 
             # some fields must be cleared
