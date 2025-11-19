@@ -195,8 +195,8 @@
                                                 <td>[% patron.borrowernumber | html %]</td>
                                                 <td>[% patron.surname | html %]</td>
                                                 <td>[% patron.firstname | html %]</td>
-                                                <td>[% patron.category.description | html %]</td>
-                                                <td>[% patron.library.branchname | html %]</td>
+                                                <td>[% Categories.GetName( patron.categorycode ) | html %]</td>
+                                                <td>[% Branches.GetName( patron.branchcode ) | html %]</td>
                                                 <td>[% patron.updated_on | $KohaDates %]</td>
                                             </tr>
                                         [% END %]
@@ -240,10 +240,10 @@
                                             <td>[% patron.cardnumber | html %]</td>
                                             <td>[% patron.borrowernumber | html %]</td>
                                             <td>[% patron.firstname | html %] [% patron.surname | html %]</td>
-                                            <td>[% patron.category.description | html %]</td>
-                                            <td>[% patron.library.branchname | html %]</td>
+                                            <td>[% Categories.GetName( patron.categorycode ) | html %]</td>
+                                            <td>[% Branches.GetName( patron.branchcode ) | html %]</td>
                                             <td>
-                                                <a href="/cgi-bin/koha/members/moremember.pl?borrowernumber=[% patron.borrowernumber | uri %]" class="btn btn-default btn-xs"> <i class="fa fa-user"></i> View patron </a>
+                                                <a target="_blank" href="/cgi-bin/koha/members/moremember.pl?borrowernumber=[% patron.borrowernumber | uri %]" class="btn btn-default btn-xs"> <i class="fa fa-user"></i> View patron </a>
                                             </td>
                                         </tr>
                                     [% END %]

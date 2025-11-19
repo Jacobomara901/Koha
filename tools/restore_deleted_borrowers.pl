@@ -136,6 +136,7 @@ if ( $op eq 'search' ) {
                 email          => $patron->email,
                 branchcode     => $patron->branchcode,
                 updated_on     => $patron->updated_on,
+                categorycode   => $patron->categorycode,
             };
 
             push @deleted_patrons, $patron_data;
@@ -181,6 +182,8 @@ if ( $op eq 'search' ) {
                 cardnumber     => $restored_patron->cardnumber,
                 firstname      => $restored_patron->firstname,
                 surname        => $restored_patron->surname,
+                branchcode     => $restored_patron->branchcode,
+                categorycode   => $restored_patron->categorycode,
             };
         } catch {
             push @errors, "Error restoring borrower $borrowernumber: $_";

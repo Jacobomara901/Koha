@@ -15,6 +15,9 @@
             [% IF (CAN_user_clubs) %]
                 <li><a href="/cgi-bin/koha/clubs/clubs.pl">Patron clubs</a></li>
             [% END %]
+            [% IF ( CAN_user_tools_restore_deleted_borrowers && Koha.Preference('AllowDeletedPatronRestoration') ) %]
+                <li><a href="/cgi-bin/koha/tools/restore_deleted_borrowers.pl">Restore deleted patrons</a></li>
+            [% END %]
             [% IF ( CAN_user_tools_moderate_comments ) %]
                 <li><a href="/cgi-bin/koha/reviews/reviewswaiting.pl">Comments</a></li>
             [% END %]
