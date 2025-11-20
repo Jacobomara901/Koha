@@ -23,8 +23,9 @@ use CGI qw ( -utf8 );
 use Try::Tiny;
 use Scalar::Util qw( blessed );
 
-use C4::Auth   qw( get_template_and_user haspermission );
-use C4::Output qw( output_html_with_http_headers );
+use Koha::DateUtils qw( dt_from_string );
+use C4::Auth        qw( get_template_and_user haspermission );
+use C4::Output      qw( output_html_with_http_headers );
 use C4::Context;
 
 use Koha::Old::Patrons;
@@ -107,12 +108,21 @@ if ( $op eq 'search' ) {
         $search_params{email}     = { 'like' => "%$email%" }     if $email;
 
         #date parameters
+        my $dtf = Koha::Database->new->schema->storage->datetime_parser;
         if ( $deleted_from && $deleted_to ) {
-            $search_params{updated_on} = { -between => [ $deleted_from, $deleted_to ] };
+            my $from_dt = dt_from_string($deleted_from);
+            my $to_dt   = dt_from_string($deleted_to)->add( days => 1 );
+
+            $search_params{updated_on} = {
+                '>=' => $dtf->format_datetime($from_dt),
+                '<'  => $dtf->format_datetime($to_dt)
+            };
         } elsif ($deleted_from) {
-            $search_params{updated_on} = { '>=' => $deleted_from };
+            my $from_dt = dt_from_string($deleted_from);
+            $search_params{updated_on} = { '>=' => $dtf->format_datetime($from_dt) };
         } elsif ($deleted_to) {
-            $search_params{updated_on} = { '<=' => $deleted_to };
+            my $to_dt = dt_from_string($deleted_to)->add( days => 1 );
+            $search_params{updated_on} = { '<' => $dtf->format_datetime($to_dt) };
         }
 
         my $deleted_patrons_rs = Koha::Old::Patrons->search(
