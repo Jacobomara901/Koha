@@ -286,6 +286,15 @@
     [% INCLUDE 'datatables.inc' %]
     <script>
         $(document).ready(function() {
+
+            $('#search_form').on('submit' , function(e) {
+                if ( $('#cardnumber').val() == '' && $('#borrowernumber').val() == '' && $('#firstname').val() == '' && $('#surname').val() == '' && $('#categorycode').val() == '' && $('#branchcode').val() == '' && $('#deleted_from').val() == '' && $('#deleted_to').val() == '' ) {
+                    e.preventDefault();
+                    alert('Please fill out at least one search field.');
+                    return false;
+                }
+            });
+
             // Select all checkbox functionality
             $("#select_all").on("click", function() {
                 $("#deleted_patrons_table tbody input[type='checkbox']").prop('checked', this.checked);
