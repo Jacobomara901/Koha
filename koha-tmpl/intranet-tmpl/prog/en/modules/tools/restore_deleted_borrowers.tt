@@ -11,6 +11,11 @@
     <title>[% t("Restore deleted patrons") | html %] &rsaquo; [% t("Tools") | html %] &rsaquo; [% t("Koha") | html %]</title>
 [% END %]
 [% INCLUDE 'doc-head-close.inc' %]
+<style>
+    #search_form input[type="text"] {
+        width: 30%;
+    }
+</style>
 </head>
 
 <body id="tools_restore_deleted_borrowers" class="tools">
@@ -127,7 +132,7 @@
                                     </li>
                                     <li>
                                         <label for="categorycode">Patron category:</label>
-                                        <select name="categorycode" id="categorycode">
+                                        <select name="categorycode" id="categorycode" multiple="multiple">
                                             <option value="">All categories</option>
                                             [% FOREACH cat IN Categories.all() %]
                                                 <option value="[% cat.categorycode | html %]"> [% cat.description | html %] </option>
@@ -136,7 +141,7 @@
                                     </li>
                                     <li>
                                         <label for="branchcode">Library:</label>
-                                        <select name="branchcode" id="branchcode">
+                                        <select name="branchcode" id="branchcode" multiple="multiple">
                                             [% IF can_view_all_libraries %]
                                                 <option value="">All libraries</option>
                                             [% END %]
@@ -284,11 +289,38 @@
     [% INCLUDE 'calendar.inc' %]
     [% Asset.js("js/tools-menu.js") | $raw %]
     [% INCLUDE 'datatables.inc' %]
+    [% INCLUDE 'select2.inc' %]
     <script>
         $(document).ready(function() {
+            let selectFields = document.querySelectorAll('select[multiple]');
+            selectFields.forEach((selectField) => {
+                $(selectField).select2({
+                    width: "30%",
+                    allowClear: true,
+                });
+            });
 
-            $('#search_form').on('submit' , function(e) {
-                if ( $('#cardnumber').val() == '' && $('#borrowernumber').val() == '' && $('#firstname').val() == '' && $('#surname').val() == '' && $('#categorycode').val() == '' && $('#branchcode').val() == '' && $('#deleted_from').val() == '' && $('#deleted_to').val() == '' ) {
+            $('#search_form').on('submit', function(e) {
+                //check regular fields for values before submission
+                var fields = ['#cardnumber', '#borrowernumber', '#firstname', '#surname', '#deleted_from', '#deleted_to'];
+                var hasValue = fields.some(function(field) {
+                    var val = $(field).val();
+                    return val !== '' && val !== null;
+                });
+
+                //if no values yet, check select2 fields
+                if (!hasValue) {
+                    var branchcodeData = $('#branchcode').select2('data');
+                    if (branchcodeData && branchcodeData.length > 0 && branchcodeData[0].id) {
+                        hasValue = true;
+                    }
+                    var catergoycodeData = $('#categorycode').select2('data');
+                    if (catergoycodeData && catergoycodeData.length > 0 && catergoycodeData[0].id) {
+                        hasValue = true;
+                    }
+                }
+
+                if (!hasValue) {
                     e.preventDefault();
                     alert('Please fill out at least one search field.');
                     return false;

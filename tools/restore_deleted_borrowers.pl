@@ -76,8 +76,8 @@ if ( $op eq 'search' ) {
     my $surname        = $input->param('surname');
     my $firstname      = $input->param('firstname');
     my $email          = $input->param('email');
-    my $categorycode   = $input->param('categorycode');
-    my $branchcode     = $input->param('branchcode');
+    my @categorycodes  = $input->multi_param('categorycode');
+    my @branchcodes    = $input->multi_param('branchcode');
     my $deleted_from   = $input->param('deleted_from');
     my $deleted_to     = $input->param('deleted_to');
 
@@ -87,8 +87,8 @@ if ( $op eq 'search' ) {
         || $surname
         || $firstname
         || $email
-        || $categorycode
-        || $branchcode
+        || @categorycodes
+        || @branchcodes
         || $deleted_from
         || $deleted_to )
     {
@@ -99,8 +99,14 @@ if ( $op eq 'search' ) {
         # these params should be exact matches
         $search_params{cardnumber}     = $cardnumber     if $cardnumber;
         $search_params{borrowernumber} = $borrowernumber if $borrowernumber;
-        $search_params{categorycode}   = $categorycode   if $categorycode;
-        $search_params{branchcode}     = $branchcode     if $branchcode;
+
+        #multiselect params
+        if (@categorycodes) {
+            $search_params{categorycode} = { -in => \@categorycodes };
+        }
+        if (@branchcodes) {
+            $search_params{branchcode} = { -in => \@branchcodes };
+        }
 
         # these params don't necessarily have to be exact matches
         $search_params{surname}   = { 'like' => "%$surname%" }   if $surname;
