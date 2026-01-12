@@ -1608,12 +1608,12 @@ sub AddIssue {
 
     my $issue;
 
-    if ( $datedue && ref $datedue ne 'DateTime' ) {
+    if ( defined $datedue && $datedue ne '' && ref $datedue ne 'DateTime' ) {
         $datedue = dt_from_string($datedue);
     }
 
     # $issuedate defaults to today.
-    if ( !defined $issuedate ) {
+    if ( !defined $issuedate || $issuedate eq '' ) {
         $issuedate = dt_from_string();
     } else {
         if ( ref $issuedate ne 'DateTime' ) {
@@ -3446,7 +3446,7 @@ sub AddRenewal {
 
     $borrowernumber ||= $issue->borrowernumber;
 
-    if ( defined $datedue && ref $datedue ne 'DateTime' ) {
+    if ( defined $datedue && $datedue ne '' && ref $datedue ne 'DateTime' ) {
         $datedue = dt_from_string( $datedue, 'sql' );
     }
 
