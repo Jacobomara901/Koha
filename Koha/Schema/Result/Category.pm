@@ -481,8 +481,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07051 @ 2026-03-20 16:26:45
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:u3IpMyOH6ufYolIFRTvH4g
+# Created by DBIx::Class::Schema::Loader v0.07051 @ 2026-04-20 06:48:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:SrRK/GvdOJHRGegkQg2iRA
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 
@@ -505,11 +505,6 @@ Missing POD for koha_objects_class.
 sub koha_objects_class {
     'Koha::Patron::Categories';
 }
-
-__PACKAGE__->add_columns(
-    'print_notice_charge',
-    { data_type => 'decimal', default_value => '0.000000', is_nullable => 1, size => [28, 6] },
-);
 
 __PACKAGE__->add_columns(
     '+can_be_guarantee'                       => { is_boolean => 1 },

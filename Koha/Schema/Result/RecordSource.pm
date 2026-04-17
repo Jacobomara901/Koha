@@ -102,8 +102,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2024-01-24 18:05:50
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:WX72aRYhWBK9bQWr9AJk2A
+# Created by DBIx::Class::Schema::Loader v0.07051 @ 2026-04-20 06:48:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UwMS3IBL9BD2yBSiVHuwig
 
 __PACKAGE__->add_columns(
     '+can_be_edited' => { is_boolean => 1 },

@@ -648,8 +648,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("verification_token", "borrowernumber");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07051 @ 2026-02-03 09:57:42
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:h0JPmqWPv7elhdENUDSnFw
+# Created by DBIx::Class::Schema::Loader v0.07051 @ 2026-04-20 06:48:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:5B7ieSr1UyF19Q0BywHHlA
 
 __PACKAGE__->add_columns(
     '+gonenoaddress' => { is_boolean => 1 },

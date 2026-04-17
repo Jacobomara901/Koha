@@ -90,8 +90,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("variable");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07051 @ 2025-07-23 22:15:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cX9SOq1OV/LkVNQLfkqJXg
+# Created by DBIx::Class::Schema::Loader v0.07051 @ 2026-04-20 06:48:52
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zxkSKHn6O2AKEDkES+hxZQ
 
 =head2 koha_object_class
 
