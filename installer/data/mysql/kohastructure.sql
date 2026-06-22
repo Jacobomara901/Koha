@@ -5290,6 +5290,22 @@ CREATE TABLE `old_reserves` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `opac_browse_results`
+--
+
+DROP TABLE IF EXISTS `opac_browse_results`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `opac_browse_results` (
+  `session_id` varchar(32) NOT NULL COMMENT 'CGISESSID of the session this browse-results set belongs to',
+  `busc` longtext DEFAULT NULL COMMENT 'Encoded OpacBrowseResults paging data (search criteria and result biblionumbers)',
+  `updated_on` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp() COMMENT 'Date and time this row was last written, used for cleanup',
+  PRIMARY KEY (`session_id`),
+  KEY `opac_browse_results_updated_idx` (`updated_on`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `overduerules`
 --
 
