@@ -24,7 +24,8 @@ use Modern::Perl;
 use CGI             qw ( -utf8 );
 use C4::Acquisition qw( SearchOrders );
 use C4::Auth        qw( get_template_and_user get_session );
-use C4::Koha        qw(
+use Koha::Session;
+use C4::Koha qw(
     getitemtypeimagelocation
     GetNormalizedEAN
     GetNormalizedISBN
@@ -168,9 +169,10 @@ my $OpacBrowseResults = C4::Context->preference("OpacBrowseResults");
 
 # We look for the busc param to build the simple paging from the search
 if ($OpacBrowseResults) {
-    my $session = get_session( $query->cookie("CGISESSID") );
-    my %paging  = ( previous => {}, next => {} );
-    if ( $session->param('busc') ) {
+    my $sessionID   = scalar $query->cookie("CGISESSID");
+    my $busc_stored = Koha::Session->get_browse_results($sessionID);
+    my %paging      = ( previous => {}, next => {} );
+    if ($busc_stored) {
         use URI::Escape qw( uri_escape_utf8 uri_unescape );
 
         # Rebuild the string to store on session
@@ -258,7 +260,7 @@ if ($OpacBrowseResults) {
             return $listBiblios;
         }    #buildListBiblios
 
-        my $busc    = $session->param("busc");
+        my $busc    = $busc_stored;
         my @arrBusc = split( /\&(?:amp;)?/, $busc );
         my ( $key, $value );
         my %arrParamsBusc = ();
@@ -306,7 +308,7 @@ if ($OpacBrowseResults) {
             delete $arrParamsBusc{'offsetSearch'}   if ( exists( $arrParamsBusc{'offsetSearch'} ) );
             delete $arrParamsBusc{'newlistBiblios'} if ( exists( $arrParamsBusc{'newlistBiblios'} ) );
             my $newbusc = rebuildBuscParam( \%arrParamsBusc );
-            $session->param( "busc" => $newbusc );
+            Koha::Session->set_browse_results( $sessionID, $newbusc );
             @arrBusc = split( /\&(?:amp;)?/, $newbusc );
         } else {
             my $modifyListBiblios = 0;
@@ -340,7 +342,7 @@ if ($OpacBrowseResults) {
                 $arrParamsBusc{'offsetSearch'} = $offsetAux;
                 $offset                        = $arrParamsBusc{'offset'};
                 my $newbusc = rebuildBuscParam( \%arrParamsBusc );
-                $session->param( "busc" => $newbusc );
+                Koha::Session->set_browse_results( $sessionID, $newbusc );
                 @arrBusc = split( /\&(?:amp;)?/, $newbusc );
             }
         }
@@ -456,7 +458,7 @@ if ($OpacBrowseResults) {
 
             # build new busc param
             my $newbusc = rebuildBuscParam( \%arrParamsBusc );
-            $session->param( "busc" => $newbusc );
+            Koha::Session->set_browse_results( $sessionID, $newbusc );
         }
         my ( $numberBiblioPaging, $dataBiblioPaging );
 

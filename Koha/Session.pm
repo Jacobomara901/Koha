@@ -91,4 +91,46 @@ sub get_session {
     return $session;
 }
 
+=head2 set_browse_results
+
+  Koha::Session->set_browse_results( $sessionID, $busc );
+
+Stores the OpacBrowseResults paging string (C<busc>) for the given session in a
+dedicated table, using an atomic single-row upsert. This deliberately avoids the
+CGI::Session blob, whose full read-modify-write flush on every request causes
+concurrent same-session requests to clobber each other's writes (lost update).
+
+=cut
+
+sub set_browse_results {
+    my ( $class, $sessionID, $busc ) = @_;
+    return unless $sessionID;
+    my $dbh = C4::Context->dbh;
+    $dbh->do(
+        q{INSERT INTO opac_browse_results (session_id, busc) VALUES (?, ?)
+          ON DUPLICATE KEY UPDATE busc = VALUES(busc)},
+        undef, $sessionID, $busc
+    );
+    return;
+}
+
+=head2 get_browse_results
+
+  my $busc = Koha::Session->get_browse_results( $sessionID );
+
+Retrieves the stored OpacBrowseResults paging string for the given session.
+
+=cut
+
+sub get_browse_results {
+    my ( $class, $sessionID ) = @_;
+    return unless $sessionID;
+    my $dbh = C4::Context->dbh;
+    my ($busc) = $dbh->selectrow_array(
+        q{SELECT busc FROM opac_browse_results WHERE session_id = ?},
+        undef, $sessionID
+    );
+    return $busc;
+}
+
 1;

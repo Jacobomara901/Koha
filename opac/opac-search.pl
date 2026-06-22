@@ -44,8 +44,9 @@ my ( $builder, $searcher );
 $builder  = Koha::SearchEngine::QueryBuilder->new( { index => 'biblios' } );
 $searcher = Koha::SearchEngine::Search->new( { index => 'biblios' } );
 
-use C4::Output    qw( output_html_with_http_headers pagination_bar output_with_http_headers );
-use C4::Auth      qw( get_template_and_user get_session );
+use C4::Output qw( output_html_with_http_headers pagination_bar output_with_http_headers );
+use C4::Auth   qw( get_template_and_user get_session );
+use Koha::Session;
 use C4::Languages qw( getlanguage getLanguages );
 use C4::Search    qw( searchResults );
 use C4::Search::History;
@@ -820,8 +821,7 @@ for ( my $i = 0 ; $i < @servers ; $i++ ) {
             chop $pasarParams if ( $pasarParams =~ /,$/ );
             $pasarParams .= '&amp;total=' . uri_escape_utf8( int($total) ) if ( $pasarParams !~ /total=(?:[0-9]+)?/ );
             if ($pasarParams) {
-                my $session = get_session( $cgi->cookie("CGISESSID") );
-                $session->param( 'busc' => $pasarParams );
+                Koha::Session->set_browse_results( scalar $cgi->cookie("CGISESSID"), $pasarParams );
             }
             $template->param( total => $hits );
             my $limit_cgi_not_availablity = $limit_cgi;
