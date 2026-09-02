@@ -60,7 +60,8 @@ sub restore_deleted_borrower {
     }
 
     # Check if cardnumber exists in borrowers. If it does thrown an exception, cannot restore.
-    my $existing_cardnumber = Koha::Patrons->find( { cardnumber => $self->cardnumber } );
+    my $existing_cardnumber;
+    $existing_cardnumber = Koha::Patrons->find( { cardnumber => $self->cardnumber } ) if $self->cardnumber;
     if ($existing_cardnumber) {
         Koha::Exceptions::Patron::CannotRestore->throw(
             error => 'Cardnumber already in use',
