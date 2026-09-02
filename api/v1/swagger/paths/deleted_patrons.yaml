@@ -51,6 +51,7 @@
           $ref: "../swagger.yaml#/definitions/error"
     x-koha-authorization:
       permissions:
+        borrowers: list_borrowers
         tools: restore_deleted_borrowers
 "/deleted/patrons/{patron_id}":
   put:
@@ -101,4 +102,5 @@
           $ref: "../swagger.yaml#/definitions/error"
     x-koha-authorization:
       permissions:
+        borrowers: list_borrowers
         tools: restore_deleted_borrowers

@@ -45,9 +45,23 @@ sub delete_patron {
     return $deleted_patron;
 }
 
+sub grant_permission {
+    my ( $patron, $module_bit, $code ) = @_;
+    $builder->build(
+        {
+            source => 'UserPermission',
+            value  => {
+                borrowernumber => $patron->borrowernumber,
+                module_bit     => $module_bit,
+                code           => $code,
+            }
+        }
+    );
+}
+
 subtest 'list() tests' => sub {
 
-    plan tests => 11;
+    plan tests => 13;
 
     $schema->storage->txn_begin;
 
@@ -56,11 +70,13 @@ subtest 'list() tests' => sub {
     my $librarian = $builder->build_object(
         {
             class => 'Koha::Patrons',
-            value => { flags => 2**13 }
+            value => { flags => 0 }
         }
     );
     $librarian->set_password( { password => $password, skip_validation => 1 } );
     my $userid = $librarian->userid;
+    grant_permission( $librarian, 4,  'list_borrowers' );
+    grant_permission( $librarian, 13, 'restore_deleted_borrowers' );
 
     my $patron = $builder->build_object(
         {
@@ -70,6 +86,16 @@ subtest 'list() tests' => sub {
     );
     $patron->set_password( { password => $password, skip_validation => 1 } );
     my $unauth_userid = $patron->userid;
+
+    my $restore_only = $builder->build_object(
+        {
+            class => 'Koha::Patrons',
+            value => { flags => 0 }
+        }
+    );
+    $restore_only->set_password( { password => $password, skip_validation => 1 } );
+    my $restore_only_userid = $restore_only->userid;
+    grant_permission( $restore_only, 13, 'restore_deleted_borrowers' );
 
     $t->get_ok("//$userid:$password@/api/v1/deleted/patrons")->status_is(200)->json_is( [] );
 
@@ -81,6 +107,8 @@ subtest 'list() tests' => sub {
     $t->json_has('/0')->json_is( '/0' => $deleted_patron->to_api );
 
     $t->get_ok("//$unauth_userid:$password@/api/v1/deleted/patrons")->status_is(403);
+
+    $t->get_ok("//$restore_only_userid:$password@/api/v1/deleted/patrons")->status_is(403);
 
     t::lib::Mocks::mock_preference( 'AllowDeletedPatronRestoration', 0 );
     $t->get_ok("//$userid:$password@/api/v1/deleted/patrons")->status_is(200);
@@ -106,11 +134,13 @@ subtest 'list() library group visibility tests' => sub {
     my $librarian = $builder->build_object(
         {
             class => 'Koha::Patrons',
-            value => { flags => 2**13, branchcode => $library1->branchcode }
+            value => { flags => 0, branchcode => $library1->branchcode }
         }
     );
     $librarian->set_password( { password => $password, skip_validation => 1 } );
     my $userid = $librarian->userid;
+    grant_permission( $librarian, 4,  'list_borrowers' );
+    grant_permission( $librarian, 13, 'restore_deleted_borrowers' );
 
     my $deleted_patron1 = delete_patron(
         $builder->build_object( { class => 'Koha::Patrons', value => { branchcode => $library1->branchcode } } ) );
@@ -154,17 +184,8 @@ subtest 'restore() tests' => sub {
     );
     $librarian->set_password( { password => $password, skip_validation => 1 } );
     my $userid = $librarian->userid;
-
-    $builder->build(
-        {
-            source => 'UserPermission',
-            value  => {
-                borrowernumber => $librarian->borrowernumber,
-                module_bit     => 13,
-                code           => 'restore_deleted_borrowers',
-            }
-        }
-    );
+    grant_permission( $librarian, 4,  'list_borrowers' );
+    grant_permission( $librarian, 13, 'restore_deleted_borrowers' );
 
     my $patron = $builder->build_object(
         {
