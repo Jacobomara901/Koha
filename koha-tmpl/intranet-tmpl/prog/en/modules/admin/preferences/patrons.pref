@@ -485,7 +485,6 @@ Patrons:
                1: "Allow"
                0: "Don't allow"
          - 'for the restoration of deleted borrowers from the deletedborrowers table.'
-    Security:
      -
          - pref: CookieConsent
            choices:
