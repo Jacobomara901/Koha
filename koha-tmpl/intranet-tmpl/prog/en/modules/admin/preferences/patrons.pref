@@ -484,7 +484,7 @@ Patrons:
            choices:
                1: "Allow"
                0: "Don't allow"
-         - 'for the restoration of deleted borrowers from the deletedborrowers table.'
+         - 'for the restoration of deleted patrons.'
      -
          - pref: CookieConsent
            choices:

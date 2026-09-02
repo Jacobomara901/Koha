@@ -114,7 +114,7 @@ sub restore {
                 'MEMBERS',
                 'Restore',
                 $restored_patron->borrowernumber,
-                "Patron restored from deletedborrowers: " . $restored_patron->cardnumber
+                "Deleted patron restored: " . $restored_patron->cardnumber
             ) if C4::Context->preference('BorrowersLog');
 
         }

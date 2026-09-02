@@ -51,7 +51,7 @@
                     <h1>Restore deleted patrons</h1>
                     <div class="alert alert-info">
                         <h2><i class="fa fa-exclamation-triangle"></i> Important: Limited restoration</h2>
-                        <p><strong>This tool ONLY restores the borrowers table and not related entries in other tables.</strong></p>
+                        <p><strong>This tool only restores the patron record itself, not related data.</strong></p>
                         <p><strong>The following will NOT be restored because it is permanently deleted:</strong></p>
 
                         <h4>Circulation & Holdings:</h4>
@@ -80,7 +80,7 @@
                             <li>Alerts</li>
                             <li>Return claims</li>
                             <li>Item ratings and reviews</li>
-                            <li>Last borrower records</li>
+                            <li>Last patron records</li>
                         </ul>
 
                         <h4>Relationships & Memberships:</h4>

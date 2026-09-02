@@ -14,8 +14,7 @@ return {
         say_success( $out, "Added new permission 'restore_deleted_borrowers'" );
 
         $dbh->do(
-            q{INSERT IGNORE INTO systempreferences (variable,value,options,explanation,type) VALUES ('AllowDeletedPatronRestoration','0',NULL,'If enabled, allows for the restoration of deleted borrowers from the deletedborrowers table','YesNo')}
-        );
+            q{INSERT IGNORE INTO systempreferences (variable, value) VALUES ('AllowDeletedPatronRestoration', '0')});
 
         say_success( $out, "Added new system preference 'AllowDeletedPatronRestoration'" );
     },

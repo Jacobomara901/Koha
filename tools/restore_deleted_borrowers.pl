@@ -211,7 +211,7 @@ if ( $op eq 'search' ) {
                 categorycode   => $restored_patron->categorycode,
             };
         } catch {
-            push @errors, "Error restoring borrower $borrowernumber: $_";
+            push @errors, "Error restoring patron $borrowernumber: $_";
         };
     }
 
