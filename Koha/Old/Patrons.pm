@@ -19,7 +19,10 @@ use Modern::Perl;
 
 use base qw(Koha::Objects);
 
+use C4::Context;
+
 use Koha::Old::Patron;
+use Koha::Patrons;
 
 =head1 NAME
 
@@ -30,6 +33,28 @@ Koha::Old::Patrons - Koha Old::Patron Object set class
 =head2 Class Methods
 
 =cut
+
+=head3 search_limited
+
+    my $deleted_patrons = Koha::Old::Patrons->search_limited( $params, $attributes );
+
+Returns all the deleted patrons the logged in user is allowed to see, restricted
+to the libraries the logged in user can see patrons from.
+
+=cut
+
+sub search_limited {
+    my ( $self, $params, $attributes ) = @_;
+
+    my $userenv = C4::Context->userenv;
+    my @restricted_branchcodes;
+    if ( $userenv and $userenv->{number} ) {
+        my $logged_in_user = Koha::Patrons->find( $userenv->{number} );
+        @restricted_branchcodes = $logged_in_user->libraries_where_can_see_patrons;
+    }
+    $params->{'me.branchcode'} = { -in => \@restricted_branchcodes } if @restricted_branchcodes;
+    return $self->search( $params, $attributes );
+}
 
 =head2 Internal Methods
 

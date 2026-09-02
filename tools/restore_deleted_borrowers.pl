@@ -131,7 +131,7 @@ if ( $op eq 'search' ) {
             $search_params{updated_on} = { '<' => $dtf->format_datetime($to_dt) };
         }
 
-        my $deleted_patrons_rs = Koha::Old::Patrons->search(
+        my $deleted_patrons_rs = Koha::Old::Patrons->search_limited(
             \%search_params,
             {
                 order_by => { -desc => 'updated_on' },
@@ -183,7 +183,7 @@ if ( $op eq 'search' ) {
     foreach my $borrowernumber (@borrowernumbers) {
         try {
             # Find the deleted patron
-            my $deleted_patron = Koha::Old::Patrons->search( { borrowernumber => $borrowernumber } )->next;
+            my $deleted_patron = Koha::Old::Patrons->search_limited( { borrowernumber => $borrowernumber } )->next;
 
             unless ($deleted_patron) {
                 push @errors, "Borrowernumber $borrowernumber not found in deleted patrons";
