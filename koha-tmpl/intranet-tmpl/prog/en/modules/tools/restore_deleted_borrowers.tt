@@ -323,15 +323,15 @@
                     if (branchcodeData && branchcodeData.length > 0 && branchcodeData[0].id) {
                         hasValue = true;
                     }
-                    var catergoycodeData = $('#categorycode').select2('data');
-                    if (catergoycodeData && catergoycodeData.length > 0 && catergoycodeData[0].id) {
+                    var categorycodeData = $('#categorycode').select2('data');
+                    if (categorycodeData && categorycodeData.length > 0 && categorycodeData[0].id) {
                         hasValue = true;
                     }
                 }
 
                 if (!hasValue) {
                     e.preventDefault();
-                    alert('Please fill out at least one search field.');
+                    alert(_("Please fill out at least one search field."));
                     return false;
                 }
             });
