@@ -38,9 +38,9 @@ Koha::Old::Patron - Koha Old::Patron Object class
 
 =cut
 
-=head3 restore_deleted_borrower
+=head3 restore
 
-    my $patron = $old_patron->restore_deleted_borrower;
+    my $patron = $old_patron->restore;
 
 Restores a deleted patron from the deletedborrowers table back to the borrowers table.
 This only restores the patron account record itself, not any associated historical data.
@@ -51,7 +51,7 @@ Throws an exception on failure.
 
 =cut
 
-sub restore_deleted_borrower {
+sub restore {
     my ($self) = @_;
 
     my $schema = Koha::Database->new->schema;

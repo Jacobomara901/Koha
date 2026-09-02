@@ -200,7 +200,7 @@ if ( $op eq 'search' ) {
             }
 
             # Attempt to restore
-            my $restored_patron = $deleted_patron->restore_deleted_borrower;
+            my $restored_patron = $deleted_patron->restore;
 
             push @restored_patrons, {
                 borrowernumber => $restored_patron->borrowernumber,

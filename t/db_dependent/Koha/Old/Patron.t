@@ -34,7 +34,7 @@ use Koha::Old::Patrons;
 my $schema  = Koha::Database->new->schema;
 my $builder = t::lib::TestBuilder->new;
 
-subtest 'restore_deleted_borrower' => sub {
+subtest 'restore' => sub {
     plan tests => 4;
 
     $schema->storage->txn_begin;
@@ -53,7 +53,7 @@ subtest 'restore_deleted_borrower' => sub {
     ok( $deleted_patron, 'Patron moved to deletedborrowers' );
 
     #restore the deleted patron
-    my $restored = $deleted_patron->restore_deleted_borrower;
+    my $restored = $deleted_patron->restore;
 
     #verify the patron is restored
     ok( $restored, 'Restored patron exists' );
