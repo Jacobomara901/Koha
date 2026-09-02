@@ -44,6 +44,11 @@ my ( $template, $loggedinuser, $cookie ) = get_template_and_user(
     }
 );
 
+unless ( C4::Context->preference('AllowDeletedPatronRestoration') ) {
+    print $input->redirect("/cgi-bin/koha/errors/404.pl");
+    exit;
+}
+
 #check if the user can view patrons from any branch, or just their own
 my $logged_in_patron = Koha::Patrons->find($loggedinuser);
 my $can_view_all_libraries =
