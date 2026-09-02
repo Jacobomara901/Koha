@@ -123,6 +123,18 @@ sub restore {
     return $restored_patron;
 }
 
+=head3 to_api_mapping
+
+This method returns the mapping for representing a Koha::Old::Patron object
+on the API. The deletedborrowers table mirrors borrowers, so the Koha::Patron
+mapping applies unchanged.
+
+=cut
+
+sub to_api_mapping {
+    return Koha::Patron->to_api_mapping;
+}
+
 =head2 Internal methods
 
 =head3 _type
