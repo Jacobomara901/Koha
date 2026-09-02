@@ -69,6 +69,9 @@
                 </ul>
             [% END %]
             <h1>Are you sure you want to delete the patron [% patron.firstname | html %] [% patron.surname | html %]?</h1>
+            [% UNLESS Koha.Preference('AllowDeletedPatronRestoration') %]
+                <p>This cannot be undone.</p>
+            [% END %]
             <form method="post" action="/cgi-bin/koha/members/deletemem.pl">
                 [% INCLUDE 'csrf-token.inc' %]
                 <input type="hidden" name="member" value="[% patron.borrowernumber | html %]" />
