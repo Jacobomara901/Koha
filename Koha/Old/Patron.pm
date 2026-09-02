@@ -17,7 +17,14 @@ package Koha::Old::Patron;
 
 use Modern::Perl;
 
+use C4::Context;
 use C4::Log qw( logaction );
+
+use Koha::Database;
+use Koha::Exceptions::Patron;
+use Koha::Old::Patrons;
+use Koha::Patron;
+use Koha::Patrons;
 
 use base qw(Koha::Object);
 

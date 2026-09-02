@@ -28,9 +28,10 @@ use C4::Auth        qw( get_template_and_user haspermission );
 use C4::Output      qw( output_html_with_http_headers );
 use C4::Context;
 
-use Koha::Old::Patrons;
-use Koha::Patron::Categories;
+use Koha::Database;
 use Koha::Libraries;
+use Koha::Old::Patrons;
+use Koha::Patrons;
 
 my $input = CGI->new;
 my $op    = $input->param('op') || 'search';
