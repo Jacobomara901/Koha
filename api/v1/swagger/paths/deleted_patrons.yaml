@@ -1,0 +1,104 @@
+---
+"/deleted/patrons":
+  get:
+    x-mojo-to: DeletedPatrons#list
+    operationId: listDeletedPatrons
+    tags:
+      - patrons
+    summary: List deleted patrons
+    parameters:
+      - $ref: "../swagger.yaml#/parameters/page"
+      - $ref: "../swagger.yaml#/parameters/per_page"
+      - $ref: "../swagger.yaml#/parameters/match"
+      - $ref: "../swagger.yaml#/parameters/order_by"
+      - $ref: "../swagger.yaml#/parameters/q_param"
+      - $ref: "../swagger.yaml#/parameters/q_body"
+      - $ref: "../swagger.yaml#/parameters/request_id_header"
+    produces:
+      - application/json
+    responses:
+      "200":
+        description: A list of deleted patrons
+        schema:
+          type: array
+          items:
+            $ref: "../swagger.yaml#/definitions/patron"
+      "400":
+        description: |
+          Bad request. Possible `error_code` attribute values:
+
+            * `invalid_query`
+        schema:
+          $ref: "../swagger.yaml#/definitions/error"
+      "401":
+        description: Authentication required
+        schema:
+          $ref: "../swagger.yaml#/definitions/error"
+      "403":
+        description: Access forbidden
+        schema:
+          $ref: "../swagger.yaml#/definitions/error"
+      "500":
+        description: |
+          Internal server error. Possible `error_code` attribute values:
+
+          * `internal_server_error`
+        schema:
+          $ref: "../swagger.yaml#/definitions/error"
+      "503":
+        description: Under maintenance
+        schema:
+          $ref: "../swagger.yaml#/definitions/error"
+    x-koha-authorization:
+      permissions:
+        tools: restore_deleted_borrowers
+"/deleted/patrons/{patron_id}":
+  put:
+    x-mojo-to: DeletedPatrons#restore
+    operationId: restoreDeletedPatron
+    tags:
+      - patrons
+    summary: Restore deleted patron
+    parameters:
+      - $ref: "../swagger.yaml#/parameters/patron_id_pp"
+    produces:
+      - application/json
+    responses:
+      "200":
+        description: Patron restored successfully
+        schema:
+          $ref: "../swagger.yaml#/definitions/patron"
+      "400":
+        description: Bad request
+        schema:
+          $ref: "../swagger.yaml#/definitions/error"
+      "401":
+        description: Authentication required
+        schema:
+          $ref: "../swagger.yaml#/definitions/error"
+      "403":
+        description: Access forbidden
+        schema:
+          $ref: "../swagger.yaml#/definitions/error"
+      "404":
+        description: Deleted patron not found
+        schema:
+          $ref: "../swagger.yaml#/definitions/error"
+      "409":
+        description: Cannot restore patron - borrowernumber, cardnumber or userid already in use
+        schema:
+          $ref: "../swagger.yaml#/definitions/error"
+      "500":
+        description: |
+          Internal server error. Possible `error_code` attribute values:
+
+          * `internal_server_error`
+        schema:
+          $ref: "../swagger.yaml#/definitions/error"
+      "503":
+        description: Under maintenance
+        schema:
+          $ref: "../swagger.yaml#/definitions/error"
+    x-koha-authorization:
+      permissions:
+        tools: restore_deleted_borrowers

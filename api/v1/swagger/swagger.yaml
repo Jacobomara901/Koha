@@ -375,6 +375,10 @@ paths:
     $ref: "./paths/deleted_items.yaml#/~1deleted~1items"
   "/deleted/items/{item_id}":
     $ref: "./paths/deleted_items.yaml#/~1deleted~1items~1{item_id}"
+  "/deleted/patrons":
+    $ref: "./paths/deleted_patrons.yaml#/~1deleted~1patrons"
+  "/deleted/patrons/{patron_id}":
+    $ref: "./paths/deleted_patrons.yaml#/~1deleted~1patrons~1{patron_id}"
   /erm/config:
     $ref: ./paths/erm_config.yaml#/~1erm~1config
   /erm/agreements:
