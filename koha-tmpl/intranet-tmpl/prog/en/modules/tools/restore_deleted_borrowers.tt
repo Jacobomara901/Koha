@@ -132,6 +132,10 @@
                                         <input type="text" id="surname" name="surname" value="[% surname | html %]" />
                                     </li>
                                     <li>
+                                        <label for="email">Email:</label>
+                                        <input type="text" id="email" name="email" value="[% email | html %]" />
+                                    </li>
+                                    <li>
                                         <label for="categorycode">Patron category:</label>
                                         <select name="categorycode" id="categorycode" multiple="multiple">
                                             <option value="">All categories</option>
@@ -303,7 +307,7 @@
 
             $('#search_form').on('submit', function(e) {
                 //check regular fields for values before submission
-                var fields = ['#cardnumber', '#borrowernumber', '#firstname', '#surname', '#deleted_from', '#deleted_to'];
+                var fields = ['#cardnumber', '#borrowernumber', '#firstname', '#surname', '#email', '#deleted_from', '#deleted_to'];
                 var hasValue = fields.some(function(field) {
                     var val = $(field).val();
                     return val !== '' && val !== null;
