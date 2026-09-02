@@ -136,6 +136,8 @@ if ( $op eq 'search' ) {
             $search_params{updated_on} = { '<' => $dtf->format_datetime($to_dt) };
         }
 
+        my $total_count = Koha::Old::Patrons->search_limited( \%search_params )->count;
+
         my $deleted_patrons_rs = Koha::Old::Patrons->search_limited(
             \%search_params,
             {
@@ -165,6 +167,7 @@ if ( $op eq 'search' ) {
 
         $template->param(
             view            => 'results',
+            total_count     => $total_count,
             deleted_patrons => \@deleted_patrons,
             cardnumber      => $cardnumber,
             borrowernumber  => $borrowernumber,

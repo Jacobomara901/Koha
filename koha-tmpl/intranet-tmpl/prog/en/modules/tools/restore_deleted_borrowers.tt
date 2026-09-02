@@ -176,7 +176,11 @@
 
                     [% IF deleted_patrons.size > 0 %]
                         <div id="results_wrapper" class="page-section">
-                            <h3>Deleted patrons found: [% deleted_patrons.size | html %]</h3>
+                            <h3>Deleted patrons found: [% total_count | html %]</h3>
+
+                            [% IF total_count > deleted_patrons.size %]
+                                <div class="alert alert-info"> Only the first [% deleted_patrons.size | html %] results are shown. Refine your search to see the others. </div>
+                            [% END %]
 
                             <form method="post" action="/cgi-bin/koha/tools/restore_deleted_borrowers.pl" id="restore_form">
                                 [% INCLUDE 'csrf-token.inc' %]
