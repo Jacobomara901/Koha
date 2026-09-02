@@ -223,7 +223,7 @@
                             </form>
                         </div>
                     [% ELSE %]
-                        <div class="dialog message"> No deleted patrons found matching your search criteria. </div>
+                        <div class="alert alert-info"> No deleted patrons found matching your search criteria. </div>
                         <fieldset class="action">
                             <a class="btn btn-default" href="/cgi-bin/koha/tools/restore_deleted_borrowers.pl">New search</a>
                         </fieldset>
@@ -232,7 +232,7 @@
                     <h1>Patrons restored</h1>
 
                     [% IF restored_patrons.size > 0 %]
-                        <div class="dialog message">
+                        <div class="alert alert-info">
                             <p>Successfully restored [% restored_patrons.size | html %] patron(s).</p>
                         </div>
 
@@ -267,7 +267,7 @@
                     [% END %]
 
                     [% IF errors.size > 0 %]
-                        <div class="dialog alert">
+                        <div class="alert alert-warning">
                             <h3>Errors occurred:</h3>
                             <ul>
                                 [% FOREACH error IN errors %]
