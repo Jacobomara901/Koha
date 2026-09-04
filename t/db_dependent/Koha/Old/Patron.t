@@ -19,46 +19,102 @@
 
 use Modern::Perl;
 
-use Test::More tests => 2;
+use Test::More tests => 4;
 use Test::Exception;
-use Test::MockModule;
+use Test::NoWarnings;
 
 use t::lib::TestBuilder;
 use t::lib::Mocks;
-use Test::NoWarnings;
 
+use Koha::ActionLogs;
 use Koha::Database;
-use Koha::Patrons;
 use Koha::Old::Patrons;
+use Koha::Patrons;
 
 my $schema  = Koha::Database->new->schema;
 my $builder = t::lib::TestBuilder->new;
+
+sub delete_patron {
+    my ($patron) = @_;
+    my $borrowernumber = $patron->borrowernumber;
+    Koha::Patrons->search( { borrowernumber => $borrowernumber } )->delete( { move => 1 } );
+    return Koha::Old::Patrons->search( { borrowernumber => $borrowernumber } )->next;
+}
 
 subtest 'restore' => sub {
     plan tests => 4;
 
     $schema->storage->txn_begin;
 
-    #create a test patron
     my $patron         = $builder->build_object( { class => 'Koha::Patrons' } );
     my $borrowernumber = $patron->borrowernumber;
     my $cardnumber     = $patron->cardnumber;
 
-    #delete the created patron, using move = 1 to ensure they go to deleteborrowers
-    my $to_delete = Koha::Patrons->search( { borrowernumber => $borrowernumber } );
-    $to_delete->delete( { move => 1 } );
-
-    #verify patron is in deletedborrowers
-    my $deleted_patron = Koha::Old::Patrons->search( { borrowernumber => $borrowernumber } )->next;
+    my $deleted_patron = delete_patron($patron);
     ok( $deleted_patron, 'Patron moved to deletedborrowers' );
 
-    #restore the deleted patron
     my $restored = $deleted_patron->restore;
 
-    #verify the patron is restored
     ok( $restored, 'Restored patron exists' );
     is( $restored->borrowernumber, $borrowernumber, 'Borrowernumber matches' );
     is( $restored->cardnumber,     $cardnumber,     'Cardnumber matches' );
+
+    $schema->storage->txn_rollback;
+};
+
+subtest 'restore conflicts' => sub {
+    plan tests => 6;
+
+    $schema->storage->txn_begin;
+
+    my $live  = $builder->build_object( { class => 'Koha::Patrons' } );
+    my $clash = Koha::Old::Patron->new( $live->unblessed )->store;
+
+    throws_ok { $clash->restore } 'Koha::Exceptions::Patron::CannotRestore',
+        'An existing borrowernumber blocks the restore';
+    is( $@->type, 'borrowernumber', 'Conflict type is borrowernumber' );
+
+    my $deleted = delete_patron( $builder->build_object( { class => 'Koha::Patrons' } ) );
+    $live->cardnumber( $deleted->cardnumber )->store;
+
+    throws_ok { $deleted->restore } 'Koha::Exceptions::Patron::CannotRestore',
+        'An existing cardnumber blocks the restore';
+    is( $@->type, 'cardnumber', 'Conflict type is cardnumber' );
+
+    my $deleted_userid = delete_patron( $builder->build_object( { class => 'Koha::Patrons' } ) );
+    $live->userid( $deleted_userid->userid )->store;
+
+    throws_ok { $deleted_userid->restore } 'Koha::Exceptions::Patron::CannotRestore',
+        'An existing userid blocks the restore';
+    is( $@->type, 'userid', 'Conflict type is userid' );
+
+    $schema->storage->txn_rollback;
+};
+
+subtest 'restore clears restrictions and flags, and logs' => sub {
+    plan tests => 5;
+
+    $schema->storage->txn_begin;
+
+    t::lib::Mocks::mock_preference( 'BorrowersLog', 1 );
+
+    my $patron = $builder->build_object(
+        {
+            class => 'Koha::Patrons',
+            value => { flags => 1, debarred => '2099-12-31', debarredcomment => 'Blocked' }
+        }
+    );
+    my $borrowernumber = $patron->borrowernumber;
+
+    my $restored = delete_patron($patron)->restore;
+
+    is( $restored->flags,           undef, 'Permission flags are cleared' );
+    is( $restored->debarred,        undef, 'Restriction date is cleared' );
+    is( $restored->debarredcomment, undef, 'Restriction comment is cleared' );
+
+    my $logs = Koha::ActionLogs->search( { module => 'MEMBERS', action => 'Restore', object => $borrowernumber } );
+    is( $logs->count, 1, 'The restore is logged once' );
+    like( $logs->next->info, qr/^Deleted patron restored: /, 'The log entry names the restored patron' );
 
     $schema->storage->txn_rollback;
 };
