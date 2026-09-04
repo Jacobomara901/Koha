@@ -21,6 +21,8 @@ use Test::NoWarnings;
 use Test::More tests => 4;
 use Test::Mojo;
 
+use Mojo::JSON qw( encode_json );
+
 use t::lib::TestBuilder;
 use t::lib::Mocks;
 
@@ -61,7 +63,7 @@ sub grant_permission {
 
 subtest 'list() tests' => sub {
 
-    plan tests => 13;
+    plan tests => 17;
 
     $schema->storage->txn_begin;
 
@@ -105,6 +107,18 @@ subtest 'list() tests' => sub {
     $t->get_ok("//$userid:$password@/api/v1/deleted/patrons")->status_is(200);
 
     $t->json_has('/0')->json_is( '/0' => $deleted_patron->to_api );
+
+    my $filtered_patron = delete_patron(
+        $builder->build_object(
+            { class => 'Koha::Patrons', value => { branchcode => $librarian->branchcode, surname => 'Filterme' } }
+        )
+    );
+    my $q = encode_json( { 'me.surname' => 'Filterme' } );
+
+    $t->get_ok("//$userid:$password@/api/v1/deleted/patrons?q=$q")
+        ->status_is(200)
+        ->json_is( '/0/patron_id' => $filtered_patron->borrowernumber )
+        ->json_hasnt('/1');
 
     $t->get_ok("//$unauth_userid:$password@/api/v1/deleted/patrons")->status_is(403);
 
@@ -172,7 +186,7 @@ subtest 'list() library group visibility tests' => sub {
 
 subtest 'restore() tests' => sub {
 
-    plan tests => 17;
+    plan tests => 19;
 
     $schema->storage->txn_begin;
 
@@ -216,6 +230,12 @@ subtest 'restore() tests' => sub {
     is( Koha::Old::Patrons->search( { borrowernumber => $patron_id } )->count, 0, 'Patron removed from deleted table' );
 
     $t->put_ok("//$userid:$password@/api/v1/deleted/patrons/$patron_id")->status_is(404);
+
+    my $other_library = $builder->build_object( { class => 'Koha::Libraries' } );
+    my $hidden_patron = delete_patron(
+        $builder->build_object( { class => 'Koha::Patrons', value => { branchcode => $other_library->branchcode } } ) );
+
+    $t->put_ok( "//$userid:$password@/api/v1/deleted/patrons/" . $hidden_patron->borrowernumber )->status_is(404);
 
     my $live_patron = $builder->build_object( { class => 'Koha::Patrons' } );
     my $conflict_patron =
