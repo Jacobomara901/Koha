@@ -1,189 +1,160 @@
-/* global __ $date */
-
-function showMessage(message, type) {
-    var alert = $(
-        '<div class="alert alert-' + type + '">' + message + "</div>"
-    );
-    $("#messages").append(alert);
-
-    setTimeout(function () {
-        alert.fadeOut(400, function () {
-            $(this).remove();
-        });
-    }, 5000);
-}
+/* global __ $date showMessage escape_str */
 
 $(document).ready(function () {
-    var selectFields = document.querySelectorAll("select[multiple]");
-    selectFields.forEach(function (selectField) {
-        $(selectField).select2({
-            width: "30%",
-            allowClear: true,
-        });
+    $("#categorycode_filter").select2({
+        width: "30%",
+        allowClear: true,
+        placeholder: __("All categories"),
+    });
+    $("#branchcode_filter").select2({
+        width: "30%",
+        allowClear: true,
+        placeholder: __("All libraries"),
     });
 
-    var library_names = {};
+    const library_names = {};
     $("#branchcode_filter option").each(function () {
-        if (this.value) {
-            library_names[this.value] = $(this).text().trim();
-        }
+        library_names[this.value] = $(this).text().trim();
     });
 
-    var category_names = {};
+    const category_names = {};
     $("#categorycode_filter option").each(function () {
-        if (this.value) {
-            category_names[this.value] = $(this).text().trim();
-        }
+        category_names[this.value] = $(this).text().trim();
     });
 
-    function buildQuery() {
-        var query = {};
-
-        var cardnumber = $("#cardnumber").val();
-        if (cardnumber) {
-            query["me.cardnumber"] = cardnumber;
-        }
-
-        var borrowernumber = $("#borrowernumber").val();
-        if (borrowernumber) {
-            query["me.borrowernumber"] = borrowernumber;
-        }
-
-        ["surname", "firstname", "email"].forEach(function (field) {
-            var value = $("#" + field).val();
-            if (value) {
-                query["me." + field] = { like: "%" + value + "%" };
-            }
-        });
-
-        var categories = ($("#categorycode_filter").val() || []).filter(
-            Boolean
-        );
-        if (categories.length) {
-            query["me.categorycode"] = categories;
-        }
-
-        var branches = ($("#branchcode_filter").val() || []).filter(Boolean);
-        if (branches.length) {
-            query["me.branchcode"] = branches;
-        }
-
-        var date_range = {};
-        var from = $("#deleted_from").val();
-        if (from) {
-            date_range[">="] = from + "T00:00:00Z";
-        }
-        var to = $("#deleted_to").val();
-        if (to) {
-            date_range["<="] = to + "T23:59:59Z";
-        }
-        if (Object.keys(date_range).length) {
-            query["me.updated_on"] = date_range;
-        }
-
-        return query;
+    function exact(selector) {
+        return function () {
+            return $(selector).val();
+        };
     }
 
-    function tableUrl() {
-        var query = buildQuery();
-        var url = "/api/v1/deleted/patrons";
-        if (Object.keys(query).length) {
-            url += "?q=" + encodeURIComponent(JSON.stringify(query));
-        }
-        return url;
+    function contains(selector) {
+        return function () {
+            const value = $(selector).val();
+            if (!value) return null;
+            return { like: "%" + value + "%" };
+        };
     }
 
-    function escapeCell(data, type) {
-        if (type === "display") {
-            return data ? $("<div/>").text(data).html() : "";
-        }
+    function selected(selector) {
+        return function () {
+            const values = ($(selector).val() || []).filter(Boolean);
+            if (!values.length) return null;
+            return values;
+        };
+    }
+
+    function deletedBetween() {
+        const range = {};
+        const from = $("#deleted_from").val();
+        const to = $("#deleted_to").val();
+        if (from) range[">="] = from + "T00:00:00Z";
+        if (to) range["<="] = to + "T23:59:59Z";
+        if (!Object.keys(range).length) return null;
+        return range;
+    }
+
+    function renderText(data, type) {
+        if (type === "display") return escape_str(data);
         return data || "";
     }
 
-    var table = $("#deleted_patrons_table").kohaTable({
-        ajax: {
-            url: tableUrl(),
+    function renderName(names) {
+        return function (data, type) {
+            return renderText(names[data] || data, type);
+        };
+    }
+
+    function renderDate(data, type) {
+        if (type === "display" && data) return $date(data);
+        return data;
+    }
+
+    function renderCheckbox(row, type) {
+        if (type !== "display") return "";
+        return (
+            '<input type="checkbox" class="select_patron" data-patron-id="' +
+            row.patron_id +
+            '" />'
+        );
+    }
+
+    const table = $("#deleted_patrons_table").kohaTable(
+        {
+            ajax: {
+                url: "/api/v1/deleted/patrons",
+            },
+            order: [[7, "desc"]],
+            columns: [
+                { data: renderCheckbox, searchable: false, orderable: false },
+                {
+                    data: "cardnumber",
+                    searchable: true,
+                    orderable: true,
+                    render: renderText,
+                },
+                { data: "patron_id", searchable: true, orderable: true },
+                {
+                    data: "surname",
+                    searchable: true,
+                    orderable: true,
+                    render: renderText,
+                },
+                {
+                    data: "firstname",
+                    searchable: true,
+                    orderable: true,
+                    render: renderText,
+                },
+                {
+                    data: "category_id",
+                    searchable: true,
+                    orderable: true,
+                    render: renderName(category_names),
+                },
+                {
+                    data: "library_id",
+                    searchable: true,
+                    orderable: true,
+                    render: renderName(library_names),
+                },
+                {
+                    data: "updated_on",
+                    searchable: true,
+                    orderable: true,
+                    render: renderDate,
+                },
+            ],
         },
-        order: [[7, "desc"]],
-        columns: [
-            {
-                data: function (row, type) {
-                    if (type === "display") {
-                        return (
-                            '<input type="checkbox" class="select_patron" data-patron-id="' +
-                            row.patron_id +
-                            '" />'
-                        );
-                    }
-                    return "";
-                },
-                searchable: false,
-                orderable: false,
-            },
-            {
-                data: "cardnumber",
-                searchable: true,
-                orderable: true,
-                render: escapeCell,
-            },
-            {
-                data: "patron_id",
-                searchable: true,
-                orderable: true,
-            },
-            {
-                data: "surname",
-                searchable: true,
-                orderable: true,
-                render: escapeCell,
-            },
-            {
-                data: "firstname",
-                searchable: true,
-                orderable: true,
-                render: escapeCell,
-            },
-            {
-                data: "category_id",
-                searchable: true,
-                orderable: true,
-                render: function (data, type, row) {
-                    return escapeCell(category_names[data] || data, type);
-                },
-            },
-            {
-                data: "library_id",
-                searchable: true,
-                orderable: true,
-                render: function (data, type, row) {
-                    return escapeCell(library_names[data] || data, type);
-                },
-            },
-            {
-                data: "updated_on",
-                searchable: true,
-                orderable: true,
-                render: function (data, type, row) {
-                    if (type === "display" && data) {
-                        return $date(data);
-                    }
-                    return data;
-                },
-            },
-        ],
-    });
-    var table_api = table.DataTable();
+        undefined,
+        false,
+        {
+            "me.cardnumber": exact("#cardnumber"),
+            "me.borrowernumber": exact("#borrowernumber"),
+            "me.surname": contains("#surname"),
+            "me.firstname": contains("#firstname"),
+            "me.email": contains("#email"),
+            "me.categorycode": selected("#categorycode_filter"),
+            "me.branchcode": selected("#branchcode_filter"),
+            "me.updated_on": deletedBetween,
+        }
+    );
+    const table_api = table.DataTable();
 
     $("#search_form").on("submit", function (e) {
         e.preventDefault();
-        table_api.ajax.url(tableUrl()).load();
+        table_api.ajax.reload();
     });
 
     $("#clear_filters").on("click", function () {
         $("#search_form input[type='text']").val("");
-        $("#categorycode_filter").val(null).trigger("change");
-        $("#branchcode_filter").val(null).trigger("change");
-        table_api.ajax.url("/api/v1/deleted/patrons").load();
+        $("#deleted_from, #deleted_to").each(function () {
+            this._flatpickr.clear();
+        });
+        $("#categorycode_filter, #branchcode_filter")
+            .val(null)
+            .trigger("change");
+        table_api.ajax.reload();
     });
 
     $("#select_all").on("click", function () {
@@ -193,68 +164,83 @@ $(document).ready(function () {
         );
     });
 
+    function patronLink(patron) {
+        return (
+            '<a href="/cgi-bin/koha/members/moremember.pl?borrowernumber=' +
+            encodeURIComponent(patron.patron_id) +
+            '" target="_blank">' +
+            escape_str(patron.surname) +
+            ", " +
+            escape_str(patron.firstname) +
+            " (" +
+            escape_str(patron.cardnumber) +
+            ")</a>"
+        );
+    }
+
+    function restoreErrorMessage(patron_id, xhr) {
+        let message = __("Error restoring patron %s").format(patron_id);
+        const response = xhr.responseJSON;
+        if (response && response.error) {
+            message += ": " + escape_str(response.error);
+        }
+        return message;
+    }
+
     $("#restore_selected").on("click", function () {
-        var selected = $(".select_patron:checked")
+        const patron_ids = $(".select_patron:checked")
             .map(function () {
                 return $(this).data("patron-id");
             })
             .get();
 
-        if (!selected.length) {
+        if (!patron_ids.length) {
             alert(__("Please select at least one patron to restore."));
             return;
         }
 
-        if (
-            !confirm(
-                __("Are you sure you want to restore %s patron(s)?").format(
-                    selected.length
-                )
+        const confirmed = confirm(
+            __("Are you sure you want to restore %s patron(s)?").format(
+                patron_ids.length
             )
-        ) {
-            return;
-        }
+        );
+        if (!confirmed) return;
 
-        var restored = 0;
-        var failed = 0;
-
-        function finishWhenDone() {
-            if (restored + failed !== selected.length) {
-                return;
-            }
-            if (restored > 0) {
-                showMessage(
-                    __("%s patron(s) restored successfully").format(restored),
-                    "success"
-                );
-            }
-            $("#select_all").prop("checked", false);
-            table_api.ajax.reload();
-        }
-
-        selected.forEach(function (patron_id) {
-            $.ajax({
+        const requests = patron_ids.map(function (patron_id) {
+            return $.ajax({
                 url: "/api/v1/deleted/patrons/" + patron_id,
                 type: "PUT",
                 headers: {
                     "x-koha-request-id": Math.random(),
                 },
-                success: function () {
-                    restored++;
-                    finishWhenDone();
-                },
-                error: function (xhr) {
-                    failed++;
-                    var error_msg = __("Error restoring patron %s").format(
-                        patron_id
-                    );
-                    if (xhr.responseJSON && xhr.responseJSON.error) {
-                        error_msg += ": " + xhr.responseJSON.error;
-                    }
-                    showMessage(error_msg, "danger");
-                    finishWhenDone();
-                },
             });
+        });
+
+        Promise.allSettled(requests).then(function (results) {
+            const restored = [];
+            results.forEach(function (result, i) {
+                if (result.status === "rejected") {
+                    showMessage(
+                        restoreErrorMessage(patron_ids[i], result.reason),
+                        "danger"
+                    );
+                    return;
+                }
+                restored.push(patronLink(result.value));
+            });
+
+            if (restored.length) {
+                showMessage(
+                    __("Restored %s patron(s): %s").format(
+                        restored.length,
+                        restored.join(", ")
+                    ),
+                    "success"
+                );
+            }
+
+            $("#select_all").prop("checked", false);
+            table_api.ajax.reload();
         });
     });
 });
