@@ -41,6 +41,21 @@ function escape_str(s) {
     return s != null ? s.escapeHtml() : "";
 }
 
+function showMessage(message, type) {
+    const alert = $(
+        '<div class="alert alert-' +
+            type +
+            ' alert-dismissible" role="alert"></div>'
+    )
+        .html(message)
+        .append(
+            '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="' +
+                __("Close") +
+                '"></button>'
+        );
+    $("#messages").append(alert);
+}
+
 /*
  * Void method for numbers, for consistency
  */

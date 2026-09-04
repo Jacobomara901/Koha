@@ -1,17 +1,4 @@
-/* global __ $date */
-
-function showMessage(message, type) {
-    var alert = $(
-        '<div class="alert alert-' + type + '">' + message + "</div>"
-    );
-    $("#messages").append(alert);
-
-    setTimeout(function () {
-        alert.fadeOut(400, function () {
-            $(this).remove();
-        });
-    }, 5000);
-}
+/* global __ $date showMessage */
 
 $(document).ready(function () {
     var librariesWhereCanEdit = window.libraries_where_can_edit || [];
