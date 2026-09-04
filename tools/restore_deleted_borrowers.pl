@@ -21,12 +21,11 @@
 use Modern::Perl;
 use CGI qw ( -utf8 );
 
-use C4::Auth   qw( get_template_and_user haspermission );
+use C4::Auth   qw( get_template_and_user );
 use C4::Output qw( output_html_with_http_headers );
 use C4::Context;
 
 use Koha::Libraries;
-use Koha::Patrons;
 
 my $input = CGI->new;
 
@@ -44,28 +43,8 @@ unless ( C4::Context->preference('AllowDeletedPatronRestoration') ) {
     exit;
 }
 
-#check if the user can view patrons from any branch, or just their own
-my $logged_in_patron = Koha::Patrons->find($loggedinuser);
-my $can_view_all_libraries =
-    haspermission( $logged_in_patron->userid, { borrowers => 'view_borrower_infos_from_any_libraries' } );
+my @libraries = Koha::Libraries->search_filtered( { only_from_group => 1 }, { order_by => 'branchname' } )->as_list;
 
-my @libraries;
-if ($can_view_all_libraries) {
-
-    # User can view all branches, get them all
-    @libraries = Koha::Libraries->search( {}, { order_by => 'branchname' } )->as_list;
-} else {
-
-    # User can only view their branch or branches in the group, get only those
-    @libraries = Koha::Libraries->search_filtered(
-        { only_from_group => 1 },
-        { order_by        => ['branchname'] }
-    )->as_list;
-}
-
-$template->param(
-    allowed_libraries      => \@libraries,
-    can_view_all_libraries => $can_view_all_libraries,
-);
+$template->param( allowed_libraries => \@libraries );
 
 output_html_with_http_headers $input, $cookie, $template->output;
