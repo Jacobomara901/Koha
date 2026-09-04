@@ -111,7 +111,7 @@ subtest 'list() tests' => sub {
     $t->get_ok("//$restore_only_userid:$password@/api/v1/deleted/patrons")->status_is(403);
 
     t::lib::Mocks::mock_preference( 'AllowDeletedPatronRestoration', 0 );
-    $t->get_ok("//$userid:$password@/api/v1/deleted/patrons")->status_is(200);
+    $t->get_ok("//$userid:$password@/api/v1/deleted/patrons")->status_is(403);
     t::lib::Mocks::mock_preference( 'AllowDeletedPatronRestoration', 1 );
 
     $schema->storage->txn_rollback;

@@ -39,6 +39,9 @@ Controller function that handles listing deleted patron objects
 sub list {
     my $c = shift->openapi->valid_input or return;
 
+    return _render_restoration_disabled($c)
+        unless C4::Context->preference('AllowDeletedPatronRestoration');
+
     return try {
         my $deleted_patrons_rs = Koha::Old::Patrons->search_limited;
         my $deleted_patrons    = $c->objects->search($deleted_patrons_rs);
@@ -61,10 +64,8 @@ Controller function that handles restoring a single deleted patron object
 sub restore {
     my $c = shift->openapi->valid_input or return;
 
-    return $c->render(
-        status  => 403,
-        openapi => { error => "The AllowDeletedPatronRestoration system preference is disabled" }
-    ) unless C4::Context->preference('AllowDeletedPatronRestoration');
+    return _render_restoration_disabled($c)
+        unless C4::Context->preference('AllowDeletedPatronRestoration');
 
     my $deleted_patron =
         Koha::Old::Patrons->search_limited( { borrowernumber => $c->param('patron_id') } )->next;
@@ -88,6 +89,24 @@ sub restore {
         }
         $c->unhandled_exception($_);
     };
+}
+
+=head2 Internal methods
+
+=head3 _render_restoration_disabled
+
+Renders the 403 response used when the AllowDeletedPatronRestoration system
+preference is off.
+
+=cut
+
+sub _render_restoration_disabled {
+    my ($c) = @_;
+
+    return $c->render(
+        status  => 403,
+        openapi => { error => "The AllowDeletedPatronRestoration system preference is disabled" }
+    );
 }
 
 1;
