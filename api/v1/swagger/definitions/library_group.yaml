@@ -1,0 +1,58 @@
+---
+type: object
+properties:
+  library_group_id:
+    type: integer
+    description: Internally assigned library group identifier
+  parent_id:
+    type:
+      - integer
+      - "null"
+    description: Internal identifier of the parent group, if this is a child group
+  library_id:
+    type:
+      - string
+      - "null"
+    description: Internal identifier of the member library, if this row represents a library
+  title:
+    type:
+      - string
+      - "null"
+    description: Library group title
+  description:
+    type:
+      - string
+      - "null"
+    description: Library group description
+  ft_hide_patron_info:
+    type: boolean
+    description: If this group is used to hide patron's info
+  ft_limit_item_editing:
+    type: boolean
+    description: If this group is used to limit item editing
+  ft_search_groups_opac:
+    type: boolean
+    description: If this group is used for OPAC side search groups
+  ft_search_groups_staff:
+    type: boolean
+    description: If this group is used for staff side search groups
+  ft_local_hold_group:
+    type: boolean
+    description: If this group is used to identify libraries as pick up location for holds
+  ft_local_float_group:
+    type: boolean
+    description: If this group is used to identify libraries as part of float group
+  ft_record_source_editing:
+    type: boolean
+    description: If this group is used to identify libraries allowed to edit records from locked record sources
+  created_on:
+    type:
+      - string
+      - "null"
+    format: date-time
+    description: Date and time of creation
+  updated_on:
+    type: string
+    format: date-time
+    description: Date and time of last update
+additionalProperties: false
