@@ -76,6 +76,7 @@ delete $importbatch2->{num_records};
 delete $importbatch2->{num_items};
 delete $importbatch2->{profile_id};
 delete $importbatch2->{profile};
+delete $importbatch2->{record_source_id};
 
 is_deeply(
     $importbatch2, $sample_import_batch2,
@@ -89,6 +90,7 @@ delete $importbatch1->{num_records};
 delete $importbatch1->{num_items};
 delete $importbatch1->{profile_id};
 delete $importbatch1->{profile};
+delete $importbatch1->{record_source_id};
 
 is_deeply(
     $importbatch1, $sample_import_batch1,
