@@ -19,7 +19,7 @@
 
 use Modern::Perl;
 
-use Test::More tests => 52;
+use Test::More tests => 53;
 use Test::NoWarnings;
 use Test::Exception;
 use Test::Warn;
@@ -4057,6 +4057,67 @@ subtest "identify_updated_extended_attributes" => sub {
 
     $updated_attributes = $patron->identify_updated_extended_attributes($changed_attributes);
     is( scalar(@$updated_attributes), 3, "Two have now been updated, one of which is repeatable and has two values" );
+
+    $schema->storage->txn_rollback;
+};
+
+subtest 'can_edit_records_from() tests' => sub {
+
+    plan tests => 6;
+
+    $schema->storage->txn_begin;
+
+    my $member_library   = $builder->build_object( { class => 'Koha::Libraries' } );
+    my $subgroup_library = $builder->build_object( { class => 'Koha::Libraries' } );
+    my $outside_library  = $builder->build_object( { class => 'Koha::Libraries' } );
+
+    my $root_group = $builder->build_object(
+        {
+            class => 'Koha::Library::Groups',
+            value => { parent_id => undef, branchcode => undef, ft_record_source_editing => 1 }
+        }
+    );
+    $builder->build_object(
+        {
+            class => 'Koha::Library::Groups',
+            value => { parent_id => $root_group->id, branchcode => $member_library->branchcode, title => undef }
+        }
+    );
+    my $subgroup = $builder->build_object(
+        { class => 'Koha::Library::Groups', value => { parent_id => $root_group->id, branchcode => undef } } );
+    $builder->build_object(
+        {
+            class => 'Koha::Library::Groups',
+            value => { parent_id => $subgroup->id, branchcode => $subgroup_library->branchcode, title => undef }
+        }
+    );
+
+    my $source = $builder->build_object( { class => 'Koha::RecordSources' } );
+
+    my $member_patron =
+        $builder->build_object( { class => 'Koha::Patrons', value => { branchcode => $member_library->branchcode } } );
+    my $subgroup_patron = $builder->build_object(
+        { class => 'Koha::Patrons', value => { branchcode => $subgroup_library->branchcode } } );
+    my $outside_patron =
+        $builder->build_object( { class => 'Koha::Patrons', value => { branchcode => $outside_library->branchcode } } );
+
+    ok( !$member_patron->can_edit_records_from(undef), 'Returns false when no record source is passed' );
+    ok(
+        !$member_patron->can_edit_records_from($source),
+        'Returns false when the source has no linked library groups'
+    );
+
+    $source->library_groups( [ { library_group_id => $root_group->id } ] );
+
+    ok( $member_patron->can_edit_records_from($source),   'Home library in the linked group grants editing' );
+    ok( $subgroup_patron->can_edit_records_from($source), 'Membership is recursive through subgroups' );
+    ok( !$outside_patron->can_edit_records_from($source), 'Home library outside the group does not grant editing' );
+
+    t::lib::Mocks::mock_preference( 'IndependentBranches', 1 );
+    ok(
+        $member_patron->can_edit_records_from($source),
+        'IndependentBranches has no effect; records are not branch property'
+    );
 
     $schema->storage->txn_rollback;
 };
