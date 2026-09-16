@@ -125,9 +125,68 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 import_batches
 
-# Created by DBIx::Class::Schema::Loader v0.07051 @ 2026-03-26 08:48:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:vUBTwdxkGhnSy3w0UrEIJw
+Type: has_many
+
+Related object: L<Koha::Schema::Result::ImportBatch>
+
+=cut
+
+__PACKAGE__->has_many(
+  "import_batches",
+  "Koha::Schema::Result::ImportBatch",
+  { "foreign.record_source_id" => "self.record_source_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 marc_modification_templates
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::MarcModificationTemplate>
+
+=cut
+
+__PACKAGE__->has_many(
+  "marc_modification_templates",
+  "Koha::Schema::Result::MarcModificationTemplate",
+  { "foreign.record_source_id" => "self.record_source_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 record_sources_library_groups
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::RecordSourcesLibraryGroup>
+
+=cut
+
+__PACKAGE__->has_many(
+  "record_sources_library_groups",
+  "Koha::Schema::Result::RecordSourcesLibraryGroup",
+  { "foreign.record_source_id" => "self.record_source_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 library_groups
+
+Type: many_to_many
+
+Composing rels: L</record_sources_library_groups> -> library_group
+
+=cut
+
+__PACKAGE__->many_to_many(
+  "library_groups",
+  "record_sources_library_groups",
+  "library_group",
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07053 @ 2026-09-01 08:48:38
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hvaY9YquNUKw/UOTrCDFrw
 
 __PACKAGE__->add_columns(
     '+can_be_edited' => { is_boolean => 1 },

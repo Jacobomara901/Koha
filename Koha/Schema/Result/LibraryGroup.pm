@@ -111,6 +111,14 @@ Use this group to identify libraries as pick up location for holds
 
 Use this group to identify libraries as part of float group
 
+=head2 ft_record_source_editing
+
+  data_type: 'tinyint'
+  default_value: 0
+  is_nullable: 0
+
+Use this group to identify libraries allowed to edit records from locked record sources
+
 =head2 created_on
 
   data_type: 'timestamp'
@@ -152,6 +160,8 @@ __PACKAGE__->add_columns(
   "ft_local_hold_group",
   { data_type => "tinyint", default_value => 0, is_nullable => 0 },
   "ft_local_float_group",
+  { data_type => "tinyint", default_value => 0, is_nullable => 0 },
+  "ft_record_source_editing",
   { data_type => "tinyint", default_value => 0, is_nullable => 0 },
   "created_on",
   {
@@ -265,9 +275,38 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 record_sources_library_groups
 
-# Created by DBIx::Class::Schema::Loader v0.07051 @ 2025-04-28 16:41:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:CkZe+3Qm2ZlmoSmXBGChag
+Type: has_many
+
+Related object: L<Koha::Schema::Result::RecordSourcesLibraryGroup>
+
+=cut
+
+__PACKAGE__->has_many(
+  "record_sources_library_groups",
+  "Koha::Schema::Result::RecordSourcesLibraryGroup",
+  { "foreign.library_group_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 record_sources
+
+Type: many_to_many
+
+Composing rels: L</record_sources_library_groups> -> record_source
+
+=cut
+
+__PACKAGE__->many_to_many(
+  "record_sources",
+  "record_sources_library_groups",
+  "record_source",
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07053 @ 2026-08-11 17:09:38
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:SpW0JuO27/4t5rWLUFqxsQ
 
 =head2 koha_object_class
 
@@ -290,12 +329,13 @@ sub koha_objects_class {
 }
 
 __PACKAGE__->add_columns(
-    '+ft_hide_patron_info'    => { is_boolean => 1 },
-    '+ft_limit_item_editing'  => { is_boolean => 1 },
-    '+ft_local_float_group'   => { is_boolean => 1 },
-    '+ft_local_hold_group'    => { is_boolean => 1 },
-    '+ft_search_groups_opac'  => { is_boolean => 1 },
-    '+ft_search_groups_staff' => { is_boolean => 1 },
+    '+ft_hide_patron_info'      => { is_boolean => 1 },
+    '+ft_limit_item_editing'    => { is_boolean => 1 },
+    '+ft_local_float_group'     => { is_boolean => 1 },
+    '+ft_local_hold_group'      => { is_boolean => 1 },
+    '+ft_record_source_editing' => { is_boolean => 1 },
+    '+ft_search_groups_opac'    => { is_boolean => 1 },
+    '+ft_search_groups_staff'   => { is_boolean => 1 },
 );
 
 1;
