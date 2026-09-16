@@ -171,6 +171,20 @@ sub store {
     return $self->SUPER::store(@_);
 }
 
+=head3 to_api_mapping
+
+This method returns the mapping for representing a Koha::Library::Group object
+on the API.
+
+=cut
+
+sub to_api_mapping {
+    return {
+        id         => 'library_group_id',
+        branchcode => 'library_id',
+    };
+}
+
 =head2 Internal methods
 
 =head3 _type
