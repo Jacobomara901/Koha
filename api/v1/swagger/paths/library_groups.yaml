@@ -57,6 +57,11 @@
         description: If the group is used as a local float group
         required: false
         type: integer
+      - name: is_record_source_editing_group
+        in: query
+        description: If the group is used for record source editing
+        required: false
+        type: integer
       - $ref: "../swagger.yaml#/parameters/match"
       - $ref: "../swagger.yaml#/parameters/order_by"
       - $ref: "../swagger.yaml#/parameters/page"

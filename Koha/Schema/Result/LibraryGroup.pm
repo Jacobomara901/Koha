@@ -290,12 +290,52 @@ sub koha_objects_class {
 }
 
 __PACKAGE__->add_columns(
-    '+ft_hide_patron_info'    => { is_boolean => 1 },
-    '+ft_limit_item_editing'  => { is_boolean => 1 },
-    '+ft_local_float_group'   => { is_boolean => 1 },
-    '+ft_local_hold_group'    => { is_boolean => 1 },
-    '+ft_search_groups_opac'  => { is_boolean => 1 },
-    '+ft_search_groups_staff' => { is_boolean => 1 },
+  "id",
+  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
+  "parent_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "branchcode",
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 1, size => 10 },
+  "title",
+  { data_type => "varchar", is_nullable => 1, size => 100 },
+  "description",
+  { data_type => "mediumtext", is_nullable => 1 },
+  "ft_hide_patron_info",
+  { data_type => "tinyint", default_value => 0, is_nullable => 0 },
+  "ft_limit_item_editing",
+  { data_type => "tinyint", default_value => 0, is_nullable => 0 },
+  "ft_search_groups_opac",
+  { data_type => "tinyint", default_value => 0, is_nullable => 0 },
+  "ft_search_groups_staff",
+  { data_type => "tinyint", default_value => 0, is_nullable => 0 },
+  "ft_local_hold_group",
+  { data_type => "tinyint", default_value => 0, is_nullable => 0 },
+  "ft_local_float_group",
+  { data_type => "tinyint", default_value => 0, is_nullable => 0 },
+  "ft_record_source_editing",
+  { data_type => "tinyint", default_value => 0, is_nullable => 0 },
+  "created_on",
+  {
+    data_type => "timestamp",
+    datetime_undef_if_invalid => 1,
+    is_nullable => 1,
+  },
+  "updated_on",
+  {
+    data_type => "timestamp",
+    datetime_undef_if_invalid => 1,
+    default_value => \"current_timestamp",
+    is_nullable => 0,
+  },
+);
+__PACKAGE__->add_columns(
+    '+ft_hide_patron_info'      => { is_boolean => 1 },
+    '+ft_limit_item_editing'    => { is_boolean => 1 },
+    '+ft_local_float_group'     => { is_boolean => 1 },
+    '+ft_local_hold_group'      => { is_boolean => 1 },
+    '+ft_record_source_editing' => { is_boolean => 1 },
+    '+ft_search_groups_opac'    => { is_boolean => 1 },
+    '+ft_search_groups_staff'   => { is_boolean => 1 },
 );
 
 1;
