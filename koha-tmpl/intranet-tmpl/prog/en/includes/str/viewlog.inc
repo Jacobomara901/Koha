@@ -26,6 +26,7 @@
         RECALLS: _("Recalls"),
         SUGGESTION: _("Suggestions"),
         TRANSFERS: _("Transfers"),
+        MARC_MOD_TEMPLATES: _("MARC modification templates"),
     };
 
     var action_labels = {

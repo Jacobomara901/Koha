@@ -48,6 +48,10 @@
         <span>Suggestions</span>[% UNLESS Koha.Preference('SuggestionsLog') %]<i class="log-disabled fa-solid fa-triangle-exclamation" title="Log not enabled" data-log="SuggestionsLog"></i>[% END %]
     [% CASE 'TRANSFERS' %]
         <span>Transfers</span>[% UNLESS Koha.Preference('TransfersLog') %]<i class="log-disabled fa-solid fa-triangle-exclamation" title="Log not enabled" data-log="TransfersLog"></i>[% END %]
+    [% CASE 'MARC_MOD_TEMPLATES' %]
+        <span>MARC modification templates</span>[% UNLESS Koha.Preference('MarcModificationTemplatesLog') %]
+            <i class="log-disabled fa-solid fa-triangle-exclamation" title="Log not enabled" data-log="MarcModificationTemplatesLog"></i>
+        [% END %]
     [% CASE %]
         [% module | html %]
     [% END %]
